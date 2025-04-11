@@ -1,533 +1,241 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Player = game:GetService("Players").LocalPlayer
-local RunService = game:GetService("RunService")
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "Rodhub"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local Window = Library.CreateLib("Rodhub ┃ "..Player.Name.." ┃ v3.2", {
-    Theme = "Dark",
-    Accent = Color3.fromRGB(255, 65, 65),
-    Size = UDim2.new(0, 650, 0, 550)
-})
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0.7, 0, 0.7, 0)
+mainFrame.Position = UDim2.new(0.15, 0, 0.15, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
 
-local Tabs = {
-    Main = Window:NewTab("🏠 主页"),
-    Player = Window:NewTab("👤 玩家"),
-    Combat = Window:NewTab("⚔️ 战斗"),
-    Visuals = Window:NewTab("👁️ 视觉"),
-    Doors = Window:NewTab("🚪 DOORS"),
-    Settings = Window:NewTab("⚙️ 设置")
-}
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0.2, 0)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "Rodhub"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 28
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+title.BorderSizePixel = 0
+title.Parent = mainFrame
 
-local HighlightColor = Color3.fromRGB(0, 150, 255)
-local ESPObjects = {}
+local flyButton = Instance.new("TextButton")
+flyButton.Name = "FlyButton"
+flyButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+flyButton.Position = UDim2.new(0.1, 0, 0.4, 0)
+flyButton.Text = "Toggle Fly"
+flyButton.Font = Enum.Font.Gotham
+flyButton.TextSize = 20
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+flyButton.BorderSizePixel = 0
+flyButton.Parent = mainFrame
 
-local MainSection = Tabs.Main:NewSection("🔧 核心功能")
-local GodModeToggle = MainSection:NewToggle("上帝模式", "免疫所有伤害", function(state)
-    if state then
-        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-    else
-        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-    end
-end)
+local noclipButton = Instance.new("TextButton")
+noclipButton.Name = "NoclipButton"
+noclipButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+noclipButton.Position = UDim2.new(0.1, 0, 0.6, 0)
+noclipButton.Text = "Toggle Noclip"
+noclipButton.Font = Enum.Font.Gotham
+noclipButton.TextSize = 20
+noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+noclipButton.BorderSizePixel = 0
+noclipButton.Parent = mainFrame
 
-local InfJumpToggle = MainSection:NewToggle("无限跳���", "取消跳跃冷却", function(state)
-    getgenv().InfJump = state
-end)
+local speedTextBox = Instance.new("TextBox")
+speedTextBox.Name = "SpeedTextBox"
+speedTextBox.Size = UDim2.new(0.8, 0, 0.2, 0)
+speedTextBox.Position = UDim2.new(0.1, 0, 0.8, 0)
+speedTextBox.Font = Enum.Font.Gotham
+speedTextBox.TextSize = 20
+speedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedTextBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+speedTextBox.BorderSizePixel = 0
+speedTextBox.PlaceholderText = "Enter speed (16-75)"
+speedTextBox.Parent = mainFrame
 
-local WalkSpeedSlider = MainSection:NewSlider("移动速度", "调整行走速度", 200, 16, function(value)
-    Player.Character.Humanoid.WalkSpeed = value
-end)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0.8, 0, 0.2, 0)
+toggleButton.Position = UDim2.new(0.1, 0, 0.9, 0)
+toggleButton.Text = "Toggle UI"
+toggleButton.Font = Enum.Font.Gotham
+toggleButton.TextSize = 20
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = mainFrame
 
-local MovementSection = Tabs.Player:NewSection("🏃 移动增强")
-local FlyToggle = MovementSection:NewToggle("飞行模式", "按住F键飞行", function(state)
-    getgenv().Flying = state
-    if state then
-        FLY()
-    end
-end):AddKeybind(Enum.KeyCode.F)
+local speed = 16
 
-local NoClipToggle = MovementSection:NewToggle("穿墙模式", "穿透所有物体", function(state)
-    getgenv().NoClip = state
-    if state then
-        Player.Character.Humanoid:ChangeState(11)
-    end
-end):AddKeybind(Enum.KeyCode.N)
-
-local VisualsESP = Tabs.Visuals:NewSection("🔵 蓝色ESP系统")
-local ESPToggle = VisualsESP:NewToggle("启用蓝色ESP", "高亮所有重要对象", function(state)
-    getgenv().BlueESP = state
-    if state then
-        EnableBlueESP()
-    else
-        DisableBlueESP()
-    end
-end)
-
-local DoorsSurvival = Tabs.Doors:NewSection("🛡️ 生存系统")
-local AutoHideToggle = DoorsSurvival:NewToggle("自动躲柜", "危险时自动寻找柜子", function(state)
-    getgenv().AutoHide = state
-end)
-
-local DoorsESPToggle = Tabs.Doors:NewSection("🔵 DOORS ESP")
-local DoorsHighlightToggle = DoorsESPToggle:NewToggle("高亮门和柜子", "蓝色高亮重要物体", function(state)
-    getgenv().DoorsBlueESP = state
-    if state then
-        HighlightDoorsObjects()
-    else
-        RemoveDoorsHighlights()
-    end
-end)
-
-function FLY()
-    local CONTROLS = {F = 0, B = 0, L = 0, R = 0}
-    local SPEED = 50
-
-    local BG = Instance.new("BodyGyro")
-    local BV = Instance.new("BodyVelocity")
-    BG.P = 9e4
-    BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-    BG.cframe = Player.Character.HumanoidRootPart.CFrame
-    BV.velocity = Vector3.new(0, 0, 0)
-    BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
-    BG.Parent = Player.Character.HumanoidRootPart
-    BV.Parent = Player.Character.HumanoidRootPart
-    
-    task.spawn(function()
-        repeat task.wait()
-            if CONTROLS.L + CONTROLS.R ~= 0 or CONTROLS.F + CONTROLS.B ~= 0 then
-                SPEED = 50
-            else
-                SPEED = 0
-            end
-            
-            BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (CONTROLS.F + CONTROLS.B)) + 
-                          ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(CONTROLS.L + CONTROLS.R, (CONTROLS.F + CONTROLS.B) * 0.2, 0).p - 
-                          workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
-        until not getgenv().Flying
-        BG:Destroy()
-        BV:Destroy()
-    end)
+local function updateSpeed(value)
+    local speed = tonumber(value) or 16
+    speed = math.clamp(speed, 16, 75)
+    speedTextBox.Text = tostring(speed)
 end
 
-RunService.Stepped:Connect(function()
-    if getgenv().NoClip and Player.Character then
-        for _, part in pairs(Player.Character:GetDescendants()) do
+updateSpeed(speed)
+
+speedTextBox.FocusLost:Connect(function()
+    updateSpeed(speedTextBox.Text)
+end)
+
+local isUIVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+    isUIVisible = not isUIVisible
+    mainFrame.Visible = isUIVisible
+end)
+
+local dragging = false
+local dragInput, mousePos, framePos
+
+local function update(input)
+    local delta = input.Position - mousePos
+    mainFrame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+end
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        mousePos = input.Position
+        framePos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        update(input)
+    end
+end)
+
+local flyEnabled = false
+local flySpeed = 0.1
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local function onFlyButtonClicked()
+    flyEnabled = not flyEnabled
+    if flyEnabled then
+        flyButton.Text = "Disable Fly"
+        local function flyLoop()
+            if not flyEnabled then return end
+            local moveVector = Vector3.new()
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+                moveVector = moveVector + rootPart.CFrame.LookVector
+            end
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+                moveVector = moveVector - rootPart.CFrame.LookVector
+            end
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+                moveVector = moveVector - rootPart.CFrame.RightVector
+            end
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+                moveVector = moveVector + rootPart.CFrame.RightVector
+            end
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                moveVector = moveVector + Vector3.new(0, 1, 0)
+            end
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+                moveVector = moveVector - Vector3.new(0, 1, 0)
+            end
+            rootPart.Velocity = moveVector * speed
+            wait()
+            flyLoop()
+        end
+        flyLoop()
+    else
+        flyButton.Text = "Enable Fly"
+        rootPart.Velocity = Vector3.new(0, 0, 0)
+    end
+end
+
+flyButton.MouseButton1Click:Connect(onFlyButtonClicked)
+
+local noclipEnabled = false
+
+local function onNoclipButtonClicked()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        noclipButton.Text = "Disable Noclip"
+        local function noclipLoop()
+            if not noclipEnabled then return end
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+            wait()
+            noclipLoop()
+        end
+        noclipLoop()
+    else
+        noclipButton.Text = "Enable Noclip"
+        for _, part in ipairs(character:GetDescendants()) do
             if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if getgenv().InfJump and Player.Character then
-        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-    end
-end)
-
-function EnableBlueESP()
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-        if player ~= Player then
-            player.CharacterAdded:Connect(function(char)
-                if getgenv().BlueESP then
-                    AddHighlight(char, 0.5)
-                end
-            end)
-            if player.Character then
-                AddHighlight(player.Character, 0.5)
-            end
-        end
-    end
-    
-    for _, item in pairs(workspace:GetDescendants()) do
-        if item:IsA("BasePart") and (item.Name:find("Door") or item.Name:find("Chest") or item.Name:find("Item")) then
-            AddHighlight(item, 0.3)
-        end
-    end
-end
-
-function HighlightDoorsObjects()
-    if not workspace:FindFirstChild("CurrentRooms") then return end
-    
-    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
-        if room:FindFirstChild("Door") then
-            AddHighlight(room.Door, 0.2)
-        end
-        
-        for _, obj in pairs(room:GetDescendants()) do
-            if obj.Name:find("Closet") then
-                AddHighlight(obj, 0.4)
-            end
-        end
-        
-        if room:FindFirstChild("Assets") then
-            for _, entity in pairs(room.Assets:GetChildren()) do
-                if entity:FindFirstChild("Humanoid") then
-                    AddHighlight(entity, 0)
-                end
+                part.CanCollide = true
             end
         end
     end
 end
 
-function AddHighlight(obj, transparency)
-    if not obj or not obj:IsA("BasePart") then return end
-    
-    if obj:FindFirstChild("RodhubHighlight") then
-        obj.RodhubHighlight:Destroy()
-    end
-    
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "RodhubHighlight"
-    highlight.FillColor = HighlightColor
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = transparency
-    highlight.Parent = obj
-    
-    table.insert(ESPObjects, highlight)
+noclipButton.MouseButton1Click:Connect(onNoclipButtonClicked)
+
+local VisualsTab = Window:MakeTab({
+    Name = "透视",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local CF = CFrame.new
+local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
+local ChaseStart = game:GetService("ReplicatedStorage").GameData.ChaseStart
+
+local KeyChams = {}
+VisualsTab:AddToggle({
+    Name = "钥匙透视",
+    Default = false,
+    Flag = "KeyToggle",
+    Save = true,
+    Callback = function(Value)
+        for _,v in pairs(KeyChams) do
+            v.Enabled = Value
+            if not Value then v:Destroy() end
+        end
+    end    
+})
+
+local function ApplyKeyChams(inst)
+    if not inst or not inst:IsA("BasePart") then return nil end
+    local Cham = Instance.new("Highlight")
+    Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    Cham.FillColor = Color3.new(0.98, 0.67, 0)
+    Cham.FillTransparency = 0.5
+    Cham.OutlineColor = Color3.new(0.79, 0.79, 0.79)
+    Cham.Parent = game:GetService("CoreGui")
+    Cham.Adornee = inst
+    Cham.Enabled = OrionLib.Flags["KeyToggle"].Value
+    Cham:GetPropertyChangedSignal("Enabled"):Connect(function()
+        if not Cham.Enabled then Cham:Destroy() end
+    end)
+    return Cham
 end
 
-function DisableBlueESP()
-    for _, obj in pairs(ESPObjects) do
-        if obj and obj.Parent then
-            obj:Destroy()
-        end
-    end
-    ESPObjects = {}
-end
-
-function RemoveDoorsHighlights()
-    if not workspace:FindFirstChild("CurrentRooms") then return end
-    
-    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
-        if room:FindFirstChild("Door") and room.Door:FindFirstChild("RodhubHighlight") then
-            room.Door.RodhubHighlight:Destroy()
-        end
-        
-        for _, obj in pairs(room:GetDescendants()) do
-            if obj:FindFirstChild("RodhubHighlight") then
-                obj.RodhubHighlight:Destroy()
-            end
-        end
-    end
-end
-
-task.spawn(function()
-    while task.wait(1) do
-        if getgenv().AutoHide and workspace:FindFirstChild("CurrentRooms") and Player.Character then
-            local closest
-            local minDist = math.huge
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj.Name:find("Closet") and obj:FindFirstChild("Enter") then
-                    local dist = (Player.Character.HumanoidRootPart.Position - obj.Enter.Position).Magnitude
-                    if dist < minDist then
-                        closest = obj
-                        minDist = dist
-                    end
-                end
-            end
-            if closest and minDist < 15 then
-                fireproximityprompt(closest.Enter)
-            end
-        end
-    end
-end)
-
-game:GetService("Players").PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(char)
-        if getgenv().BlueESP then
-            AddHighlight(char, 0.5)
+local KeyCoroutine = coroutine.create(function()
+    workspace.CurrentRooms.DescendantAdded:Connect(function(inst)
+        if inst and inst:IsA("BasePart") and inst.Name == "KeyObtain" then
+            table.insert(KeyChams, ApplyKeyChams(inst))
         end
     end)
 end)
-
-workspace.ChildAdded:Connect(function(child)
-    if child.Name == "CurrentRooms" and getgenv().DoorsBlueESP then
-        task.wait(2)
-        HighlightDoorsObjects()
-    end
-end)
-
-local StatusBar = Library:CreateStatusBar()
-StatusBar:SetText("状态: 已激活 | 延迟: "..game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString().."ms")
-
-RunService.Heartbeat:Connect(function()
-    StatusBar:SetText("状态: 已激活 | 延迟: "..game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString().."ms")
-end)
-
-Library:Notify({
-    Title = "Rodhub 加载成功",
-    Content = "蓝色ESP系统已就绪",
-    Duration = 5
-})
-
-task.spawn(function()
-    task.wait(3)
-    if getgenv().BlueESP then EnableBlueESP() end
-    if getgenv().DoorsBlueESP then HighlightDoorsObjects() end
-end)local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Player = game:GetService("Players").LocalPlayer
-local RunService = game:GetService("RunService")
-
-local Window = Library.CreateLib("Rodhub ┃ "..Player.Name.." ┃ v3.2", {
-    Theme = "Dark",
-    Accent = Color3.fromRGB(255, 65, 65),
-    Size = UDim2.new(0, 650, 0, 550)
-})
-
-local Tabs = {
-    Main = Window:NewTab("🏠 主页"),
-    Player = Window:NewTab("👤 玩家"),
-    Combat = Window:NewTab("⚔️ 战斗"),
-    Visuals = Window:NewTab("👁️ 视觉"),
-    Doors = Window:NewTab("🚪 DOORS"),
-    Settings = Window:NewTab("⚙️ 设置")
-}
-
-local HighlightColor = Color3.fromRGB(0, 150, 255)
-local ESPObjects = {}
-
-local MainSection = Tabs.Main:NewSection("🔧 核心功能")
-local GodModeToggle = MainSection:NewToggle("上帝模式", "免疫所有伤害", function(state)
-    if state then
-        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-    else
-        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-    end
-end)
-
-local InfJumpToggle = MainSection:NewToggle("无限跳���", "取消跳跃冷却", function(state)
-    getgenv().InfJump = state
-end)
-
-local WalkSpeedSlider = MainSection:NewSlider("移动速度", "调整行走速度", 200, 16, function(value)
-    Player.Character.Humanoid.WalkSpeed = value
-end)
-
-local MovementSection = Tabs.Player:NewSection("🏃 移动增强")
-local FlyToggle = MovementSection:NewToggle("飞行模式", "按住F键飞行", function(state)
-    getgenv().Flying = state
-    if state then
-        FLY()
-    end
-end):AddKeybind(Enum.KeyCode.F)
-
-local NoClipToggle = MovementSection:NewToggle("穿墙模式", "穿透所有物体", function(state)
-    getgenv().NoClip = state
-    if state then
-        Player.Character.Humanoid:ChangeState(11)
-    end
-end):AddKeybind(Enum.KeyCode.N)
-
-local VisualsESP = Tabs.Visuals:NewSection("🔵 蓝色ESP系统")
-local ESPToggle = VisualsESP:NewToggle("启用蓝色ESP", "高亮所有重要对象", function(state)
-    getgenv().BlueESP = state
-    if state then
-        EnableBlueESP()
-    else
-        DisableBlueESP()
-    end
-end)
-
-local DoorsSurvival = Tabs.Doors:NewSection("🛡️ 生存系统")
-local AutoHideToggle = DoorsSurvival:NewToggle("自动躲柜", "危险时自动寻找柜子", function(state)
-    getgenv().AutoHide = state
-end)
-
-local DoorsESPToggle = Tabs.Doors:NewSection("🔵 DOORS ESP")
-local DoorsHighlightToggle = DoorsESPToggle:NewToggle("高亮门和柜子", "蓝色高亮重要物体", function(state)
-    getgenv().DoorsBlueESP = state
-    if state then
-        HighlightDoorsObjects()
-    else
-        RemoveDoorsHighlights()
-    end
-end)
-
-function FLY()
-    local CONTROLS = {F = 0, B = 0, L = 0, R = 0}
-    local SPEED = 50
-
-    local BG = Instance.new("BodyGyro")
-    local BV = Instance.new("BodyVelocity")
-    BG.P = 9e4
-    BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-    BG.cframe = Player.Character.HumanoidRootPart.CFrame
-    BV.velocity = Vector3.new(0, 0, 0)
-    BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
-    BG.Parent = Player.Character.HumanoidRootPart
-    BV.Parent = Player.Character.HumanoidRootPart
-    
-    task.spawn(function()
-        repeat task.wait()
-            if CONTROLS.L + CONTROLS.R ~= 0 or CONTROLS.F + CONTROLS.B ~= 0 then
-                SPEED = 50
-            else
-                SPEED = 0
-            end
-            
-            BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (CONTROLS.F + CONTROLS.B)) + 
-                          ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(CONTROLS.L + CONTROLS.R, (CONTROLS.F + CONTROLS.B) * 0.2, 0).p - 
-                          workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
-        until not getgenv().Flying
-        BG:Destroy()
-        BV:Destroy()
-    end)
-end
-
-RunService.Stepped:Connect(function()
-    if getgenv().NoClip and Player.Character then
-        for _, part in pairs(Player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if getgenv().InfJump and Player.Character then
-        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-    end
-end)
-
-function EnableBlueESP()
-    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-        if player ~= Player then
-            player.CharacterAdded:Connect(function(char)
-                if getgenv().BlueESP then
-                    AddHighlight(char, 0.5)
-                end
-            end)
-            if player.Character then
-                AddHighlight(player.Character, 0.5)
-            end
-        end
-    end
-    
-    for _, item in pairs(workspace:GetDescendants()) do
-        if item:IsA("BasePart") and (item.Name:find("Door") or item.Name:find("Chest") or item.Name:find("Item")) then
-            AddHighlight(item, 0.3)
-        end
-    end
-end
-
-function HighlightDoorsObjects()
-    if not workspace:FindFirstChild("CurrentRooms") then return end
-    
-    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
-        if room:FindFirstChild("Door") then
-            AddHighlight(room.Door, 0.2)
-        end
-        
-        for _, obj in pairs(room:GetDescendants()) do
-            if obj.Name:find("Closet") then
-                AddHighlight(obj, 0.4)
-            end
-        end
-        
-        if room:FindFirstChild("Assets") then
-            for _, entity in pairs(room.Assets:GetChildren()) do
-                if entity:FindFirstChild("Humanoid") then
-                    AddHighlight(entity, 0)
-                end
-            end
-        end
-    end
-end
-
-function AddHighlight(obj, transparency)
-    if not obj or not obj:IsA("BasePart") then return end
-    
-    if obj:FindFirstChild("RodhubHighlight") then
-        obj.RodhubHighlight:Destroy()
-    end
-    
-    local highlight = Instance.new("Highlight")
-    highlight.Name = "RodhubHighlight"
-    highlight.FillColor = HighlightColor
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = transparency
-    highlight.Parent = obj
-    
-    table.insert(ESPObjects, highlight)
-end
-
-function DisableBlueESP()
-    for _, obj in pairs(ESPObjects) do
-        if obj and obj.Parent then
-            obj:Destroy()
-        end
-    end
-    ESPObjects = {}
-end
-
-function RemoveDoorsHighlights()
-    if not workspace:FindFirstChild("CurrentRooms") then return end
-    
-    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
-        if room:FindFirstChild("Door") and room.Door:FindFirstChild("RodhubHighlight") then
-            room.Door.RodhubHighlight:Destroy()
-        end
-        
-        for _, obj in pairs(room:GetDescendants()) do
-            if obj:FindFirstChild("RodhubHighlight") then
-                obj.RodhubHighlight:Destroy()
-            end
-        end
-    end
-end
-
-task.spawn(function()
-    while task.wait(1) do
-        if getgenv().AutoHide and workspace:FindFirstChild("CurrentRooms") and Player.Character then
-            local closest
-            local minDist = math.huge
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj.Name:find("Closet") and obj:FindFirstChild("Enter") then
-                    local dist = (Player.Character.HumanoidRootPart.Position - obj.Enter.Position).Magnitude
-                    if dist < minDist then
-                        closest = obj
-                        minDist = dist
-                    end
-                end
-            end
-            if closest and minDist < 15 then
-                fireproximityprompt(closest.Enter)
-            end
-        end
-    end
-end)
-
-game:GetService("Players").PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(char)
-        if getgenv().BlueESP then
-            AddHighlight(char, 0.5)
-        end
-    end)
-end)
-
-workspace.ChildAdded:Connect(function(child)
-    if child.Name == "CurrentRooms" and getgenv().DoorsBlueESP then
-        task.wait(2)
-        HighlightDoorsObjects()
-    end
-end)
-
-local StatusBar = Library:CreateStatusBar()
-StatusBar:SetText("状态: 已激活 | 延迟: "..game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString().."ms")
-
-RunService.Heartbeat:Connect(function()
-    StatusBar:SetText("状态: 已激活 | 延迟: "..game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString().."ms")
-end)
-
-Library:Notify({
-    Title = "Rodhub 加载成功",
-    Content = "蓝色ESP系统已就绪",
-    Duration = 5
-})
-
-task.spawn(function()
-    task.wait(3)
-    if getgenv().BlueESP then EnableBlueESP() end
-    if getgenv().DoorsBlueESP then HighlightDoorsObjects() end
-end)
+coroutine.resume(KeyCoroutine)
