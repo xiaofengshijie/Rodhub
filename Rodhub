@@ -1,145 +1,154 @@
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local player = Players.LocalPlayer
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 
-local screenGui = Instance.new("ScreenGui")
-local mainFrame = Instance.new("Frame")
-local minimizedFrame = Instance.new("Frame")
+local Options = Library.Options
+local Toggles = Library.Toggles
 
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = player:WaitForChild("PlayerGui")
+Library.ForceCheckbox = false
+Library.ShowToggleFrameInKeybinds = true
 
-mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0.8, 0, 0.8, 0)
-mainFrame.Visible = true
+local Window = Library:CreateWindow({
+    Title = "Rodhub",
+    Footer = "version: example",
+    Icon = 95816097006870,
+    NotifySide = "Right",
+    ShowCustomCursor = true,
+})
 
-minimizedFrame.Parent = screenGui
-minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-minimizedFrame.Size = UDim2.new(0, 200, 0, 30)
-minimizedFrame.Visible = false
-minimizedFrame.ZIndex = 2
+local Tabs = {
+    Main = Window:AddTab("Main", "user"),
+    Key = Window:AddKeyTab("Key System"),
+    ["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+}
 
-local function createUICorner(parent, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius)
-    corner.Parent = parent
-    return corner
-end
+local LeftGroupBox = Tabs.Main:AddLeftGroupbox("Groupbox")
 
-createUICorner(mainFrame, 10)
-createUICorner(minimizedFrame, 5)
+LeftGroupBox:AddToggle("MyToggle", {
+    Text = "This is a toggle",
+    Tooltip = "This is a tooltip",
+    DisabledTooltip = "I am disabled!",
+    Default = true,
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+    Callback = function(Value)
+        print("[cb] MyToggle changed to:", Value)
+    end,
+})
+    :AddColorPicker("ColorPicker1", {
+        Default = Color3.new(1, 0, 0),
+        Title = "Some color1",
+        Transparency = 0,
+        Callback = function(Value)
+            print("[cb] Color changed!", Value)
+        end,
+    })
+    :AddColorPicker("ColorPicker2", {
+        Default = Color3.new(0, 1, 0),
+        Title = "Some color2",
+        Callback = function(Value)
+            print("[cb] Color changed!", Value)
+        end,
+    })
 
-local title = Instance.new("TextLabel")
-title.Parent = mainFrame
-title.Size = UDim2.new(1, 0, 0.1, 0)
-title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-title.Font = Enum.Font.GothamBold
-title.Text = "Rodhub"
-title.TextColor3 = Color3.white
-title.TextSize = 24
-createUICorner(title, 5)
-
-local closeButton = Instance.new("TextButton")
-closeButton.Parent = mainFrame
-closeButton.Size = UDim2.new(0, 50, 0, 30)
-closeButton.Position = UDim2.new(0.9, -50, 0, 0)
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "X"
-createUICorner(closeButton, 5)
-
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Parent = mainFrame
-minimizeButton.Size = UDim2.new(0, 50, 0, 30)
-minimizeButton.Position = UDim2.new(0.8, -50, 0, 0)
-minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.Text = "-"
-createUICorner(minimizeButton, 5)
-
-local openButton = Instance.new("TextButton")
-openButton.Parent = minimizedFrame
-openButton.Size = UDim2.new(0.8, 0, 1, 0)
-openButton.Position = UDim2.new(0.2, 0, 0, 0)
-openButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-openButton.Text = "Open"
-createUICorner(openButton, 3)
-
-local functionFrame = Instance.new("Frame")
-functionFrame.Parent = mainFrame
-functionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-functionFrame.Position = UDim2.new(0, 10, 0.1, 10)
-functionFrame.Size = UDim2.new(1, -20, 0, 0)
-createUICorner(functionFrame, 8)
-
-local functionScroll = Instance.new("ScrollingFrame")
-functionScroll.Parent = functionFrame
-functionScroll.Size = UDim2.new(1, 0, 1, 0)
-functionScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-
-local functionLayout = Instance.new("UIListLayout")
-functionLayout.Parent = functionScroll
-functionLayout.Padding = UDim.new(0, 5)
-
-local dragging = false
-local dragStartPos
-local frameStartPos
-
-minimizedFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStartPos = input.Position
-        frameStartPos = minimizedFrame.Position
-    end
+Toggles.MyToggle:OnChanged(function()
+    print("MyToggle changed to:", Toggles.MyToggle.Value)
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStartPos
-        minimizedFrame.Position = UDim2.new(
-            frameStartPos.X.Scale,
-            frameStartPos.X.Offset + delta.X,
-            frameStartPos.Y.Scale,
-            frameStartPos.Y.Offset + delta.Y
-        )
-    end
+Toggles.MyToggle:SetValue(false)
+
+LeftGroupBox:AddCheckbox("MyCheckbox", {
+    Text = "This is a checkbox",
+    Tooltip = "This is a tooltip",
+    DisabledTooltip = "I am disabled!",
+    Default = true,
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+    Callback = function(Value)
+        print("[cb] MyCheckbox changed to:", Value)
+    end,
+})
+
+Toggles.MyCheckbox:OnChanged(function()
+    print("MyCheckbox changed to:", Toggles.MyCheckbox.Value)
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
+local MyButton = LeftGroupBox:AddButton({
+    Text = "Button",
+    Func = function()
+        print("You clicked a button!")
+    end,
+    DoubleClick = false,
+    Tooltip = "This is the main button",
+    DisabledTooltip = "I am disabled!",
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+})
+
+local MyButton2 = MyButton:AddButton({
+    Text = "Sub button",
+    Func = function()
+        print("You clicked a sub button!")
+    end,
+    DoubleClick = true,
+    Tooltip = "This is the sub button",
+    DisabledTooltip = "I am disabled!",
+})
+
+local MyDisabledButton = LeftGroupBox:AddButton({
+    Text = "Disabled Button",
+    Func = function()
+        print("You somehow clicked a disabled button!")
+    end,
+    DoubleClick = false,
+    Tooltip = "This is a disabled button",
+    DisabledTooltip = "I am disabled!",
+    Disabled = true,
+})
+
+LeftGroupBox:AddLabel("This is a label")
+LeftGroupBox:AddLabel("This is a label\n\nwhich wraps its text!", true)
+LeftGroupBox:AddLabel("This is a label exposed to Labels", true, "TestLabel")
+LeftGroupBox:AddLabel("SecondTestLabel", {
+    Text = "This is a label made with table options and an index",
+    DoesWrap = true,
+})
+
+LeftGroupBox:AddLabel("SecondTestLabel", {
+    Text = "This is a label that doesn't wrap it's own text",
+    DoesWrap = false,
+})
+
+LeftGroupBox:AddDivider()
+
+LeftGroupBox:AddSlider("MySlider", {
+    Text = "This is my slider!",
+    Default = 0,
+    Min = 0,
+    Max = 5,
+    Rounding = 1,
+    Compact = false,
+    Callback = function(Value)
+        print("[cb] MySlider was changed! New value:", Value)
+    end,
+    Tooltip = "I am a slider!",
+    DisabledTooltip = "I am disabled!",
+    Disabled = false,
+    Visible = true,
+})
+
+local Number = Options.MySlider.Value
+Options.MySlider:OnChanged(function()
+    print("MySlider was changed! New value:", Options.MySlider.Value)
 end)
 
-local isFunctionVisible = false
-title.Active = true
-title.MouseButton1Click:Connect(function()
-    isFunctionVisible = not isFunctionVisible
-    functionFrame:TweenSize(
-        isFunctionVisible and UDim2.new(1, -20, 0.8, -20) 
-        or UDim2.new(1, -20, 0, 0),
-        Enum.EasingDirection.Out,
-        Enum.EasingStyle.Quad,
-        0.2,
-        true
-    )
-end)
+Options.MySlider:SetValue(3)
 
-local isMinimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    mainFrame.Visible = not isMinimized
-    minimizedFrame.Visible = isMinimized
-end)
-
-openButton.MouseButton1Click:Connect(function()
-    isMinimized = false
-    mainFrame.Visible = true
-    minimizedFrame.Visible = false
-end)
-
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
+LeftGroupBox:AddInput("MyTextbox", {
+    Default = "My textbox!",
+    Numeric = false
+})
