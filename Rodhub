@@ -1,159 +1,137 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+
 local screenGui = Instance.new("ScreenGui")
 local mainFrame = Instance.new("Frame")
-local uICorner = Instance.new("UICorner")
-local title = Instance.new("TextLabel")
-local closeButton = Instance.new("TextButton")
-local uICorner_4 = Instance.new("UICorner")
 local minimizedFrame = Instance.new("Frame")
+
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+mainFrame.Parent = screenGui
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+mainFrame.Size = UDim2.new(0.8, 0, 0.8, 0)
+mainFrame.Visible = true
+
+minimizedFrame.Parent = screenGui
+minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minimizedFrame.Size = UDim2.new(0, 200, 0, 30)
+minimizedFrame.Visible = false
+minimizedFrame.ZIndex = 2
+
+local function createUICorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius)
+    corner.Parent = parent
+    return corner
+end
+
+createUICorner(mainFrame, 10)
+createUICorner(minimizedFrame, 5)
+
+local title = Instance.new("TextLabel")
+title.Parent = mainFrame
+title.Size = UDim2.new(1, 0, 0.1, 0)
+title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+title.Font = Enum.Font.GothamBold
+title.Text = "Rodhub"
+title.TextColor3 = Color3.white
+title.TextSize = 24
+createUICorner(title, 5)
+
+local closeButton = Instance.new("TextButton")
+closeButton.Parent = mainFrame
+closeButton.Size = UDim2.new(0, 50, 0, 30)
+closeButton.Position = UDim2.new(0.9, -50, 0, 0)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Text = "X"
+createUICorner(closeButton, 5)
+
 local minimizeButton = Instance.new("TextButton")
+minimizeButton.Parent = mainFrame
+minimizeButton.Size = UDim2.new(0, 50, 0, 30)
+minimizeButton.Position = UDim2.new(0.8, -50, 0, 0)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Text = "-"
+createUICorner(minimizeButton, 5)
+
 local openButton = Instance.new("TextButton")
+openButton.Parent = minimizedFrame
+openButton.Size = UDim2.new(0.8, 0, 1, 0)
+openButton.Position = UDim2.new(0.2, 0, 0, 0)
+openButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+openButton.Text = "Open"
+createUICorner(openButton, 3)
+
+local functionFrame = Instance.new("Frame")
+functionFrame.Parent = mainFrame
+functionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+functionFrame.Position = UDim2.new(0, 10, 0.1, 10)
+functionFrame.Size = UDim2.new(1, -20, 0, 0)
+createUICorner(functionFrame, 8)
+
+local functionScroll = Instance.new("ScrollingFrame")
+functionScroll.Parent = functionFrame
+functionScroll.Size = UDim2.new(1, 0, 1, 0)
+functionScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+local functionLayout = Instance.new("UIListLayout")
+functionLayout.Parent = functionScroll
+functionLayout.Padding = UDim.new(0, 5)
 
 local dragging = false
 local dragStartPos
 local frameStartPos
-
-local function updateDrag(input)
-    local delta = input.Position - dragStartPos
-    minimizedFrame.Position = UDim2.new(
-        frameStartPos.X.Scale,
-        frameStartPos.X.Offset + delta.X,
-        frameStartPos.Y.Scale,
-        frameStartPos.Y.Offset + delta.Y
-    )
-end
 
 minimizedFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStartPos = input.Position
         frameStartPos = minimizedFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        updateDrag(input)
+        local delta = input.Position - dragStartPos
+        minimizedFrame.Position = UDim2.new(
+            frameStartPos.X.Scale,
+            frameStartPos.X.Offset + delta.X,
+            frameStartPos.Y.Scale,
+            frameStartPos.Y.Offset + delta.Y
+        )
     end
 end)
 
-local functionFrame = Instance.new("Frame")
-local functionUICorner = Instance.new("UICorner")
-local functionScroll = Instance.new("ScrollingFrame")
-local functionLayout = Instance.new("UIListLayout")
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
 local isFunctionVisible = false
-
-functionFrame.Parent = mainFrame
-functionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-functionFrame.Position = UDim2.new(0, 10, 0.1, 10)
-functionFrame.Size = UDim2.new(1, -20, 0, 0)
-functionFrame.ClipsDescendants = true
-
-functionUICorner.CornerRadius = UDim.new(0, 8)
-functionUICorner.Parent = functionFrame
-
-functionScroll.Parent = functionFrame
-functionScroll.Size = UDim2.new(1, 0, 1, 0)
-functionScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-functionScroll.ScrollBarThickness = 5
-
-functionLayout.Parent = functionScroll
-functionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-functionLayout.Padding = UDim.new(0, 5)
-
-title.TextXAlignment = Enum.TextXAlignment.Center
 title.Active = true
 title.MouseButton1Click:Connect(function()
     isFunctionVisible = not isFunctionVisible
     functionFrame:TweenSize(
-        isFunctionVisible and UDim2.new(1, -20, 0.8, -20) or UDim2.new(1, -20, 0, 0),
+        isFunctionVisible and UDim2.new(1, -20, 0.8, -20) 
+        or UDim2.new(1, -20, 0, 0),
         Enum.EasingDirection.Out,
         Enum.EasingStyle.Quad,
-        0.2
+        0.2,
+        true
     )
 end)
 
-screenGui.Parent = player.PlayerGui
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0.8, 0, 0.8, 0)
-
-uICorner.CornerRadius = UDim.new(0, 10)
-uICorner.Parent = mainFrame
-
-title.Parent = mainFrame
-title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-title.Size = UDim2.new(1, 0, 0.1, 0)
-title.Font = Enum.Font.GothamBold
-title.Text = "Rodhub"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 24.0
-
-closeButton.Parent = mainFrame
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
-closeButton.Position = UDim2.new(0.9, -50, 0, 0)
-closeButton.Size = UDim2.new(0, 50, 0, 30)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 20.0
-
-uICorner_4.CornerRadius = UDim.new(0, 10)
-uICorner_4.Parent = closeButton
-
-local gradient = Instance.new("UIGradient")
-gradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(30, 30, 30)),
-    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(50, 50, 50))
-}
-gradient.Parent = mainFrame
-
-minimizedFrame.Parent = screenGui
-minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-minimizedFrame.Position = UDim2.new(0.5, -100, 0.1, 0)
-minimizedFrame.Size = UDim2.new(0, 200, 0, 30)
-minimizedFrame.Visible = false
-minimizedFrame.Active = true
-minimizedFrame.Selectable = true
-
-minimizeButton.Parent = mainFrame
-minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-minimizeButton.Position = UDim2.new(0.8, -50, 0, 0)
-minimizeButton.Size = UDim2.new(0, 50, 0, 30)
-minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.Text = "-"
-minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minimizeButton.TextSize = 20.0
-
-openButton.Parent = minimizedFrame
-openButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-openButton.Size = UDim2.new(0.8, 0, 1, 0)
-openButton.Position = UDim2.new(0.2, 0, 0, 0)
-openButton.BackgroundTransparency = 0.5
-openButton.Font = Enum.Font.GothamBold
-openButton.Text = "Open"
-openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-openButton.TextSize = 18.0
-
 local isMinimized = false
-
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     mainFrame.Visible = not isMinimized
     minimizedFrame.Visible = isMinimized
-    if isMinimized then
-        minimizedFrame.ZIndex = 2
-    end
 end)
 
 openButton.MouseButton1Click:Connect(function()
