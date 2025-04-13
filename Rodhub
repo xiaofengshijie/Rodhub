@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 local mainFrame = Instance.new("Frame")
@@ -10,63 +11,74 @@ local minimizedFrame = Instance.new("Frame")
 local minimizeButton = Instance.new("TextButton")
 local openButton = Instance.new("TextButton")
 
+local dragging = false
+local dragStartPos
+local frameStartPos
+
+local function updateDrag(input)
+    local delta = input.Position - dragStartPos
+    minimizedFrame.Position = UDim2.new(
+        frameStartPos.X.Scale,
+        frameStartPos.X.Offset + delta.X,
+        frameStartPos.Y.Scale,
+        frameStartPos.Y.Offset + delta.Y
+    )
+end
+
+minimizedFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStartPos = input.Position
+        frameStartPos = minimizedFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDrag(input)
+    end
+end)
+
 local functionFrame = Instance.new("Frame")
 local functionUICorner = Instance.new("UICorner")
-local functionTitle = Instance.new("TextLabel")
 local functionScroll = Instance.new("ScrollingFrame")
 local functionLayout = Instance.new("UIListLayout")
+local isFunctionVisible = false
 
 functionFrame.Parent = mainFrame
 functionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 functionFrame.Position = UDim2.new(0, 10, 0.1, 10)
-functionFrame.Size = UDim2.new(1, -20, 0.8, -20)
+functionFrame.Size = UDim2.new(1, -20, 0, 0)
 functionFrame.ClipsDescendants = true
 
 functionUICorner.CornerRadius = UDim.new(0, 8)
 functionUICorner.Parent = functionFrame
 
-functionTitle.Parent = functionFrame
-functionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-functionTitle.Size = UDim2.new(1, 0, 0.1, 0)
-functionTitle.Font = Enum.Font.GothamBold
-functionTitle.Text = "功能列表"
-functionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-functionTitle.TextSize = 20.0
-functionTitle.TextXAlignment = Enum.TextXAlignment.Center
-
 functionScroll.Parent = functionFrame
-functionScroll.Position = UDim2.new(0, 0, 0.1, 0)
-functionScroll.Size = UDim2.new(1, 0, 0.9, 0)
-functionScroll.CanvasSize = UDim2.new(0, 0, 2, 0)
+functionScroll.Size = UDim2.new(1, 0, 1, 0)
+functionScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 functionScroll.ScrollBarThickness = 5
 
 functionLayout.Parent = functionScroll
 functionLayout.SortOrder = Enum.SortOrder.LayoutOrder
 functionLayout.Padding = UDim.new(0, 5)
 
-local function createFunctionButton(text)
-    local button = Instance.new("TextButton")
-    local buttonCorner = Instance.new("UICorner")
-    
-    button.Parent = functionScroll
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.Size = UDim2.new(0.95, 0, 0, 40)
-    button.Position = UDim2.new(0.025, 0, 0, 0)
-    button.Font = Enum.Font.Gotham
-    button.Text = text
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextSize = 16.0
-    
-    buttonCorner.CornerRadius = UDim.new(0, 6)
-    buttonCorner.Parent = button
-    return button
-end
-
-createFunctionButton("无敌模式")
-createFunctionButton("速度提升")
-createFunctionButton("飞天功能")
-createFunctionButton("穿墙模式")
-createFunctionButton("无限跳跃")
+title.TextXAlignment = Enum.TextXAlignment.Center
+title.Active = true
+title.MouseButton1Click:Connect(function()
+    isFunctionVisible = not isFunctionVisible
+    functionFrame:TweenSize(
+        isFunctionVisible and UDim2.new(1, -20, 0.8, -20) or UDim2.new(1, -20, 0, 0),
+        Enum.EasingDirection.Out,
+        Enum.EasingStyle.Quad,
+        0.2
+    )
+end)
 
 screenGui.Parent = player.PlayerGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -86,7 +98,6 @@ title.Font = Enum.Font.GothamBold
 title.Text = "Rodhub"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 24.0
-title.TextXAlignment = Enum.TextXAlignment.Left
 
 closeButton.Parent = mainFrame
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
@@ -112,6 +123,8 @@ minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 minimizedFrame.Position = UDim2.new(0.5, -100, 0.1, 0)
 minimizedFrame.Size = UDim2.new(0, 200, 0, 30)
 minimizedFrame.Visible = false
+minimizedFrame.Active = true
+minimizedFrame.Selectable = true
 
 minimizeButton.Parent = mainFrame
 minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
@@ -124,7 +137,9 @@ minimizeButton.TextSize = 20.0
 
 openButton.Parent = minimizedFrame
 openButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-openButton.Size = UDim2.new(1, 0, 1, 0)
+openButton.Size = UDim2.new(0.8, 0, 1, 0)
+openButton.Position = UDim2.new(0.2, 0, 0, 0)
+openButton.BackgroundTransparency = 0.5
 openButton.Font = Enum.Font.GothamBold
 openButton.Text = "Open"
 openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -136,6 +151,9 @@ minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     mainFrame.Visible = not isMinimized
     minimizedFrame.Visible = isMinimized
+    if isMinimized then
+        minimizedFrame.ZIndex = 2
+    end
 end)
 
 openButton.MouseButton1Click:Connect(function()
