@@ -1,10 +1,5 @@
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
-
-local Options = Library.Options
-local Toggles = Library.Toggles
 
 Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
@@ -18,137 +13,30 @@ local Window = Library:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab("Main", "user"),
-    Key = Window:AddKeyTab("Key System"),
-    ["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+    ["透视"] = Window:AddTab("透视", "eye"),
+    ["楼层"] = Window:AddTab("楼层", "layers"),
+    ["反作弊"] = Window:AddTab("反作弊", "shield"),
+    ["功能"] = Window:AddTab("功能", "flag"),
+    ["UI Settings"] = Window:AddTab("UI Settings", "settings")
 }
 
-local LeftGroupBox = Tabs.Main:AddLeftGroupbox("Groupbox")
+local WallhackLeft = Tabs["透视"]:AddLeftGroupbox("玩家透视")
+local WallhackRight = Tabs["透视"]:AddRightGroupbox("物体透视")
+WallhackLeft:AddToggle("PlayerESP", {Text = "玩家轮廓", Default = false})
+WallhackLeft:AddColorPicker("ESPColor", {Default = Color3.new(1, 0.5, 0)})
+WallhackRight:AddToggle("ItemESP", {Text = "物品高亮", Default = false})
+WallhackRight:AddSlider("ESPRange", {Text = "透视范围", Min = 0, Max = 500, Default = 100, Rounding = 0})
 
-LeftGroupBox:AddToggle("MyToggle", {
-    Text = "This is a toggle",
-    Tooltip = "This is a tooltip",
-    DisabledTooltip = "I am disabled!",
-    Default = true,
-    Disabled = false,
-    Visible = true,
-    Risky = false,
-    Callback = function(Value)
-        print("[cb] MyToggle changed to:", Value)
-    end,
-})
-    :AddColorPicker("ColorPicker1", {
-        Default = Color3.new(1, 0, 0),
-        Title = "Some color1",
-        Transparency = 0,
-        Callback = function(Value)
-            print("[cb] Color changed!", Value)
-        end,
-    })
-    :AddColorPicker("ColorPicker2", {
-        Default = Color3.new(0, 1, 0),
-        Title = "Some color2",
-        Callback = function(Value)
-            print("[cb] Color changed!", Value)
-        end,
-    })
+local FloorLeft = Tabs["楼层"]:AddLeftGroupbox("楼层选择")
+local FloorRight = Tabs["楼层"]:AddRightGroupbox("传送设置")
+FloorLeft:AddDropdown("FloorSelect", {Text = "选择楼层", Default = "1楼", Values = {"1楼", "2楼", "3楼", "地下室"}})
+FloorLeft:AddLabel("当前所在：未知楼层", true, "FloorStatus")
+FloorRight:AddButton({Text = "传送到达", Func = function() end})
+FloorRight:AddToggle("AutoFloor", {Text = "自动导航", Default = false})
 
-Toggles.MyToggle:OnChanged(function()
-    print("MyToggle changed to:", Toggles.MyToggle.Value)
-end)
-
-Toggles.MyToggle:SetValue(false)
-
-LeftGroupBox:AddCheckbox("MyCheckbox", {
-    Text = "This is a checkbox",
-    Tooltip = "This is a tooltip",
-    DisabledTooltip = "I am disabled!",
-    Default = true,
-    Disabled = false,
-    Visible = true,
-    Risky = false,
-    Callback = function(Value)
-        print("[cb] MyCheckbox changed to:", Value)
-    end,
-})
-
-Toggles.MyCheckbox:OnChanged(function()
-    print("MyCheckbox changed to:", Toggles.MyCheckbox.Value)
-end)
-
-local MyButton = LeftGroupBox:AddButton({
-    Text = "Button",
-    Func = function()
-        print("You clicked a button!")
-    end,
-    DoubleClick = false,
-    Tooltip = "This is the main button",
-    DisabledTooltip = "I am disabled!",
-    Disabled = false,
-    Visible = true,
-    Risky = false,
-})
-
-local MyButton2 = MyButton:AddButton({
-    Text = "Sub button",
-    Func = function()
-        print("You clicked a sub button!")
-    end,
-    DoubleClick = true,
-    Tooltip = "This is the sub button",
-    DisabledTooltip = "I am disabled!",
-})
-
-local MyDisabledButton = LeftGroupBox:AddButton({
-    Text = "Disabled Button",
-    Func = function()
-        print("You somehow clicked a disabled button!")
-    end,
-    DoubleClick = false,
-    Tooltip = "This is a disabled button",
-    DisabledTooltip = "I am disabled!",
-    Disabled = true,
-})
-
-LeftGroupBox:AddLabel("This is a label")
-LeftGroupBox:AddLabel("This is a label\n\nwhich wraps its text!", true)
-LeftGroupBox:AddLabel("This is a label exposed to Labels", true, "TestLabel")
-LeftGroupBox:AddLabel("SecondTestLabel", {
-    Text = "This is a label made with table options and an index",
-    DoesWrap = true,
-})
-
-LeftGroupBox:AddLabel("SecondTestLabel", {
-    Text = "This is a label that doesn't wrap it's own text",
-    DoesWrap = false,
-})
-
-LeftGroupBox:AddDivider()
-
-LeftGroupBox:AddSlider("MySlider", {
-    Text = "This is my slider!",
-    Default = 0,
-    Min = 0,
-    Max = 5,
-    Rounding = 1,
-    Compact = false,
-    Callback = function(Value)
-        print("[cb] MySlider was changed! New value:", Value)
-    end,
-    Tooltip = "I am a slider!",
-    DisabledTooltip = "I am disabled!",
-    Disabled = false,
-    Visible = true,
-})
-
-local Number = Options.MySlider.Value
-Options.MySlider:OnChanged(function()
-    print("MySlider was changed! New value:", Options.MySlider.Value)
-end)
-
-Options.MySlider:SetValue(3)
-
-LeftGroupBox:AddInput("MyTextbox", {
-    Default = "My textbox!",
-    Numeric = false
-})
+local AntiCheatLeft = Tabs["反作弊"]:AddLeftGroupbox("检测系统")
+local AntiCheatRight = Tabs["反作弊"]:AddRightGroupbox("保护措施")
+AntiCheatLeft:AddToggle("AntiDetection", {Text = "反检测模式", Default = true})
+AntiCheatLeft:AddLabel("最后检测时间:", true, "LastCheckTime")
+AntiCheatRight:AddToggle("MemoryProtect", {Text = "内存保护", Default = false})
+AntiCheatRight:AddButton({Text = "清除日志", Func = function() end})
