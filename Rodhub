@@ -1,111 +1,149 @@
-local Library = loadstring(game:HttpGet(Repository .. "Library.lua"))()
-local ThemeManager = loadstring(game:HttpGet(Repository .. "addons/ThemeManager.lua"))()
-local SaveManager = loadstring(game:HttpGet(Repository .. "addons/SaveManager.lua"))()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+local mainFrame = Instance.new("Frame")
+local uICorner = Instance.new("UICorner")
+local title = Instance.new("TextLabel")
+local closeButton = Instance.new("TextButton")
+local uICorner_4 = Instance.new("UICorner")
+local minimizedFrame = Instance.new("Frame")
+local minimizeButton = Instance.new("TextButton")
+local openButton = Instance.new("TextButton")
+local speedSlider = Instance.new("Slider")
+local speedLabel = Instance.new("TextLabel")
+local bypassCheckbox = Instance.new("TextBox")
 
-local ErrorMessageOut
-ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Message, Type)
+screenGui.Parent = player.PlayerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-    if Type == Enum.MessageType.MessageError and not string.find(Message, "attempt to index nil with 'Value'") then
-        ErrorMessageOut:Disconnect()
+mainFrame.Parent = screenGui
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+mainFrame.Size = UDim2.new(0.8, 0, 0.8, 0)
 
-        setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
-        Library:Notify(" Lolhax has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RD discord server! ", 4.5)
+uICorner.CornerRadius = UDim.new(0, 10)
+uICorner.Parent = mainFrame
 
-        task.delay(5, function()
-            Library:Unload()
-        end)
-    end
+title.Parent = mainFrame
+title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+title.Size = UDim2.new(1, 0, 0.1, 0)
+title.Font = Enum.Font.GothamBold
+title.Text = "Rodhub"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 24.0
+title.TextXAlignment = Enum.TextXAlignment.Left
 
+closeButton.Parent = mainFrame
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 40, 40)
+closeButton.Position = UDim2.new(0.9, -50, 0, 0)
+closeButton.Size = UDim2.new(0, 50, 0, 30)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 20.0
+
+uICorner_4.CornerRadius = UDim.new(0, 10)
+uICorner_4.Parent = closeButton
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(50, 50, 50))
+}
+gradient.Parent = mainFrame
+
+minimizedFrame.Parent = screenGui
+minimizedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minimizedFrame.Position = UDim2.new(0.5, -100, 0.1, 0)
+minimizedFrame.Size = UDim2.new(0, 200, 0, 30)
+minimizedFrame.Visible = false
+
+minimizeButton.Parent = mainFrame
+minimizeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+minimizeButton.Position = UDim2.new(0.8, -50, 0, 0)
+minimizeButton.Size = UDim2.new(0, 50, 0, 30)
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextSize = 20.0
+
+openButton.Parent = minimizedFrame
+openButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+openButton.Size = UDim2.new(1, 0, 1, 0)
+openButton.Font = Enum.Font.GothamBold
+openButton.Text = "Open"
+openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+openButton.TextSize = 18.0
+
+local functionArea = Instance.new("Frame")
+functionArea.Parent = mainFrame
+functionArea.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+functionArea.Position = UDim2.new(0, 0, 0.15, 0)
+functionArea.Size = UDim2.new(1, 0, 0.3, 0)
+
+local uICornerFunction = Instance.new("UICorner")
+uICornerFunction.CornerRadius = UDim.new(0, 10)
+uICornerFunction.Parent = functionArea
+
+speedSlider.Parent = functionArea
+speedSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+speedSlider.Position = UDim2.new(0.1, 0, 0.1, 0)
+speedSlider.Size = UDim2.new(0.8, 0, 0.2, 0)
+speedSlider.Value = 16
+speedSlider.Minimum = 16
+speedSlider.Maximum = 75
+speedSlider.Font = Enum.Font.SourceSans
+speedSlider.Text = ""
+speedSlider.TextColor3 = Color3.fromRGB(0, 0, 0)
+
+speedLabel.Parent = functionArea
+speedLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+speedLabel.Position = UDim2.new(0.1, 0, 0.35, 0)
+speedLabel.Size = UDim2.new(0.8, 0, 0.2, 0)
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.Text = "Speed: 16"
+speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedLabel.TextSize = 18.0
+
+bypassCheckbox.Parent = functionArea
+bypassCheckbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+bypassCheckbox.Position = UDim2.new(0.1, 0, 0.6, 0)
+bypassCheckbox.Size = UDim2.new(0.8, 0, 0.2, 0)
+bypassCheckbox.Font = Enum.Font.Gotham
+bypassCheckbox.Text = "Bypass Speed"
+bypassCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+bypassCheckbox.TextSize = 18.0
+
+local isMinimized = false
+
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    mainFrame.Visible = not isMinimized
+    minimizedFrame.Visible = isMinimized
 end)
-local friends = {}
-local LocalPlayer = game.Players.LocalPlayer
-local epiklistofpeople = {}
-local RDUser = {}
-local SendChat = game:GetService("TextChatService"):WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
 
-SendChat:SendAsync("", "Ineedtheepikrespond")
-local Detection = game:GetService("TextChatService").MessageReceived:Connect(function(yeah)
-    if yeah.Metadata == "usingrodhub" then
-        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
-            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGRodhub", true)
-        end
-    elseif yeah.Metadata == "Ineedtheepikrespond" then
-        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
-            SendChat:SendAsync("", "usingrodhub")
-            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGRodhub", true)
-        end
+openButton.MouseButton1Click:Connect(function()
+    isMinimized = false
+    mainFrame.Visible = true
+    minimizedFrame.Visible = false
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+speedSlider.Changed:Connect(function()
+    local value = speedSlider.Value
+    speedLabel.Text = "Speed: " .. tostring(value)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = value
     end
 end)
 
-local Window = Library:CreateWindow({ Title = " Rodhub ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
-local Tabs = { General = Window:AddTab("General"), Exploit = Window:AddTab("Exploits"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("Visuals"), Misc = Window:AddTab("Miscellaneous"), Config = Window:AddTab("Config") }
-
-local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
-GeneralAutomation:AddToggle("GA_AutoInteract", { Text = "Automatic Interact", Default = false, }):AddKeyPicker("GA_AutoInteract_K", { Default = "R", SyncToggleState = false, Mode = "Hold", Text = "Auto Interact", NoUI = false, Tooltip = "Will activate any nearby interactables when key is active." })
-GeneralAutomation:AddDropdown("GA_AutoInteract_Options", { Values = { "Use Lockpick ( Doors )", "Use Lockpick ( Other )", "Ignore Light Sources", "Ignore Can-Die" }, Default = 0, Multi = true, Text = "Automatic Interact Options" })
-GeneralAutomation:AddSlider("GA_AutoInteract_Range", { Text = "Range Multiplier", Default = 1, Min = 1, Max = 2, Rounding = 1, Compact = false })
-GeneralAutomation:AddDivider()
-GeneralAutomation:AddToggle("GA_EatCandies", { Text = "Automatic Candy Use", Default = false, }):AddKeyPicker("GA_EatCandies_K", { Default = "V", SyncToggleState = false, Mode = "Hold", Text = "Auto Use Candy", NoUI = false, Tooltip = "Will eat all candy in the player inventory when key is active." })
-GeneralAutomation:AddToggle("GA_AutoHide", { Text = "Automatic Hide", Default = false, Tooltip = "Will automatically predict entities and hide in the nearest available spot when enabled." })
-GeneralAutomation:AddToggle("GA_AutoHide_VisCheck", { Text = "Prediction Visible Check", Default = false, })
-GeneralAutomation:AddSlider("GA_AutoHide_PredictionTime", { Text = "Prediction Time", Default = 0.5, Min = 0.1, Max = 1.5, Rounding = 2, Compact = true, Suffix = "s" })
-GeneralAutomation:AddSlider("GA_AutoHide_PredictionDistanceMultiplier", { Text = "Distance Multiplier", Default = 1, Min = 0.8, Max = 1.5, Rounding = 1, Compact = true, Suffix = "x" })
-GeneralAutomation:AddDivider()
-GeneralAutomation:AddToggle("GA_MinecartInteract", { Text = "Minecart Interact Spam", Default = false, Tooltip = "Automatically spam interact with nearby minecarts when key is active." }):AddKeyPicker("GA_MinecartInteract_K", { Default = "H", SyncToggleState = false, Mode = "Hold", Text = "Minecart Interact Spam", NoUI = false, })
-GeneralAutomation:AddToggle("GA_AnchorAutoSolve", { Text = "Anchor Automatic Solve", Default = false, Tooltip = "Automatically solves any anchor when close enough, if it's the designated one." })
-GeneralAutomation:AddDivider()
-GeneralAutomation:AddToggle("GA_AutoPadlockSolve", { Text = "Automatic Library Padlock", Default = false, Tooltip = "Automatically unlocks padlock with the code when near enough to the set distance." })
-GeneralAutomation:AddSlider("GA_AutoPadlockSolve_Distance", { Text = "Automatic Padlock Distance", Default = 25, Min = 10, Max = 50, Rounding = 0, Compact = false, Tooltip = "Minimum distance for auto padlock solver to input the correct code."})
-
-local GeneralNotifying = Tabs.General:AddRightGroupbox("Notifying")
-GeneralNotifying:AddToggle("GN_Enabled", { Text = "Enabled", Default = false, Tooltip = "Master switch for notifications." })
-GeneralNotifying:AddToggle("GN_NotificationSound", { Text = "Play Sound", Default = false, Tooltip = "Plays sound to draw better attention when notifying." })
-GeneralNotifying:AddSlider("GN_NotificationSound_Volume", { Text = "Sound Volume", Default = 2, Min = 1, Max = 10, Rounding = 1, Compact = false })
-GeneralNotifying:AddDivider()
-GeneralNotifying:AddToggle("GN_AnchorCode", { Text = "Anchor Code", Default = false, Tooltip = "Will notify upon any anchor code being confirmed." })
-GeneralNotifying:AddToggle("GN_PadlockCode", { Text = "Library Padlock Code", Default = false, Tooltip = "Will notify upon padlock code being confirmed." })
-GeneralNotifying:AddToggle("GN_Entities", { Text = "Entity Notifying", Default = false, Tooltip = "Will notify upon a selected entity spawning." })
-GeneralNotifying:AddDropdown("GN_Entities_Options", { Values = { "Rush", "Blitz", "Ambush", "Eyes", "Lookman", "Halt", "Screech", "Gloombat Swarm", "Dread", "A-60", "A-120" }, Default = 0, Multi = true, Text = "Entity List", Tooltip = "Entity whitelist to notify for." })
-GeneralNotifying:AddDivider()
-GeneralNotifying:AddDropdown("GN_NotificationAlignment", { Values = { "Left", "Center", "Right" }, Default = 2, Multi = false, Text = "Horizontal Alignment" })
-GeneralNotifying:AddSlider("GN_NotificationOffset_X", { Text = "X Offset", Default = 0, Min = -1, Max = 1, Rounding = 2, Compact = true })
-GeneralNotifying:AddSlider("GN_NotificationOffset_Y", { Text = "Y Offset", Default = 0, Min = -1, Max = 1, Rounding = 2, Compact = true })
-GeneralNotifying:AddSlider("GN_NotificationDPISize", { Text = "Size Multiplier", Default = 1, Min = 0.8, Max = 3, Rounding = 1, Compact = true })
-GeneralNotifying:AddButton("Test Notify", function()
-    Notify("This is a test notification.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 2.5, true)
-end)
-
-local ExploitSelf = Tabs.Exploit:AddLeftGroupbox("Self")
-ExploitSelf:AddToggle("ES_AlwaysJump", { Text = "Always Enable Jumping", Default = false, Tooltip = "Enables jumping at all times." })
-ExploitSelf:AddDivider()
-ExploitSelf:AddToggle("ES_AntiGloombat", { Text = "Anti-Gloombat Egg", Default = false, Tooltip = "Disallows touching on any Gloombat egg hitbox." })
-ExploitSelf:AddToggle("ES_AntiGiggle", { Text = "Anti-Giggle", Default = false, Tooltip = "Disallows touching on the entity 'Giggle' hitbox." })
-ExploitSelf:AddToggle("ES_AntiSnare", { Text = "Anti-Snare", Default = false, Tooltip = "Disallows touching on the entity 'Snare'." })
-ExploitSelf:AddToggle("ES_AntiDupe", { Text = "Anti-Dupe", Default = false, Tooltip = "Disallows touching on any entity 'Dupe' fake doors." })
-ExploitSelf:AddToggle("ES_AntiEyes", { Text = "Anti-Eyes", Default = false, Tooltip = "Forces character to look down from the entity 'Eyes'." })
-ExploitSelf:AddToggle("ES_AntiLookman", { Text = "Anti-Lookman", Default = false, Tooltip = "Forces character to look down from the entity 'Lookman'." })
-ExploitSelf:AddToggle("ES_AntiChanedlier", { Text = "Anti-Chandelier", Default = false, Tooltip = "Disallows touching on any fallen chandeliers during the seek chase." })
-ExploitSelf:AddToggle("ES_AntiSeekArms", { Text = "Anti-Seek Arms", Default = false, Tooltip = "Disallows touching on any seek arms during the seek chase." })
-
-
-local ExploitTroll = Tabs.Exploit:AddLeftGroupbox("Trolling")
-ExploitTroll:AddToggle("Spamtoolz", { Text = "Spam others Tools", Default = false, Tooltip = "Will basically use up the other person tools by spamming!" }):AddKeyPicker("Spamtoolz_X", { Default = "G", SyncToggleState = false, Mode = "Hold", Text = "Spam others Tools", NoUI = false, })
-ExploitTroll:AddInput("WhitelistKoolpeople",{Default = "", Numeric = false, Finished = true, ClearTextOnFocus = true, Text = "Whitelist for spamtools", Callback = function() 
-task.spawn(function()   
-    for _,Player in pairs(game.Players:GetPlayers()) do
-        if Value == Player.Name and not plr == LocalPlayer.Name then
-            table.insert(friends, Player.Name)
-            Notify("Whitelistfromspamtools", "Whitelisted!")
-        elseif Value == LocalPlayer.Name then
-            Notify("Whitelistfromspamtools", "failed you tried whitelisting localplayer")
-        else
-            print("sdf")
-            Notify("Whitelistfromspamtools", "Player Not exist!")
-        end
+bypassCheckbox.MouseButton1Click:Connect(function()
+    if bypassCheckbox.Text == "Bypass Speed" then
+        bypassCheckbox.Text = "Bypass Speed: ON"
+    else
+        bypassCheckbox.Text = "Bypass Speed"
     end
-end) end, })
-
-local ExploitBypass = Tabs.Exploit:AddRightGroupbox("Bypass")
-ExploitBypass:AddToggle("EB_CrouchSpoof", { Text = "Crouch Spoof", Default = false, Tooltip = "Spoofs crouching, or in other words the game will think you're crouching. Useful for figure rooms." })
-ExploitBypass:AddToggle("EB_SpeedBypass", { Text = "Speed Bypass", Default = false, Tooltip = "Attempts to mitigate the speed anticheat." })
-ExploitBypass:AddToggle("EB_ACManipulate", { Text = "Anti-Cheat Manipulation", Default = false, Tooltip = "Will teleport to the opposite direction th
+end)
