@@ -9,9 +9,64 @@ local uICorner_4 = Instance.new("UICorner")
 local minimizedFrame = Instance.new("Frame")
 local minimizeButton = Instance.new("TextButton")
 local openButton = Instance.new("TextButton")
-local speedSlider = Instance.new("Slider")
-local speedLabel = Instance.new("TextLabel")
-local bypassCheckbox = Instance.new("TextBox")
+
+local functionFrame = Instance.new("Frame")
+local functionUICorner = Instance.new("UICorner")
+local functionTitle = Instance.new("TextLabel")
+local functionScroll = Instance.new("ScrollingFrame")
+local functionLayout = Instance.new("UIListLayout")
+
+functionFrame.Parent = mainFrame
+functionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+functionFrame.Position = UDim2.new(0, 10, 0.1, 10)
+functionFrame.Size = UDim2.new(1, -20, 0.8, -20)
+functionFrame.ClipsDescendants = true
+
+functionUICorner.CornerRadius = UDim.new(0, 8)
+functionUICorner.Parent = functionFrame
+
+functionTitle.Parent = functionFrame
+functionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+functionTitle.Size = UDim2.new(1, 0, 0.1, 0)
+functionTitle.Font = Enum.Font.GothamBold
+functionTitle.Text = "功能列表"
+functionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+functionTitle.TextSize = 20.0
+functionTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+functionScroll.Parent = functionFrame
+functionScroll.Position = UDim2.new(0, 0, 0.1, 0)
+functionScroll.Size = UDim2.new(1, 0, 0.9, 0)
+functionScroll.CanvasSize = UDim2.new(0, 0, 2, 0)
+functionScroll.ScrollBarThickness = 5
+
+functionLayout.Parent = functionScroll
+functionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+functionLayout.Padding = UDim.new(0, 5)
+
+local function createFunctionButton(text)
+    local button = Instance.new("TextButton")
+    local buttonCorner = Instance.new("UICorner")
+    
+    button.Parent = functionScroll
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.Size = UDim2.new(0.95, 0, 0, 40)
+    button.Position = UDim2.new(0.025, 0, 0, 0)
+    button.Font = Enum.Font.Gotham
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 16.0
+    
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+    return button
+end
+
+createFunctionButton("无敌模式")
+createFunctionButton("速度提升")
+createFunctionButton("飞天功能")
+createFunctionButton("穿墙模式")
+createFunctionButton("无限跳跃")
 
 screenGui.Parent = player.PlayerGui
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -75,45 +130,6 @@ openButton.Text = "Open"
 openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 openButton.TextSize = 18.0
 
-local functionArea = Instance.new("Frame")
-functionArea.Parent = mainFrame
-functionArea.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-functionArea.Position = UDim2.new(0, 0, 0.15, 0)
-functionArea.Size = UDim2.new(1, 0, 0.3, 0)
-
-local uICornerFunction = Instance.new("UICorner")
-uICornerFunction.CornerRadius = UDim.new(0, 10)
-uICornerFunction.Parent = functionArea
-
-speedSlider.Parent = functionArea
-speedSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-speedSlider.Position = UDim2.new(0.1, 0, 0.1, 0)
-speedSlider.Size = UDim2.new(0.8, 0, 0.2, 0)
-speedSlider.Value = 16
-speedSlider.Minimum = 16
-speedSlider.Maximum = 75
-speedSlider.Font = Enum.Font.SourceSans
-speedSlider.Text = ""
-speedSlider.TextColor3 = Color3.fromRGB(0, 0, 0)
-
-speedLabel.Parent = functionArea
-speedLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-speedLabel.Position = UDim2.new(0.1, 0, 0.35, 0)
-speedLabel.Size = UDim2.new(0.8, 0, 0.2, 0)
-speedLabel.Font = Enum.Font.Gotham
-speedLabel.Text = "Speed: 16"
-speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedLabel.TextSize = 18.0
-
-bypassCheckbox.Parent = functionArea
-bypassCheckbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-bypassCheckbox.Position = UDim2.new(0.1, 0, 0.6, 0)
-bypassCheckbox.Size = UDim2.new(0.8, 0, 0.2, 0)
-bypassCheckbox.Font = Enum.Font.Gotham
-bypassCheckbox.Text = "Bypass Speed"
-bypassCheckbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-bypassCheckbox.TextSize = 18.0
-
 local isMinimized = false
 
 minimizeButton.MouseButton1Click:Connect(function()
@@ -130,20 +146,4 @@ end)
 
 closeButton.MouseButton1Click:Connect(function()
     screenGui:Destroy()
-end)
-
-speedSlider.Changed:Connect(function()
-    local value = speedSlider.Value
-    speedLabel.Text = "Speed: " .. tostring(value)
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = value
-    end
-end)
-
-bypassCheckbox.MouseButton1Click:Connect(function()
-    if bypassCheckbox.Text == "Bypass Speed" then
-        bypassCheckbox.Text = "Bypass Speed: ON"
-    else
-        bypassCheckbox.Text = "Bypass Speed"
-    end
 end)
