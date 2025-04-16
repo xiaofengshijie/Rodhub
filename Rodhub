@@ -20,23 +20,236 @@ local Tabs = {
     ["UI Settings"] = Window:AddTab("UI Settings", "settings")
 }
 
-local WallhackLeft = Tabs["透视"]:AddLeftGroupbox("玩家透视")
-local WallhackRight = Tabs["透视"]:AddRightGroupbox("物体透视")
-WallhackLeft:AddToggle("PlayerESP", {Text = "玩家轮廓", Default = false})
-WallhackLeft:AddColorPicker("ESPColor", {Default = Color3.new(1, 0.5, 0)})
-WallhackRight:AddToggle("ItemESP", {Text = "物品高亮", Default = false})
-WallhackRight:AddSlider("ESPRange", {Text = "透视范围", Min = 0, Max = 500, Default = 100, Rounding = 0})
+local WallhackLeft = Tabs["透视"]:local getService = typeof(cloneref) == "function" and (function(name) return cloneref(game:GetService(name)) end) or (function(name) return game:GetService(name) end)
+local Players = getService("Players")
+local RunService = getService("RunService")
+local UserInputService = getService("UserInputService")
 
-local FloorLeft = Tabs["楼层"]:AddLeftGroupbox("楼层选择")
-local FloorRight = Tabs["楼层"]:AddRightGroupbox("传送设置")
-FloorLeft:AddDropdown("FloorSelect", {Text = "选择楼层", Default = "1楼", Values = {"1楼", "2楼", "3楼", "地下室"}})
-FloorLeft:AddLabel("当前所在：未知楼层", true, "FloorStatus")
-FloorRight:AddButton({Text = "传送到达", Func = function() end})
-FloorRight:AddToggle("AutoFloor", {Text = "自动导航", Default = false})
+local DrawingLib = typeof(Drawing) == "table" and Drawing or { noDrawing = true }
+local localPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local worldToViewport = function(...) camera = (camera or workspace.CurrentCamera); return camera:WorldToViewportPoint(...) end
 
-local AntiCheatLeft = Tabs["反作弊"]:AddLeftGroupbox("检测系统")
-local AntiCheatRight = Tabs["反作弊"]:AddRightGroupbox("保护措施")
-AntiCheatLeft:AddToggle("AntiDetection", {Text = "反检测模式", Default = true})
-AntiCheatLeft:AddLabel("最后检测时间:", true, "LastCheckTime")
-AntiCheatRight:AddToggle("MemoryProtect", {Text = "内存保护", Default = false})
-AntiCheatRight:AddButton({Text = "清除日志", Func = function() end})
+local Library = {
+    ESP = { Tracers = {} }, 
+    Connections = { List = {} },
+    Tracers = {
+        Enabled = true,
+        Set = function(bool) if typeof(bool) == "boolean" then Library.Tracers.Enabled = bool end end,
+        Enable = function() Library.Tracers.Enabled = true end,
+        Disable = function() Library.Tracers.Enabled = false end,
+        Toggle = function() Library.Tracers.Enabled = not Library.Tracers.Enabled end
+    },
+    Rainbow = { -- 彩虹颜色
+        HueSetup = 0, Hue = 0, Step = 0,
+        Color = Color3.new(),
+        Enabled = false, --可以改为ture
+        Set = function(bool) if typeof(bool) == "boolean" then Library.Rainbow.Enabled = bool end end,
+        Enable = function() Library.Rainbow.Enabled = true end,
+        Disable = function() Library.Rainbow.Enabled = false end,
+        Toggle = function() Library.Rainbow.Enabled = not Library.Rainbow.Enabled end
+    }
+}
+
+local function randomString()
+    local length = math.random(10, 20)
+    local array = {}
+    for i = 1, length do
+        array[i] = string.char(math.random(32, 126))
+    end
+    return table.concat(array)
+end
+
+local function findPrimaryPart(inst)
+    if inst == nil or typeof(inst) ~= "Instance" then return nil end
+    return (inst:IsA("Model") and inst.PrimaryPart or nil) or inst:FindFirstChildWhichIsA("BasePart") or inst:FindFirstChildWhichIsA("UnionOperation") or inst
+end
+
+local function distanceFromCharacter(position, getPositionFromCamera)
+    if typeof(position) == "Instance" then position = position:GetPivot().Position end
+    local rootPart = localPlayer.Character and (localPlayer.Character:FindFirstChild("HumanoidRootPart") or localPlayer.Character.PrimaryPart)
+    if getPositionFromCamera and camera then
+        return (camera.CFrame.Position - position).Magnitude
+    elseif rootPart then
+        return (rootPart.Position - position).Magnitude
+    elseif camera then
+        return (camera.CFrame.Position - position).Magnitude
+    end
+    return 9e9
+end
+
+local function deleteTracer(tracerInstance)
+    
+    if tracerInstance ~= nil then
+        tracerInstance.Visible = false
+        if typeof(tracerInstance.Destroy) == "function" then
+            tracerInstance:Destroy()
+        elseif typeof(tracerInstance.Remove) == "function" then
+            tracerInstance:Remove()
+        end
+        tracerInstance = nil
+    end
+end
+
+local function createDeleteFunction(TableName, TableIndex, Table)
+    
+    local function delete()
+        if typeof(Library.ESP[TableName]) ~= "table" then return end
+        local uiTable = Library.ESP[TableName][TableIndex] or Table
+        if uiTable == nil then return end
+        
+        if typeof(uiTable.TracerInstance) == "table" then
+            deleteTracer(uiTable.TracerInstance)
+        end
+
+        if typeof(uiTable.Connections) == "table" then
+            for index, connectionKey in pairs(uiTable.Connections) do
+                Library.Connections.Remove(connectionKey)
+                uiTable.Connections[index] = nil
+            end
+        end
+
+        uiTable.Deleted = true
+        local tableIndex = table.find(Library.ESP[TableName], TableIndex)
+        if tableIndex then table.remove(Library.ESP[TableName], tableIndex) end
+
+        if typeof(uiTable.OnDestroy) == "function" then pcall(uiTable.OnDestroy) end
+    end
+    return delete
+end
+
+function Library.Connections.Add(connection, keyName, stopWhenKey)
+    assert(typeof(connection) == "RBXScriptConnection", "Argument #1 must be a RBXScriptConnection.")
+    local totalCount = 0 for _, v in pairs(Library.Connections.List) do totalCount = totalCount + 1 end
+    local key = table.find({ "string", "number" }, typeof(keyName)) and tostring(keyName) or totalCount + 1
+
+    if table.find(Library.Connections.List, key) or typeof(Library.Connections.List[key]) == "RBXScriptConnection" then
+        if stopWhenKey then return end
+        key = totalCount + 1
+    end
+
+    Library.Connections.List[key] = connection
+    return key
+end
+
+function Library.Connections.Remove(key)
+    if typeof(Library.Connections.List[key]) ~= "RBXScriptConnection" then return end
+    if Library.Connections.List[key].Connected then
+        Library.Connections.List[key]:Disconnect()
+        local keyIndex = table.find(Library.Connections.List, key)
+        if keyIndex then table.remove(Library.Connections.List, keyIndex) end
+    end
+end
+
+-- // 追踪线模板 // --
+local Templates = {
+    Tracer = {
+        Model = nil, -- 目标物体
+        Visible = true, -- 是否可见
+        MaxDistance = 5000, -- 最大显示距离
+        StudsOffset = Vector3.new(),
+        TextSize = 16,
+        From = "Bottom", -- 起点：Top, Center, Bottom, Mouse
+        Color = Color3.new(), -- 颜色
+        Thickness = 2, -- 线条粗细
+        Transparency = 0.65, -- 透明度
+        Hidden = false, -- 是否隐藏
+        OnDestroy = nil -- 销毁时的回调
+    }
+}
+
+function Library.Validate(args, template)
+    args = type(args) == "table" and args or {}
+    for key, value in pairs(template) do
+        local argValue = args[key]
+        if argValue == nil or type(argValue) ~= type(value) then
+            args[key] = value
+        elseif type(value) == "table" then
+            args[key] = Library.Validate(argValue, value)
+        end
+    end
+    return args
+end
+
+function Library.ESP.Tracer(args)
+    if DrawingLib.noDrawing == true then
+        return {
+            TableIndex = 0, TableName = "Tracers",
+            Settings = {},
+            UIElements = {},
+            TracerInstance = nil,
+            IsNormalTracer = true,
+            DistancePart = nil,
+            Deleted = true,
+            Destroy = function() end,
+            Update = function() end,
+            SetColor = function() end,
+            SetVisible = function() end
+        }
+    end
+
+    assert(typeof(args) == "table", "args must be a table.")
+    args = Library.Validate(args, Templates.Tracer)
+    assert(typeof(args.Model) == "Instance", "args.Model must be an Instance.")
+    args.From = string.lower(args.From)
+
+    local TracerInstance = DrawingLib.new("Line")
+    TracerInstance.Visible = args.Visible
+    TracerInstance.Color = args.Color
+    TracerInstance.Thickness = args.Thickness
+    TracerInstance.Transparency = args.Transparency
+
+    local TableName = "Tracers"
+    local TableIndex = randomString()
+
+    local TracerTable = {
+        TableIndex = TableIndex, TableName = TableName,
+        Settings = args,
+        TracerInstance = TracerInstance,
+        IsNormalTracer = true,
+        DistancePart = findPrimaryPart(args.Model) -- 目标
+    }
+    TracerTable.Connections = {
+        Library.Connections.Add(args.Model.AncestryChanged:Connect(function(_, parent)
+            if not parent then
+                TracerTable.Destroy()
+            end
+        end)),
+        Library.Connections.Add(args.Model.Destroying:Connect(function()
+            TracerTable.Destroy()
+        end))
+    }
+
+    TracerTable.Hidden = args.Hidden
+    TracerTable.Deleted = false
+    TracerTable.Destroy = createDeleteFunction(TableName, TableIndex, TracerTable)
+    TracerTable.OnDestroy = args.OnDestroy
+
+    TracerTable.Update = function(args, updateVariables)
+        if TracerTable.Deleted or not TracerTable.TracerInstance then return end
+        args = Library.Validate(args, TracerTable.Settings)
+
+        local _Color = typeof(args.Color) == "Color3" and args.Color or TracerTable.Settings.Color
+        local _Thickness = typeof(args.Thickness) == "number" and args.Thickness or TracerTable.Settings.Thickness
+        local _Transparency = typeof(args.Transparency) == "number" and args.Transparency or TracerTable.Settings.Transparency
+        local _From = table.find({ "top", "center", "bottom", "mouse" }, string.lower(args.From)) and string.lower(args.From) or TracerTable.Settings.From
+        local _Visible = typeof(args.Visible) == "boolean" and args.Visible or TracerTable.Settings.Visible
+
+        TracerTable.TracerInstance.Color = _Color
+        TracerTable.TracerInstance.Thickness = _Thickness
+        TracerTable.TracerInstance.Transparency = _Transparency
+        TracerTable.TracerInstance.Visible = _Visible
+        if updateVariables ~= false then
+            TracerTable.Settings.Color = _Color
+            TracerTable.Settings.Thickness = _Thickness
+            TracerTable.Settings.Transparency = _Transparency
+            TracerTable.Settings.From = _From
+            TracerTable.Settings.Visible = _Visible
+            TracerTable.Settings.MaxDistance = typeof(args.MaxDistance) == "number" and args.MaxDistance or TracerTable.Settings.MaxDistance
+        end
+    end
+    TracerTable.SetColor = TracerTable.Update
+
+    TracerTable.SetVisible = function(visible)
+        if TracerTable.Deleted or not TracerTable.TracerInstance then return end
+        TracerTa
