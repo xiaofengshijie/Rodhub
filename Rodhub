@@ -20,7 +20,7 @@ local Tabs = {
     ["UI Settings"] = Window:AddTab("UI Settings", "settings")
 }
 
-local WallhackLeft = Tabs["透视"]:local getService = typeof(cloneref) == "function" and (function(name) return cloneref(game:GetService(name)) end) or (function(name) return game:GetService(name) end)
+local getService = typeof(cloneref) == "function" and (function(name) return cloneref(game:GetService(name)) end) or (function(name) return game:GetService(name) end)
 local Players = getService("Players")
 local RunService = getService("RunService")
 local UserInputService = getService("UserInputService")
@@ -31,7 +31,7 @@ local camera = workspace.CurrentCamera
 local worldToViewport = function(...) camera = (camera or workspace.CurrentCamera); return camera:WorldToViewportPoint(...) end
 
 local Library = {
-    ESP = { Tracers = {} }, 
+    ESP = { Tracers = {} },
     Connections = { List = {} },
     Tracers = {
         Enabled = true,
@@ -40,10 +40,10 @@ local Library = {
         Disable = function() Library.Tracers.Enabled = false end,
         Toggle = function() Library.Tracers.Enabled = not Library.Tracers.Enabled end
     },
-    Rainbow = { -- 彩虹颜色
+    Rainbow = {
         HueSetup = 0, Hue = 0, Step = 0,
         Color = Color3.new(),
-        Enabled = false, --可以改为ture
+        Enabled = false,
         Set = function(bool) if typeof(bool) == "boolean" then Library.Rainbow.Enabled = bool end end,
         Enable = function() Library.Rainbow.Enabled = true end,
         Disable = function() Library.Rainbow.Enabled = false end,
@@ -65,21 +65,7 @@ local function findPrimaryPart(inst)
     return (inst:IsA("Model") and inst.PrimaryPart or nil) or inst:FindFirstChildWhichIsA("BasePart") or inst:FindFirstChildWhichIsA("UnionOperation") or inst
 end
 
-local function distanceFromCharacter(position, getPositionFromCamera)
-    if typeof(position) == "Instance" then position = position:GetPivot().Position end
-    local rootPart = localPlayer.Character and (localPlayer.Character:FindFirstChild("HumanoidRootPart") or localPlayer.Character.PrimaryPart)
-    if getPositionFromCamera and camera then
-        return (camera.CFrame.Position - position).Magnitude
-    elseif rootPart then
-        return (rootPart.Position - position).Magnitude
-    elseif camera then
-        return (camera.CFrame.Position - position).Magnitude
-    end
-    return 9e9
-end
-
 local function deleteTracer(tracerInstance)
-    
     if tracerInstance ~= nil then
         tracerInstance.Visible = false
         if typeof(tracerInstance.Destroy) == "function" then
@@ -92,7 +78,6 @@ local function deleteTracer(tracerInstance)
 end
 
 local function createDeleteFunction(TableName, TableIndex, Table)
-    
     local function delete()
         if typeof(Library.ESP[TableName]) ~= "table" then return end
         local uiTable = Library.ESP[TableName][TableIndex] or Table
@@ -141,20 +126,19 @@ function Library.Connections.Remove(key)
     end
 end
 
--- // 追踪线模板 // --
 local Templates = {
     Tracer = {
-        Model = nil, -- 目标物体
-        Visible = true, -- 是否可见
-        MaxDistance = 5000, -- 最大显示距离
+        Model = nil,
+        Visible = true,
+        MaxDistance = 5000,
         StudsOffset = Vector3.new(),
         TextSize = 16,
-        From = "Bottom", -- 起点：Top, Center, Bottom, Mouse
-        Color = Color3.new(), -- 颜色
-        Thickness = 2, -- 线条粗细
-        Transparency = 0.65, -- 透明度
-        Hidden = false, -- 是否隐藏
-        OnDestroy = nil -- 销毁时的回调
+        From = "Bottom",
+        Color = Color3.new(),
+        Thickness = 2,
+        Transparency = 0.65,
+        Hidden = false,
+        OnDestroy = nil
     }
 }
 
@@ -207,7 +191,7 @@ function Library.ESP.Tracer(args)
         Settings = args,
         TracerInstance = TracerInstance,
         IsNormalTracer = true,
-        DistancePart = findPrimaryPart(args.Model) -- 目标
+        DistancePart = findPrimaryPart(args.Model)
     }
     TracerTable.Connections = {
         Library.Connections.Add(args.Model.AncestryChanged:Connect(function(_, parent)
@@ -252,4 +236,42 @@ function Library.ESP.Tracer(args)
 
     TracerTable.SetVisible = function(visible)
         if TracerTable.Deleted or not TracerTable.TracerInstance then return end
-        TracerTa
+        TracerTable.Update({ Visible = visible })
+    end
+
+    Library.ESP[TableName][TableIndex] = TracerTable
+    return TracerTable
+end
+
+local TracerSection = Tabs["透视"]:AddSection("追踪线设置")
+
+local TracerToggle = TracerSection:AddToggle({
+    Text = "启用追踪线",
+    Default = false,
+    Callback = function(Value)
+        Library.Tracers.Enabled = Value
+    end
+})
+
+local TracerColor = TracerSection:AddColorpicker({
+    Text = "追踪线颜色",
+    Default = Color3.new(1, 0, 0),
+    Callback = function(Color)
+    end
+})
+
+local TracerTransparency = TracerSection:AddSlider({
+    Text = "追踪线透明度",
+    Min = 0,
+    Max = 1,
+    Default = 0.65,
+    Callback = function(Value)
+    end
+})
+
+local TracerThickness = TracerSection:AddSlider({
+    Text = "追踪线粗细",
+    Min = 1,
+    Max = 10,
+    Default = 2,
+    Call
