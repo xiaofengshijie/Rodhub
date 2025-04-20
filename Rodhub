@@ -103,10 +103,9 @@ FunctionRightBox:AddSlider("FlySpeedSlider", {
     end
 })
 
-local VisualsTab = Window:MakeTab({
-	Name = "透视",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
+local FunctionLeftBox = Tabs["透视"]:AddLeftGroupbox("透视功能")
+local FunctionRightBox = Tabs["透视"]:AddRightGroupbox("配置选项")
+
 })
 local CF = CFrame.new
 local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
