@@ -20,20 +20,11 @@ local Tabs = {
     ["UI Settings"] = Window:AddTab("UI Settings", "settings")
 }
 
-Tabs["透视"]:AddButton({
-    Name = "",
-    Callback = function()
-        game.Players.LocalPlayer.Character.Humanoid.Jump = true
-    end
-})
-
-local CF = CFrame.new
-local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
-local ChaseStart = game:GetService("ReplicatedStorage").GameData.ChaseStart
+local VisualsTab = Tabs["透视"]  -- 获取“透视”标签页对象
 
 local KeyChams = {}
 
-Tabs["透视"]:AddToggle({
+VisualsTab:AddToggle({
     Name = "钥匙透视",
     Default = false,
     Flag = "KeyToggle",
