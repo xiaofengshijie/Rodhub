@@ -1,4 +1,4 @@
- local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 
 Library.ForceCheckbox = false
@@ -20,108 +20,29 @@ local Tabs = {
     ["UI Settings"] = Window:AddTab("UI Settings", "settings")
 }
 
-local FunctionLeftBox = Tabs["功能"]:AddLeftGroupbox("核心功能")
-local FunctionRightBox = Tabs["功能"]:AddRightGroupbox("配置选项")
-
-local FlyEnabled = false
-local FlySpeed = 50
-local BodyVelocity
-
-FunctionLeftBox:AddToggle("FlyToggle", {
-    Text = "飞行模式",
-    Default = false
-}):OnChanged(function()
-    FlyEnabled = Toggles.FlyToggle.Value
-    if FlyEnabled then
-        local Character = game.Players.LocalPlayer.Character
-        if Character then
-            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-            if Humanoid then
-                BodyVelocity = Instance.new("BodyVelocity")
-                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                BodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-                BodyVelocity.Parent = Character.HumanoidRootPart
-                
-                game:GetService("RunService").Heartbeat:Connect(function()
-                    if FlyEnabled and Humanoid then
-                        local Direction = Vector3.new(0, 0, 0)
-                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
-                            Direction += Vector3.new(0, 1, 0)
-                        end
-                        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
-                            Direction += Vector3.new(0, -1, 0)
-                        end
-                        BodyVelocity.Velocity = Direction * FlySpeed
-                    end
-                end)
-            end
-        end
-    else
-        if BodyVelocity then
-            BodyVelocity:Destroy()
-            BodyVelocity = nil
-        end
-    end
-end)
-
-local NoclipEnabled = false
-local NoclipConnection
-
-FunctionLeftBox:AddToggle("NoclipToggle", {
-    Text = "穿墙模式",
-    Default = false
-}):OnChanged(function()
-    NoclipEnabled = Toggles.NoclipToggle.Value
-    if NoclipEnabled then
-        local Character = game.Players.LocalPlayer.Character
-        if Character then
-            NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
-                for _, part in pairs(Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                        part.CanTouch = false
-                    end
-                end
-            end)
-        end
-    else
-        if NoclipConnection then
-            NoclipConnection:Disconnect()
-            NoclipConnection = nil
-        end
-    end
-end)
-
-FunctionRightBox:AddSlider("FlySpeedSlider", {
-    Text = "飞行速度",
-    Min = 20,
-    Max = 200,
-    Default = 50,
-    Rounding = 0,
-    Callback = function(value)
-        FlySpeed = value
+Tabs["透视"]:AddButton({
+    Name = "",
+    Callback = function()
+        game.Players.LocalPlayer.Character.Humanoid.Jump = true
     end
 })
 
-local FunctionLeftBox = Tabs["透视"]:AddLeftGroupbox("透视功能")
-local FunctionRightBox = Tabs["透视"]:AddRightGroupbox("配置选项")
-
-})
 local CF = CFrame.new
 local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
 local ChaseStart = game:GetService("ReplicatedStorage").GameData.ChaseStart
 
 local KeyChams = {}
-VisualsTab:AddToggle({
-	Name = "钥匙透视",
-	Default = false,
+
+Tabs["透视"]:AddToggle({
+    Name = "钥匙透视",
+    Default = false,
     Flag = "KeyToggle",
     Save = true,
-	Callback = function(Value)
-		for i,v in pairs(KeyChams) do
+    Callback = function(Value)
+        for i, v in pairs(KeyChams) do
             v.Enabled = Value
         end
-	end    
+    end
 })
 
 local function ApplyKeyChams(inst)
@@ -133,7 +54,7 @@ local function ApplyKeyChams(inst)
     Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
     Cham.Parent = game:GetService("CoreGui")
     Cham.Adornee = inst
-    Cham.Enabled = OrionLib.Flags["KeyToggle"].Value
+    Cham.Enabled = Library.Flags["KeyToggle"].Value
     Cham.RobloxLocked = true
     return Cham
 end
@@ -141,83 +62,15 @@ end
 local KeyCoroutine = coroutine.create(function()
     workspace.CurrentRooms.DescendantAdded:Connect(function(inst)
         if inst.Name == "KeyObtain" then
-            table.insert(KeyChams,ApplyKeyChams(inst))
+            table.insert(KeyChams, ApplyKeyChams(inst))
         end
     end)
 end)
-for i,v in ipairs(workspace:GetDescendants()) do
+
+for i, v in ipairs(workspace:GetDescendants()) do
     if v.Name == "KeyObtain" then
-        table.insert(KeyChams,ApplyKeyChams(v))
+        table.insert(KeyChams, ApplyKeyChams(v))
     end
 end
+
 coroutine.resume(KeyCoroutine)
-
-local BookChams = {}
-VisualsTab:AddToggle({
-	Name = "50关书透视",
-	Default = false,
-    Flag = "BookToggle",
-    Save = true,
-	Callback = function(Value)
-		for i,v in pairs(BookChams) do
-            v.Enabled = Value
-        end
-	end    
-})
-
-local FigureChams = {}
-VisualsTab:AddToggle({
-	Name = "50关飞哥透视",
-	Default = false,
-    Flag = "FigureToggle",
-    Save = true,
-    Callback = function(Value)
-        for i,v in pairs(FigureChams) do
-            v.Enabled = Value
-        end
-    end
-})
-
-local function ApplyBookChams(inst)
-    if inst:IsDescendantOf(game:GetService("Workspace").CurrentRooms:FindFirstChild("50")) and game:GetService("ReplicatedStorage").GameData.LatestRoom.Value == 50 then
-        wait()
-        local Cham = Instance.new("Highlight")
-        Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        Cham.FillColor = Color3.new(0, 1, 0.749019)
-        Cham.FillTransparency = 0.5
-        Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
-        Cham.Parent = game:GetService("CoreGui")
-        Cham.Enabled = OrionLib.Flags["BookToggle"].Value
-        Cham.Adornee = inst
-        Cham.RobloxLocked = true
-        return Cham
-    end
-end
-
-local function ApplyEntityChams(inst)
-    wait()
-    local Cham = Instance.new("Highlight")
-    Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    Cham.FillColor = Color3.new(1, 0, 0)
-    Cham.FillTransparency = 0.5
-    Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
-    Cham.Parent = game:GetService("CoreGui")
-    Cham.Enabled = OrionLib.Flags["FigureToggle"].Value
-    Cham.Adornee = inst
-    Cham.RobloxLocked = true
-    return Cham
-end
-
-local BookCoroutine = coroutine.create(function()
-    task.wait(1)
-    for i,v in pairs(game:GetService("Workspace").CurrentRooms["50"].Assets:GetDescendants()) do
-        if v.Name == "LiveHintBook" then
-            table.insert(BookChams,ApplyBookChams(v))
-        end
-    end
-end)
-local EntityCoroutine = coroutine.create(function()
-    local Entity = game:GetService("Workspace").CurrentRooms["50"].FigureSetup:WaitForChild("FigureRagdoll",5)
-    Entity:WaitForChild("Torso",2.5)
-    table.insert(FigureChams,ApplyEntityChams(Entity))
-end)
