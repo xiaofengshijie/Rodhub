@@ -643,6 +643,131 @@ local Main = Instance.new("Frame", NotificationHolder)
 
     Line:TweenSize(UDim2.fromScale(1, 0.03), "Out", "Linear", Timer)
 
+
+game:GetService("TweenService"):Create(Main, Info, {Transparency = 1}):Play()
+        game:GetService("TweenService"):Create(Line, Info, {Transparency = 1}):Play()
+        game:GetService("TweenService"):Create(LXLogo, Info, {ImageTransparency = 1}):Play()
+        game:GetService("TweenService"):Create(Title, Info, {TextTransparency = 1}):Play()
+        game:GetService("TweenService"):Create(Description, Info, {TextTransparency = 1}):Play()
+
+        GlobalOffset -= 0.05 * DPISize
+        MainTween.Completed:Once(function()
+            LockColor:Disconnect()
+            Main:Destroy()
+        end)
+    end)
+end
+
+function HasItem(Item)
+    return (LocalPlayer.Character:FindFirstChild(Item) or LocalPlayer.Backpack:FindFirstChild(Item))
+end
+
+function GetHiding()
+    local Closest
+    local Prompt
+
+    for _, v in Rooms[LocalPlayer:GetAttribute("CurrentRoom")].Assets:GetChildren() do
+        if v:IsA("Model") then
+
+            if v.Name == "Locker_Large" or v.Name == "Wardrobe" or v.Name == "Toolshed" or v.Name == "Bed" or v.Name == "Rooms_Locker" or v.Name == "Rooms_Locker_Fridge" or v.Name == "Backdoor_Wardrobe" and v:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                if not v.HiddenPlayer.Value and not v:FindFirstChild("HideEntityOnSpot", true) then
+                    if Closest then
+                        if (LocalPlayer.Character.Collision.Position - v.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                            Closest = v
+                            Prompt = v.HidePrompt
+                        end
+                    else
+                        Closest = v
+                        Prompt = v.HidePrompt
+                    end
+
+                end
+            elseif v.Name == "Double_Bed" then
+                for _, x in v:GetChildren() do
+                    if x.Name == "DoubleBed" and x:FindFirstChild("HidePrompt") and x:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not x:FindFirstChild("HideEntityOnSpot", true) then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            elseif v.Name == "Dumpster" then
+                for _, x in v:GetChildren() do
+                    if x:FindFirstChild("HidePrompt") and x:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not v.DumpsterBase:FindFirstChild("HideEntityOnSpot") then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            end
+
+        elseif v:IsA("Folder") then
+
+            if v.Name == "Blockage" then
+                for _, x in v:GetChildren() do
+                    if x:IsA("Model") and x.Name == "Wardrobe" then
+
+                        if not x.HiddenPlayer.Value then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            elseif v.Name == "Vents" then
+                for _, x in v:GetChildren() do
+                    if x.Name == "CircularVent" and v:FindFirstChild("Grate") and x.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not v:FindFirstChild("HideEntityOnSpot", true) then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = v
+                                    Prompt = x.Grate.HidePrompt
+                                end
+                            else
+                                Closest = v
+                                Prompt = x.Grate.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            end
+
+        end
+    end
+
+    for _, v in Rooms[LocalPlayer:GetAttribute("CurrentRoom")]:GetChildren() do
+        if v:IsA("Model") then
+            if v.Name == "CircularVent" and v.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
     task.delay(Timer + 0.1, function()
         local Info = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
         local MainTween = game:GetService("TweenService"):Create(Main, Info, {Position = UDim2.fromScale(0.5, 0.525)})
