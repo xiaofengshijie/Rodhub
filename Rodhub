@@ -3200,6 +3200,77 @@ task.spawn(function()
         }) .. "}")
     end
 
+local MenuProperties = Tabs.Config:AddLeftGroupbox("Menu")
+    MenuProperties:AddButton("Unload", function()
+        Library:Unload()
+        Library.Unloaded = true
+
+        for _, Connection in Connections do
+            Connection:Disconnect()
+        end
+        Detection:Disconnect()
+        ThirdpersonParts:Destroy()
+        LXNotifications:Destroy()
+        ClonedCollision:Destroy()
+
+        game.Lighting.GlobalShadows = true
+        game.Lighting.OutdoorAmbient = Color3.new(0,0,0)
+
+        for _, v in workspace:GetDescendants() do
+            if v.Name:sub(1, 7) == "_LOLHAX" then
+                v:Destroy()
+            end
+        end
+
+        LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties = OldAccel
+
+        Main_Game.spring.Speed = 8
+        Main_Game.fovtarget = 70
+        getsenv(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.Movement).updatespeed()
+
+        ShadeModule.stuff = ShadeFunction
+        GlitchModule.stuff = GlitchFunction
+        VoidModule.stuff = VoidFunction
+        SeekModule.tease = SeekFunction
+    end)
+
+    MenuProperties:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
+    MenuProperties:AddDivider()
+    MenuProperties:AddToggle("keybindmenu", { Text = "Show Keybinds", Default = false })
+
+    Toggles.keybindmenu:OnChanged(function()
+        Library.KeybindFrame.Visible = Toggles.keybindmenu.Value
+    end)
+
+    Library.ToggleKeybind = Options.MenuKeybind
+
+    ThemeManager:SetLibrary(Library)
+    ThemeManager:SetFolder("lolhax/Themes")
+    ThemeManager:ApplyToTab(Tabs.Config)
+
+    SaveManager:SetLibrary(Library)
+    SaveManager:SetFolder("lolhax/Doors3")
+    SaveManager:BuildConfigSection(Tabs.Config)
+    SaveManager:IgnoreThemeSettings()
+    SaveManager:LoadAutoloadConfig()
+
+    local DebugStuff = Tabs.Config:AddRightGroupbox("Other")
+    DebugStuff:AddToggle("DS_Debug", { Text = "Enable Debug Mode", Default = false, })
+    DebugStuff:AddToggle("DS_BSRPC", { Text = "Bloxstrap RPC", Default = true })
+
+    local RPCRoomChange = game.ReplicatedStorage.GameData.LatestRoom:GetPropertyChangedSignal("Value"):Connect(function() updateRPC(Toggles.DS_BSRPC.Value) end)
+    table.insert(Connections, RPCRoomChange)
+
+    Toggles.DS_BSRPC:OnChanged(function()
+        updateRPC(Toggles.DS_BSRPC.Value)
+    end)
+
+    ErrorMessageOut:Disconnect()
+    Notify("Load successful.", "Loading finished in ".. string.format("%.2f",tick() - Loadtime) .." seconds.", 10 / 3, true)
+end)
+ 
+
+
 
 
 
