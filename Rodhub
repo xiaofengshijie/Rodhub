@@ -2915,6 +2915,147 @@ Options.MM_Walkspeed_S:OnChanged(function()
     task.wait()
 
 
+getsenv(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.Movement).updatespeed()
+end)
+
+Toggles.ES_AntiGiggle:OnChanged(function()
+    for _, Room in Rooms:GetChildren() do
+
+        for _, Giggle in Room:GetChildren() do
+            if Giggle:IsA("Model") and Giggle.Name == "GiggleCeiling" then
+                Giggle:WaitForChild("Hitbox", 9e9)
+                Giggle.Hitbox.CanTouch = not Toggles.ES_AntiGiggle.Value
+            end
+        end
+
+    end
+end)
+Toggles.ES_AntiDupe:OnChanged(function()
+    for _, v in Rooms:GetDescendants() do
+
+        if v.Name == "DoorFake" and v:IsA("Model") then
+            v.Hidden.CanTouch = not Toggles.ES_AntiDupe.Value
+
+            if v:FindFirstChild("LockPart") and v.LockPart:FindFirstChild("UnlockPrompt") then
+                v.LockPart.UnlockPrompt.Enabled = not Toggles.ES_AntiDupe.Value
+            end
+        end
+
+    end
+end)
+Toggles.ES_AntiSnare:OnChanged(function()
+    for _, v in Rooms:GetDescendants() do
+
+        if v.Name == "Snare" and v:FindFirstChild("Hitbox") then
+            v.Hitbox.CanTouch = not Toggles.ES_AntiSnare.Value
+        end
+
+    end
+end)
+Toggles.ES_AntiSeekArms:OnChanged(function()
+    for _, v in Rooms:GetDescendants() do
+
+        if v.Name == "AnimatorPart" and v:IsA("Part") and v.Parent.Name == "Seek_Arm" then
+            v.CanTouch = not Toggles.ES_AntiSeekArms.Value
+        end
+
+    end
+end)
+Toggles.ES_AntiChanedlier:OnChanged(function()
+    for _, v in Rooms:GetDescendants() do
+
+        if v.Name == "HurtPart" and v:IsA("Part") and v.Parent.Name == "ChandelierObstruction" then
+            v.CanTouch = not Toggles.ES_AntiChanedlier.Value
+        end
+
+    end
+end)
+Toggles.ES_AntiGloombat:OnChanged(function()
+    for _, v in Rooms:GetDescendants() do
+
+        if v.Name == "GloomEgg" and v:IsA("Model") then
+            v.Egg.CanTouch = not Toggles.ES_AntiGloombat.Value
+        end
+
+    end
+end)
+
+Toggles.ER_NoShade:OnChanged(function()
+    ShadeModule.stuff = (Toggles.ER_NoShade.Value and (function() end) or ShadeFunction)
+end)
+
+Toggles.VV_NoLookBob:OnChanged(function()
+    if Main_Game then
+        Main_Game.spring.Speed = (Toggles.VV_NoLookBob.Value and 9e9 or 8)
+    end
+end)
+
+Toggles.VW_Ambience:OnChanged(function()
+    game.Lighting.GlobalShadows = not Toggles.VW_Ambience.Value
+    game.Lighting.OutdoorAmbient = (Toggles.VW_Ambience.Value and Options.VW_Ambience_C.Value or Color3.new(0, 0, 0))
+end)
+Options.VW_Ambience_C:OnChanged(function()
+    game.Lighting.GlobalShadows = not Toggles.VW_Ambience.Value
+    game.Lighting.OutdoorAmbient = (Toggles.VW_Ambience.Value and Options.VW_Ambience_C.Value or Color3.new(0, 0, 0))
+end)
+
+Toggles.VW_NoFog:OnChanged(function()
+    if Atmosphere then
+        Atmosphere.Density = (Toggles.VW_NoFog.Value and 0 or OldFog)
+    end
+
+    if Toggles.VW_NoFog.Value then
+        OldFogEnd = game.Lighting.FogEnd
+
+        game.Lighting.FogEnd = 9999
+    else
+        game.Lighting.FogEnd = OldFogEnd
+    end
+end)
+
+Toggles.VW_RushNodes:OnChanged(function()
+    for _, Room in Rooms:GetChildren() do
+        if Room:FindFirstChild("PathfindNodes") then
+            for _, Node in Room.PathfindNodes:GetChildren() do
+                Node.Transparency = Toggles.VW_RushNodes.Value and 0 or 1
+            end
+        end
+    end
+end)
+
+Toggles.VR_NoHasteEffect:OnChanged(function()
+    for _,v in workspace.CurrentCamera:GetChildren() do
+        if v.Name == "LiveSanity" and workspace:FindFirstChild("EntityModel") then
+            v.Enabled = not Toggles.VR_NoHasteEffect.Value
+        end
+    end
+end)
+
+Toggles.VR_NoGlitchJumpscare:OnChanged(function()
+    GlitchModule.stuff = (Toggles.VR_NoGlitchJumpscare.Value and (function() end) or GlitchFunction)
+end)
+
+Toggles.VR_NoVoidEffect:OnChanged(function()
+    VoidModule.stuff = (Toggles.VR_NoVoidEffect.Value and (function() end) or VoidFunction)
+end)
+
+Toggles.VR_NoSeekEffects:OnChanged(function()
+    SeekModule.tease = (Toggles.VR_NoSeekEffects.Value and (function() end) or SeekFunction)
+end)
+
+Toggles.MA_SilentGloombat:OnChanged(function()
+    local GloombatSwarm = workspace:FindFirstChild("GloombatSwarm")
+
+    if GloombatSwarm then
+        for _, Bat in GloombatSwarm.BatsHolder:GetChildren() do
+
+            for _, Sound in Bat.LiveClientBat.Main:GetChildren() do
+                if Sound:IsA("Sound") then
+                    if not Sound:GetAttribute("_Original") and Sound.Volume >= 0 then
+                        Sound:SetAttribute("_Original", Sound.Volume)
+                    en
+
+
 
 
 
