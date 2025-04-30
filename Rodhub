@@ -1573,8 +1573,7 @@ local Connections = {
 
             for _, v in CurrentRoom:GetChildren() do
 
-                if v:IsA("Folder") then
-                	if v.Name == "Assets" then
+                if v:IsA("Folder") thenif v.Name == "Assets" then
 
                         table.insert(Targets, v)
 
@@ -1586,3 +1585,118 @@ local Connections = {
                         end
 
                         for 
+_, Assets in v:GetChildren() do
+                            if Assets.Name == "Alternate" and Assets:FindFirstChild("Keys") then
+
+                                for _, Root in Assets.Keys:GetChildren() do
+                                    if Root:FindFirstChild("KeyObtain") then
+
+                                        if not (HasItem("Key") or HasItem("KeyBackdoor")) then
+                                            if (Root.KeyObtain.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.KeyObtain.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                                fireproximityprompt(Root.KeyObtain.ModulePrompt)
+                                            end
+                                        end
+
+                                    end
+                                end
+
+                            elseif Assets.Name == "StandardDecor" and v:IsA("Folder") then
+
+                                table.insert(Targets, Assets)
+
+                            end
+                        end
+
+                    end
+
+                elseif v:IsA("Model") then
+
+                    if v.Name == "Sideroom" and v:FindFirstChild("Assets") then 
+
+                        table.insert(Targets, v.Assets)
+                    
+                    elseif v.Name == "Door" and v:FindFirstChild("Lock") then -- God this is so ugly and out of place..
+                        local Item = (Options.GA_AutoInteract_Options.Value["Use Lockpick ( Doors )"] and HasItem("Lockpick")) or HasItem("Key") or LocalPlayer.Character:FindFirstChild("KeyBackdoor")
+
+                        if Item then
+                            if (v.Lock.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Lock.UnlockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(v.Lock.UnlockPrompt)
+                            end
+                        end
+                    elseif v.Name == "AlarmClock" then
+
+                        if (v.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(v.ModulePrompt)
+                        end
+                    elseif v.Name == "PickupItem" and not HasItem("LibraryHintPaper") then
+
+                        if (v.Handle.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(v.ModulePrompt)
+                        end
+
+                    elseif v.Name == "LiveBreakerPolePickup" then
+
+                        local Prompt
+                        for _, ActivateEventPrompt in v:GetChildren() do
+
+                            if ActivateEventPrompt:IsA("ProximityPrompt") and ActivateEventPrompt.RequiresLineOfSight then
+                                Prompt = ActivateEventPrompt
+                            end
+
+                        end
+
+                        if (v.Base.Position - LocalPlayer.Character.Collision.Position).Magnitude < Prompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Prompt)
+                        end
+
+                    elseif v.Name == "Wax_Door" and LocalPlayer.Character:FindFirstChild("SkeletonKey") then
+                  
+                    	if v.SkullLock.SkullPrompt.Enabled and (v.SkullLock.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.SkullLock.SkullPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(v.SkullLock.SkullPrompt)
+                        end
+
+                    elseif v.Name == "Green_Herb" and not LocalPlayer.Character:GetAttribute("HerbGreenEffect") then
+                  
+                    	if (v.Plant.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Plant.HerbPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(v.Plant.HerbPrompt)
+                        end
+
+                    end
+
+                end
+            end
+
+            for _, Assets in Targets do
+                for _, Root in Assets:GetChildren() do
+                    if Root.Name == "Locker_Small" then
+
+                        if Root.Door.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                            FindLoot(Root)
+
+                        else
+                            if (Root.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Door.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.Door.ActivateEventPrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "Toolbox" or Root.Name == "ChestBox" or Root.Name == "Toolshed_Small" then
+
+                        if Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                            FindLoot(Root)
+
+                        else
+                            if (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.ActivateEventPrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "Chest_Vine" then
+
+                        if Root:FindFirstChild("LootHolder") then
+
+                            FindLoot(Root)
+
+                        end
+
