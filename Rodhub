@@ -2789,6 +2789,132 @@ for _, v in Rooms:GetDescendants() do
                         end
                     end
 
+local AnchorsIndex = {}
+                    for Index in Anchors do
+                        table.insert(AnchorsIndex, Index)
+                    end
+
+                    local NumberIndex = math.min( unpack(AnchorsIndex) )
+                    local NextAnchor = Anchors[NumberIndex]
+
+                    if NumberIndex > 1 then
+                        local Code = LocalPlayer.PlayerGui.MainUI.MainFrame.AnchorHintFrame.Code.Text
+                        local Offset = tonumber(NextAnchor.Note.SurfaceGui.TextLabel.Text)
+
+                        local Solved = SolveAnchor(Code, Offset)
+
+                        task.spawn(function()
+                            while not Library.Unloaded and task.wait() and not NextAnchor:GetAttribute("Activated") do
+                                if Toggles.GA_AnchorAutoSolve.Value and (LocalPlayer.Character.Collision.Position - NextAnchor.AnchorBase.Position).Magnitude < 12 then
+                                    NextAnchor.AnchorRemote:InvokeServer( tostring(Code) )
+                                end
+                            end
+                        end)
+
+                        if Toggles.GN_AnchorCode.Value then
+                            Notify("Anchor code solved.", "The code for Anchor "..NextAnchor.Sign.TextLabel.Text.." is '".. Solved .."'.", 10)
+                        end
+
+                        local Highlight, TextLabel = Esp(NextAnchor, NextAnchor.AnchorBase, "( ".. Solved .." ) Anchor "..NextAnchor.Sign.TextLabel.Text, Color3.new(0.5, 0.25, 1))
+                        table.insert(EspTable.Interactables.Anchors, {Highlight, TextLabel})
+					else
+                        task.spawn(function()
+                            local Code = LocalPlayer.PlayerGui.MainUI.MainFrame:WaitForChild("AnchorHintFrame", 9e9).Code.Text
+
+                            while not Library.Unloaded and task.wait() and not NextAnchor:GetAttribute("Activated") do
+                                if Toggles.GA_AnchorAutoSolve.Value and (LocalPlayer.Character.Collision.Position - NextAnchor.AnchorBase.Position).Magnitude < 12 then
+                                    NextAnchor.AnchorRemote:InvokeServer( tostring(Code) )
+                                end
+                            end
+                        end)
+
+                        local Highlight, TextLabel = Esp(NextAnchor, NextAnchor.AnchorBase, "Anchor "..NextAnchor.Sign.TextLabel.Text, Color3.new(0.5, 0.25, 1))
+                        table.insert(EspTable.Interactables.Anchors, {Highlight, TextLabel})
+                    end
+
+                    NextAnchor.AttributeChanged:Wait()
+                    RemoveEspSmooth(NextAnchor)
+                    v.Console.Button.ActivateEventPrompt.AttributeChanged:Wait()
+
+                    table.clear(Anchors)
+                end
+
+            elseif v.Name == "GrumbleRig" then
+     
+                local Highlight, TextLabel = Esp(v, v, "Grumble", Color3.new(0.85, 0.85, 0.85))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+            end
+        end
+
+    end)
+end
+
+Options.GN_NotificationAlignment:OnChanged(function()
+    for _,v in NotificationHolder:GetChildren() do
+        local Alignment = 0.5
+        if Options.GN_NotificationAlignment.Value == "Left" then
+            Alignment = 1
+        elseif Options.GN_NotificationAlignment.Value == "Right" then
+            Alignment = 0
+        end
+
+        v.AnchorPoint = Vector2.new(Alignment, 0.5)
+    end
+end)
+Options.GN_NotificationOffset_X:OnChanged(function()
+    NotificationHolder.Position = UDim2.fromScale(Options.GN_NotificationOffset_X.Value, Options.GN_NotificationOffset_Y.Value)
+end)
+Options.GN_NotificationOffset_Y:OnChanged(function()
+    NotificationHolder.Position = UDim2.fromScale(Options.GN_NotificationOffset_X.Value, Options.GN_NotificationOffset_Y.Value)
+end)
+
+Toggles.ES_AlwaysJump:OnChanged(function()
+    LocalPlayer.Character:SetAttribute("CanJump", Toggles.ES_AlwaysJump.Value or CanJump)     
+
+    if not Toggles.ES_AlwaysJump.Value then
+        CanJump = LocalPlayer.Character:GetAttribute("CanJump")
+    end
+end)
+
+Toggles.EB_CrouchSpoof:OnChanged(function()
+    game.ReplicatedStorage.RemotesFolder.Crouch:FireServer(Toggles.EB_CrouchSpoof.Value)
+end)
+
+Toggles.MA_SilentJammin:OnChanged(function()
+    -- shit code..
+
+    local Jammin = not game.ReplicatedStorage.LiveModifiers:FindFirstChild("Jammin")
+
+    LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.Health.Jam.Playing = not (Toggles.MA_SilentJammin.Value or Jammin)
+    game.SoundService.Main.Jamming.Enabled = not (Toggles.MA_SilentJammin.Value or Jammin)
+end)
+
+Toggles.VR_NoHidingVignette:OnChanged(function()
+    LocalPlayer.PlayerGui.MainUI.MainFrame.HideVignette.Image = (Toggles.VR_NoHidingVignette.Value and "rbxassetid://0" or "rbxassetid://6100076320")
+end)
+
+Toggles.MA_SilentInteracting:OnChanged(function()
+    LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.PromptService.Triggered.Volume = (Toggles.MA_SilentInteracting.Value and 0 or 0.04)
+end)
+
+Options.VV_FieldOfView:OnChanged(function()
+    if Options.VV_FieldOfView.Value <= 0 and Main_Game then
+        task.wait()
+
+        Main_Game.fovtarget = 70
+    end
+end)
+
+Toggles.MM_Walkspeed:OnChanged(function()
+    task.wait()
+
+    getsenv(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.Movement).updatespeed()
+end)
+Options.MM_Walkspeed_S:OnChanged(function()
+    task.wait()
+
+
 
 
 
