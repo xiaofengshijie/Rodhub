@@ -1446,3 +1446,143 @@ local CameraAdded = workspace.CurrentCamera.ChildAdded:Connect(function(v)
     end
 
 end)
+
+
+local Connections = {
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if not (LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Collision")) then return end
+        if Toggles.Spamtoolz.Value and Options.Spamtoolz_X:GetState() then
+            task.wait()
+            for _,Player in pairs(game.Players:GetPlayers()) do
+                if Player ~= LocalPlayer and Player and not table.find(friendz, Player.Name) then
+                    for _,v in pairs(Player.Backpack:GetChildren()) do
+                        if v.Name ~= "Candle" and v:FindFirstChildWhichIsA("RemoteEvent") then
+                            v:FindFirstChildWhichIsA("RemoteEvent"):FireServer()
+                        end
+                    end
+                    local Tool = Player.Character:FindFirstChildWhichIsA("Tool")
+                    if Tool and Tool.Name ~= "Candle" and Tool:FindFirstChild("Remote") then
+                        Tool.Remote:FireServer()
+                    end
+                end
+            end
+        end
+        -- slightly modified v2 code yea!
+        if Toggles.EB_ACManipulate.Value and Options.EB_ACManipulate_K:GetState() then
+            LocalPlayer.Character:PivotTo(LocalPlayer.Character:GetPivot() + workspace.CurrentCamera.CFrame.LookVector * Vector3.new(1, 0, 1) * -100)
+        end
+        if Main_Game then
+            if Options.VV_FieldOfView.Value ~= 0 then
+                Main_Game.fovtarget = Options.VV_FieldOfView.Value
+            end
+
+            if Toggles.VV_NoCamShake.Value then
+                Main_Game.csgo = CFrame.new()
+            end
+
+            if Toggles.VV_Thirdperson.Value and Options.VV_Thirdperson_K:GetState() then
+                Main_Game.tooloffset = Vector3.new(0,-(1 / 3),0)
+            elseif Toggles.VV_ViewmodelOffset.Value then
+                Main_Game.tooloffset = Vector3.new(Options.VV_ViewmodelOffset_X.Value, Options.VV_ViewmodelOffset_Y.Value, Options.VV_ViewmodelOffset_Z.Value)
+            else
+                local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+
+                if Tool then
+                    if Tool:GetAttribute("ToolOffset") then
+                        if Main_Game.tooloffset ~= Tool:GetAttribute("ToolOffset") then
+                            Main_Game.tooloffset = Tool:GetAttribute("ToolOffset")
+                        end
+                    else
+                        Main_Game.tooloffset = Vector3.zero
+                    end
+                end
+            end
+        end
+
+        if Toggles.GA_EatCandies.Value and Options.GA_EatCandies_K:GetState() then
+            local Candy = LocalPlayer.Backpack:FindFirstChild("Candy")
+
+            if Candy and Candy:FindFirstChild("Remote") and not Candy:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then
+                Candy.Parent = LocalPlayer.Character
+			end
+
+            if LocalPlayer.Character:FindFirstChild("Candy") and LocalPlayer.Character.Candy:FindFirstChild("Remote") and not LocalPlayer.Character.Candy:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then
+				LocalPlayer.Character.Candy.Remote:FireServer()
+			end
+		end
+
+        if not LocalPlayer.Character:GetAttribute("Hiding") then
+            if workspace:FindFirstChild("Eyes") and Toggles.ES_AntiEyes.Value then
+                for _, v in workspace:GetChildren() do
+                    if v.Name == "Eyes" and v:FindFirstChild("Core") and v.Core:FindFirstChild("Ambience") and v.Core.Ambience.Playing then
+                        game.ReplicatedStorage.RemotesFolder.MotorReplication:FireServer(-650)
+                        break
+                    end
+                end
+            end
+            if workspace:FindFirstChild("BackdoorLookman") and Toggles.ES_AntiLookman.Value then
+                for _, v in workspace:GetChildren() do
+                    if v.Name == "BackdoorLookman" and v:FindFirstChild("Core") and v.Core:FindFirstChild("Ambience") and v.Core.Ambience.Playing then
+                        game.ReplicatedStorage.RemotesFolder.MotorReplication:FireServer(-650)
+                        break
+                    end
+                end
+            end
+        end
+
+        if Toggles.GA_MinecartInteract.Value and Options.GA_MinecartInteract_K:GetState() then
+            local CurrentRoom = Rooms[ LocalPlayer:GetAttribute("CurrentRoom") ]
+
+            if CurrentRoom.Assets:FindFirstChild("MinecartSet") then
+                for _, Minecart in CurrentRoom.Assets.MinecartSet:GetChildren() do
+                    if Minecart:FindFirstChild("Cart") then
+                        if (LocalPlayer.Character.Collision.Position - Minecart.Main.Position).Magnitude < Minecart.Cart.PushPrompt.MaxActivationDistance * 2 then
+                            fireproximityprompt(Minecart.Cart.PushPrompt)
+                        end
+                    end
+                end
+            end
+            if CurrentRoom.Assets:FindFirstChild("MinecartTracks") then
+                for _, Track in CurrentRoom.Assets.MinecartTracks:GetChildren() do
+                    for _, MinecartMoving in Track.MinecartSet:GetChildren() do
+                        if MinecartMoving.Name == "MinecartMoving" then
+                            if (LocalPlayer.Character.Collision.Position - MinecartMoving.Main.Position).Magnitude < MinecartMoving.Cart.PushPrompt.MaxActivationDistance * 2 then
+                                fireproximityprompt(MinecartMoving.Cart.PushPrompt)
+                            end
+                        end
+                    end
+                end
+            end
+            for _, Sideroom in CurrentRoom:GetChildren() do
+                if Sideroom.Name == "Sideroom" and Sideroom.Assets:FindFirstChild("MinecartSet") then
+                    for _, Minecart in Sideroom.Assets.MinecartSet:GetChildren() do
+                        if Minecart:FindFirstChild("Cart") then
+                            if (LocalPlayer.Character.Collision.Position - Minecart.Main.Position).Magnitude < Minecart.Cart.PushPrompt.MaxActivationDistance * 2 then
+                                fireproximityprompt(Minecart.Cart.PushPrompt)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        if Toggles.GA_AutoInteract.Value and Options.GA_AutoInteract_K:GetState() then
+            local CurrentRoom = Rooms[ LocalPlayer:GetAttribute("CurrentRoom") ]
+
+            local Targets = {}
+
+            for _, v in CurrentRoom:GetChildren() do
+
+                if v:IsA("Folder") then
+                	if v.Name == "Assets" then
+
+                        table.insert(Targets, v)
+
+                        if v:FindFirstChild("Blockage") then
+                            table.insert(Targets, v.Blockage)
+                        end
+                        if v:FindFirstChild("Decor") and v.Decor:FindFirstChild("Folder") then
+                            table.insert(Targets, v.Decor.Folder)
+                        end
+
+                        for 
