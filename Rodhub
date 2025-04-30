@@ -1852,4 +1852,107 @@ elseif Root.Name == "ChestBoxLocked" then
                             fireproximityprompt(Root.LiveHintBook.ActivateEventPrompt)
                         end
 
+elseif Root.Name == "TimerLever" and not Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                        if (Root.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.ActivateEventPrompt)
+                        end
+
+                    elseif Root.Name == "RoomsLootItem" or Root.Name == "CrucifixOnTheWall" then
+
+                        FindLoot(Root)
+
+                    end
+                end
+            end
+
+            if CurrentRoom:FindFirstChild("_DamHandler") then
+
+                for _, Flood in CurrentRoom._DamHandler:GetChildren() do
+                    if Flood.Name:sub(1, 5) == "Flood" then
+
+                        for _, WaterPump in Flood.Pumps:GetChildren() do
+                            if WaterPump.Wheel.ValvePrompt.Enabled and (WaterPump.Wheel.Position - LocalPlayer.Character.Collision.Position).Magnitude < WaterPump.Wheel.ValvePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(WaterPump.Wheel.ValvePrompt)
+                            end
+                        end
+
+                    end
+                end
+
+            end
+
+            if CurrentRoom:FindFirstChild("ElectricalDoor") then
+                local ElectricalKey = HasItem("KeyElectrical")
+
+                if CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt.Enabled and ElectricalKey then
+                    ElectricalKey.Parent = LocalPlayer.Character
+
+                    if (CurrentRoom.ElectricalDoor.Door.Lock.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt)
+                    end
+
+                end
+            end
+
+            if CurrentRoom:FindFirstChild("RoomsDoor_Entrance") then
+                local Lockpick = Options.GA_AutoInteract_Options.Value["Use Lockpick ( Other )"] and HasItem("Lockpick")
+                local SkeletonKey = HasItem("SkeletonKey")
+
+                if CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable.Enabled and Lockpick then
+
+                    if (CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        Lockpick.Parent = LocalPlayer.Character
+                        fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable)
+                    end
+
+                elseif CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt.Enabled and Lockpick then
+
+                    if (CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        Lockpick.Parent = LocalPlayer.Character
+                        fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt)
+                    end
+
+                elseif CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt.Enabled and SkeletonKey then
+
+                    if (CurrentRoom.RoomsDoor_Entrance.SkullLock.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        SkeletonKey.Parent = LocalPlayer.Character
+                        fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt)
+                    end
+
+                elseif CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt.Enabled then
+
+                    if (CurrentRoom.RoomsDoor_Entrance.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt)
+                    end
+
+                end
+            end
+
+            local DoorExit = CurrentRoom:FindFirstChild("Backdoors_Exit") or CurrentRoom:FindFirstChild("RoomsDoor_Exit")
+            if DoorExit then
+
+                if (DoorExit.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < DoorExit.Door.EnterPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(DoorExit.Door.EnterPrompt)
+                end
+
+            end
+
+            FindLoot(workspace.Drops)
+        end
+
+        if PadlockCode and Toggles.GA_AutoPadlockSolve.Value and LocalPlayer:GetAttribute("CurrentRoom") <= 51 then
+            local Padlock = workspace.CurrentRooms["50"].Door:FindFirstChild("Padlock")
+
+            if Padlock then
+                if (LocalPlayer.Character.Collision.Position - Padlock.Main.Position).Magnitude < Options.GA_AutoPadlockSolve_Distance.Value then
+                    game.ReplicatedStorage.RemotesFolder.PL:FireServer(PadlockCode)
+                end
+            end
+        end
+
+        if Toggles.MM_Walkspeed.Value then
+            LocalPlayer.Character.Humanoid.WalkSpeed = Options.MM_Walkspeed_S.Value + (LocalPlayer.Character:GetAttribute("Climbing") and Options.MM_Walkspeed_Boost.Value or 0) + LocalPlayer.Character:GetAttribute("SpeedBoost") + LocalPlayer.Character:GetAttribute("SpeedBoostBehind") + LocalPlayer.Character:GetAttribute("SpeedBoostExtra")
+        end
+
 
