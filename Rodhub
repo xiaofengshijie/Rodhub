@@ -2634,6 +2634,162 @@ namecall = hookmetamethod(game, "__namecall", newcclosure(function(v, ...)
         end
     end
 
+return namecall(v, unpack(Arguments))
+
+        elseif Method == "Destroy" then
+   
+            if v.Name == "PathfindNodes" then
+                return
+            end
+
+        end
+    end
+
+    return namecall(v, ...)
+end))
+
+A90Hook = hookfunction(require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.RemoteListener.Modules.A90), function(...)
+    if Toggles.ER_NoA90.Value then
+        game.ReplicatedStorage.RemotesFolder.A90:FireServer("didnt")
+        return
+    end
+
+    return A90Hook(...)
+end)
+ScreechHook = hookfunction(require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.RemoteListener.Modules.Screech), function(...)
+    if Toggles.ER_NoScreech.Value then
+        game.ReplicatedStorage.RemotesFolder.Screech:FireServer(true)
+        return
+    end
+ 
+    return ScreechHook(...)
+end)
+TimothyHook = hookfunction(require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.RemoteListener.Modules.SpiderJumpscare), function(...)
+    if Toggles.VR_TimothyJumpscare.Value then
+        return
+    end
+
+    return TimothyHook(...)
+end)
+
+local ReviveHook; ReviveHook = hookfunction(require(game.ReplicatedStorage.ClientModules.ReviveCutscene), function(...)
+    if Toggles.VR_NoReviveCutscene.Value then
+        return
+    end
+
+    return ReviveHook(...)
+end)
+
+for _, v in Rooms:GetDescendants() do
+    task.spawn(function()
+
+        if v:IsA("Model") then
+            if v.Name == "Door" and not v:GetAttribute("Opened") then
+         
+                local RoomID = v:GetAttribute("RoomID")
+
+                if RoomID then
+                    local Adornee = v.Door
+
+                    if game.ReplicatedStorage.GameData.Floor.Value == "Hotel" then
+                        if RoomID >= 50 and RoomID <= 51 then
+                        	Adornee = v
+                        end
+                    end
+
+                    local Highlight, TextLabel = Esp(Adornee, Adornee, "Door", Options.ESPI_C_Doors_F.Value, Options.ESPI_C_Doors_O.Value)
+                    table.insert(EspTable.Interactables.Doors, {Highlight, TextLabel})
+
+                    v.AttributeChanged:Once(function()
+                        RemoveEspSmooth(Adornee)
+                    end)
+                end
+
+            elseif v.Name == "FuseObtain" then
+
+                local Highlight, TextLabel = Esp(v, v, "Generator Fuse", Options.ESPI_C_GeneratorFuses_F.Value, Options.ESPI_C_GeneratorFuses_O.Value)
+                table.insert(EspTable.Interactables.GeneratorFuses, {Highlight, TextLabel})
+
+                v.Hitbox.FuseModel.Changed:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+
+            elseif v.Name == "MinesGenerator" then
+
+                local Highlight, TextLabel = Esp(v, v, "Generator", Options.ESPI_C_Generators_F.Value, Options.ESPI_C_Generators_O.Value)
+                table.insert(EspTable.Interactables.Generators, {Highlight, TextLabel})
+
+                v.Lever.Sound.Played:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+            elseif v.Name == "KeyObtain" then
+
+                local Highlight, TextLabel = Esp(v, v, "Door Key", Options.ESPI_C_DoorKeys_F.Value, Options.ESPI_C_DoorKeys_O.Value)
+                table.insert(EspTable.Interactables.DoorKeys, {Highlight, TextLabel})
+
+            elseif v.Name == "GoldPile" then
+                
+                local Highlight, TextLabel = Esp(v, v, "Gold Pile [ "..v:GetAttribute("GoldValue").." ]", Options.ESPI_C_GoldPiles_F.Value, Options.ESPI_C_GoldPiles_O.Value)
+                table.insert(EspTable.Interactables.GoldPiles, {Highlight, TextLabel})
+
+            elseif v.Name == "LeverForGate" and not v.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                local Highlight, TextLabel = Esp(v, v.Main, "Gate Lever", Options.ESPI_C_GateLevers_F.Value, Options.ESPI_C_GateLevers_O.Value)
+                table.insert(EspTable.Interactables.GateLevers, {Highlight, TextLabel})
+
+                v.ActivateEventPrompt.AttributeChanged:Once(function()
+                    RemoveEspSmooth(v)
+                    RemoveEspSmooth(v.Main)
+                end)
+
+            elseif v.Name == "TimerLever" and not v.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                local Highlight, TextLabel = Esp(v, v.Hitbox, "Timer Lever", Options.ESPI_C_BackroomsLevers_F.Value, Options.ESPI_C_BackroomsLevers_O.Value)
+                table.insert(EspTable.Interactables.BackroomsLevers, {Highlight, TextLabel})
+
+                v.ActivateEventPrompt.AttributeChanged:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+
+            elseif v.Name == "LiveHintBook" then
+
+                local Highlight, TextLabel = Esp(v, v, "Book", Options.ESPI_C_LibraryBooks_F.Value, Options.ESPI_C_LibraryBooks_O.Value)
+                table.insert(EspTable.Interactables.LibraryBooks, {Highlight, TextLabel})
+
+            elseif v.Name == "LiveBreakerPolePickup" then
+
+                local Highlight, TextLabel = Esp(v, v, "Breaker Pole", Options.ESPI_C_BreakerPoles_F.Value, Options.ESPI_C_BreakerPoles_O.Value)
+                table.insert(EspTable.Interactables.BreakerPoles, {Highlight, TextLabel})
+
+            elseif MiscPickups[v.Name] then
+				
+                local Highlight, TextLabel = Esp(v, v.PrimaryPart, MiscPickups[v.Name], Options.ESPI_C_MiscPickups_F.Value, Options.ESPI_C_MiscPickups_O.Value)
+                table.insert(EspTable.Interactables.MiscPickups, {Highlight, TextLabel})
+
+            elseif v.Name == "GiggleCeiling" then
+
+                local Highlight, TextLabel = Esp(v, v.Root, "Giggle", Color3.new(0.9, 0.9, 0.9))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+            elseif v.Name == "FigureRig" then
+
+                local Highlight, TextLabel = Esp(v, v.Torso, "Figure", Color3.new(0.75, 0, 0))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+            elseif v.Name == "_NestHandler" then
+                v:WaitForChild("Console", 9e9):WaitForChild("Button", 9e9):WaitForChild("ActivateEventPrompt", 9e9)
+                repeat task.wait() until v.Console.Button.ActivateEventPrompt:GetAttribute("Interactions")
+
+                local Anchors = {}
+
+                while not next(Anchors) and task.wait() and not Library.Unloaded do
+                    for _, Anchor in v:GetChildren() do
+                        if Anchor.Name == "MinesAnchor" and not Anchor:GetAttribute("Activated") then
+                            table.insert(Anchors, AnchorIdentify[Anchor.Sign.TextLabel.Text], Anchor)
+                        end
+                    end
+
+
 
 
 
