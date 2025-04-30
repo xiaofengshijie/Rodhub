@@ -552,3 +552,98 @@ function Notify(TitleText, SubText, Duration, Force)
     elseif Options.GN_NotificationAlignment.Value == "Right" then
         Alignment = 0
     end
+
+local Main = Instance.new("Frame", NotificationHolder)
+    Main.AnchorPoint = Vector2.new(Alignment, 0.5)
+    Main.Size = UDim2.fromScale(0.19 * DPISize, 0.045 * DPISize)
+    Main.Position = UDim2.fromScale(0.5, 0.5)
+    Main.Transparency = 1
+
+    local Line = Instance.new("Frame", Main)
+    Line.AnchorPoint = Vector2.new(0, 1)
+    Line.BorderSizePixel = 0
+    Line.Position = UDim2.fromScale(0, 1)
+    Line.Size = UDim2.fromScale(0, 0.03)
+    Line.Transparency = 1
+
+    local LXLogo = Instance.new("ImageLabel", Main)
+    LXLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+    LXLogo.Position = UDim2.fromScale(0.067, 0.5)
+    LXLogo.Size = UDim2.fromScale(0.121, 0.9)
+    LXLogo.Image = "rbxassetid://90305907167101"
+    LXLogo.ScaleType = Enum.ScaleType.Fit
+    LXLogo.Transparency = 1
+
+    local Title = Instance.new("TextLabel", Main)
+    Title.AnchorPoint = Vector2.new(0, 0.5)
+    Title.Position = UDim2.fromScale(0.135, 0.35)
+    Title.Size = UDim2.fromScale(100, 0.35)
+    Title.Font = Enum.Font.SourceSans
+    Title.Text = "[LOLHAX] " .. TitleText
+    Title.TextScaled = true
+    Title.TextSize = 1
+    Title.TextStrokeTransparency = 0.5
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Transparency = 1
+
+    local Description = Instance.new("TextLabel", Main)
+    Description.AnchorPoint = Vector2.new(0, 0.5)
+    Description.Position = UDim2.fromScale(0.135, 0.667)
+    Description.Size = UDim2.fromScale(100, 0.29)
+    Description.Font = Enum.Font.SourceSans
+    Description.Text = SubText
+    Description.TextScaled = true
+    Description.TextSize = 1
+    Description.TextStrokeTransparency = 0.5
+    Description.TextXAlignment = Enum.TextXAlignment.Left
+    Description.Transparency = 1
+
+    local Number = math.max(Title.TextBounds.X, Description.TextBounds.X) * 1.125
+    local FinalOffset = math.clamp(Number - 265, 0, 9e9)
+
+    Main.Size += UDim2.fromOffset(FinalOffset, 0)
+
+    if Toggles.GN_NotificationSound.Value then
+        local Sound = Instance.new("Sound", game.CoreGui)
+        Sound.SoundId = "rbxassetid://3318713980"
+        Sound.Volume = Options.GN_NotificationSound_Volume.Value
+
+        Sound.PlayOnRemove = true
+        Sound:Destroy()
+    end
+
+    local Timer = Duration or 10 / 3
+
+    -- cant do an onchanged event.. ;w;
+    local LockColor = game:GetService("RunService").RenderStepped:Connect(function()
+        MainColor = Options.AccentColor.Value
+
+        Main.BackgroundColor3 = Options.MainColor.Value
+        Main.BorderColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.4)
+
+        Line.BackgroundColor3 = MainColor
+
+        LXLogo.ImageColor3 = MainColor
+
+        Title.TextColor3 = MainColor
+        Title.TextStrokeColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.8)
+
+        Description.TextColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.15)
+        Description.TextStrokeColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.8)
+    end)
+
+    local Info = TweenInfo.new(4 / 3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    game:GetService("TweenService"):Create(Main, Info, {Position = UDim2.fromScale(0.5, 0.6 + Offset)}):Play()
+
+    game:GetService("TweenService"):Create(Main, Info, {Transparency = 0.35}):Play()
+    game:GetService("TweenService"):Create(Line, Info, {Transparency = 0}):Play()
+    game:GetService("TweenService"):Create(LXLogo, Info, {ImageTransparency = 0}):Play()
+    game:GetService("TweenService"):Create(Title, Info, {TextTransparency = 0}):Play()
+    game:GetService("TweenService"):Create(Description, Info, {TextTransparency = 0}):Play()
+
+    Line:TweenSize(UDim2.fromScale(1, 0.03), "Out", "Linear", Timer)
+
+    task.delay(Timer + 0.1, function()
+        local Info = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        local MainTween = game:GetService("TweenService"):Create(Main, Info, {Position = UDim2.fromScale(0.5, 0.525)})
+        MainTween:Play()
