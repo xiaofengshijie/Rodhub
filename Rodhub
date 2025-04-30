@@ -1692,11 +1692,164 @@ _, Assets in v:GetChildren() do
                             end
                         end
 
-                    elseif Root.Name == "Chest_Vine" then
-
-                        if Root:FindFirstChild("LootHolder") then
+                    elseif Root.Name == "Chest_Vine" then                        if Root:FindFirstChild("LootHolder") then
 
                             FindLoot(Root)
 
+
                         end
+
+elseif Root.Name == "ChestBoxLocked" then
+
+                        if Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                            FindLoot(Root)
+
+                        else
+                            if Options.GA_AutoInteract_Options.Value["Use Lockpick ( Other )"] and LocalPlayer.Character:FindFirstChild("Lockpick") and (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.ActivateEventPrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "OldWoodenTable" then
+
+                        FindLoot(Root)
+
+                        for _, v in Root:GetChildren() do
+                            if v.Name == "DrawerContainer" then
+                                if v.Metal.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                    FindLoot(v)
+
+                                else
+                                    if (Root.Metal.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Metal.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                        fireproximityprompt(v.Metal.ActivateEventPrompt)
+                                    end
+                                end
+                            end
+                        end
+
+                    elseif Root.Name == "Dresser_Single" or Root.Name == "Dresser" or Root.Name == "Table" or Root.Name == "Library_Desk" then
+
+                        FindLoot(Root)
+
+                        for _, v in Root:GetChildren() do
+                            if v.Name == "DrawerContainer" then
+                                if v.Knobs.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                    FindLoot(v)
+
+                                else
+                                    if (v.Knobs.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knobs.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                        fireproximityprompt(v.Knobs.ActivateEventPrompt)
+                                    end
+                                end
+                            end
+                        end
+
+                    elseif Root.Name == "Backdoor_Table" then
+
+                        FindLoot(Root)
+
+                        for _, v in Root:GetChildren() do
+                            if v.Name == "DrawerContainer" then
+                                if v.Knob.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                    FindLoot(v)
+
+                                else
+                                    if (v.Knob.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knob.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                        fireproximityprompt(v.Knob.ActivateEventPrompt)
+                                    end
+                                end
+                            end
+                        end
+
+                    elseif Root.Name == "Rolltop_Desk" then
+
+                        FindLoot(Root)
+
+                        for _, v in Root:GetChildren() do
+                            if v.Name == "DrawerContainer" then
+
+                                if v.Knobs.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                    FindLoot(v)
+
+                                else
+                                    if (v.Knobs.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knobs.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                        fireproximityprompt(v.Knobs.ActivateEventPrompt)
+                                    end
+                                end
+
+                            elseif v.Name == "RolltopContainer" then
+
+                                if v.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                    FindLoot(v)
+
+                                else
+                                    if (v.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                        fireproximityprompt(v.ActivateEventPrompt)
+                                    end
+                                end
+
+                            end
+                        end
+
+                    elseif Root.Name == "KeyObtain" or Root.Name == "ElectricalKeyObtain" then
+
+                        if not (HasItem("Key") or HasItem("KeyBackdoor") or HasItem("KeyElectrical")) then
+                            if (Root.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.ModulePrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "MinesGenerator" then
+                        local Fuse = HasItem("GeneratorFuse")
+
+                        for _, FuseInput in Root.Fuses:GetChildren() do
+                            if FuseInput:FindFirstChild("FusesPrompt") then
+                                if Fuse and (FuseInput.Fuse.Position - LocalPlayer.Character.Collision.Position).Magnitude < FuseInput.FusesPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(FuseInput.FusesPrompt)
+                                end
+
+                                break
+                            end
+                        end
+
+                        if Root.Lever.LeverPrompt.Enabled and (Root.Lever.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Lever.LeverPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.Lever.LeverPrompt)
+                        end
+                    
+                    elseif Root.Name == "MinesGateButton" then
+
+                        if Root.Light.Transparency < 1 then
+                            if (Root.Button.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Button.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.Button.ActivateEventPrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "LeverForGate" then
+
+                        if not Root.ActivateEventPrompt:GetAttribute("Interactions") then
+                            if (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.ActivateEventPrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "VentGrate" then
+
+                        if Root.AwesomePrompt.Enabled then
+                            if (Root.SquareGrate.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.AwesomePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(Root.AwesomePrompt)
+                            end
+                        end
+
+                    elseif Root.Name == "Modular_Bookshelf" and Root:FindFirstChild("LiveHintBook") then
+
+                        if (Root.LiveHintBook.Base.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.LiveHintBook.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.LiveHintBook.ActivateEventPrompt)
+                        end
+
 
