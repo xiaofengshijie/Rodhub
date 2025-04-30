@@ -993,5 +993,205 @@ function FindLoot(Origin)
                 end
             end
 
+elseif Loot.Name == "Battery" then
+            local ToolHasNeedsBattery
+
+            for _, Tool in LocalPlayer.Backpack:GetChildren() do
+                if Tool:GetAttribute("RechargeProp") == "Battery" and Tool:GetAttribute("Durability") < Tool:GetAttribute("DurabilityMax") then
+                    ToolHasNeedsBattery = Tool
+
+                    break
+                end
+            end
+
+            if not ToolHasNeedsBattery then
+                local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+
+                if Tool and Tool:GetAttribute("RechargeProp") == "Battery" and Tool:GetAttribute("Durability") < Tool:GetAttribute("DurabilityMax") then
+                    ToolHasNeedsBattery = Tool
+                end
+            end
+
+            if (BatteryPack and BatteryPack:GetAttribute("Durability") < BatteryPack:GetAttribute("DurabilityMax")) or ToolHasNeedsBattery then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+
+                    if ToolHasNeedsBattery and ToolHasNeedsBattery.Parent ~= LocalPlayer.Character then
+                        ToolHasNeedsBattery.Parent = LocalPlayer.Character
+                    end
+
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        end
+    end
+end
+
+function Esp(Parent, TextAdornee, Text, Color, OutlineColor)
+    local BillboardGui = Instance.new("BillboardGui", Parent)
+    local TextLabel = Instance.new("TextLabel", BillboardGui)
+    local Highlight = Instance.new("Highlight", Parent)
+
+    BillboardGui.Adornee = TextAdornee
+    BillboardGui.AlwaysOnTop = true
+    BillboardGui.Name = "_LOLHAXBG"
+    BillboardGui.Size = UDim2.fromScale(1, 1)
+    BillboardGui.Enabled = true
+
+    Highlight.Name = "_LOLHAXHL"
+
+    TextLabel.Size = UDim2.fromScale(1, 1)
+    TextLabel.TextStrokeTransparency = 0
+    TextLabel.Font = Enum.Font[Options.ESPS_Font.Value]
+    TextLabel.TextSize = Options.ESPS_FontSize.Value
+    TextLabel.TextColor3 = Color
+    TextLabel.BackgroundTransparency = 1
+
+    Highlight.Adornee = Parent
+
+    Highlight.FillColor = Color
+    Highlight.OutlineColor = OutlineColor or Color
+
+    TextLabel.TextTransparency = 1
+    Highlight.FillTransparency = 1
+    Highlight.OutlineTransparency = 1
+
+    TextLabel:SetAttribute("Text", Text)
+
+    task.spawn(function()
+        while Parent and not Library.Unloaded and task.wait() do
+            local Distance = (workspace.CurrentCamera.CFrame.Position - Parent:GetPivot().Position).Magnitude
+
+            TextLabel.Text = Text.."\n[ "..string.format(Distance <= 9.9 and "%.1f" or "%.0f", Distance).." ]"
+        end
+    end)
+
+    game:GetService("TweenService"):Create( Highlight, TweenInfo.new( Options.ESPS_FadeTime.Value ), { FillTransparency = Options.ESPS_FillTransparency.Value } ):Play()
+    game:GetService("TweenService"):Create( Highlight, TweenInfo.new( Options.ESPS_FadeTime.Value ), { OutlineTransparency = Options.ESPS_OutlineTransparency.Value } ):Play()
+    game:GetService("TweenService"):Create( TextLabel, TweenInfo.new( Options.ESPS_FadeTime.Value ), { TextTransparency = 0 } ):Play()
+
+    return Highlight, TextLabel
+end
+
+function EspUpdate()
+    for _, Table in EspTable.Interactables do
+
+        for i, v in Table do
+            print(i, unpack(v))
+        end
+
+    end
+    for i, v in EspTable.Entities do
+
+        print(i, unpack(v))
+
+    end
+end
+
+function RemoveEspSmoothNoanim(Parent)
+    for _, x in Parent:GetChildren() do
+        if x.Name == "_LOLHAXBG" then
+            x:Destroy()
+        elseif x.Name == "_LOLHAXHL" then
+            x:Destroy()
+        end
+    end
+end
+function RemoveEspSmooth(Parent)
+    for _, x in Parent:GetChildren() do
+        if x.Name == "_LOLHAXBG" then
+            game:GetService("TweenService"):Create( x.TextLabel, TweenInfo.new(1), { TextTransparency = 1 } ):Play()
+
+            task.delay(Options.ESPS_FadeTime.Value, function()
+                x:Destroy()
+            end)
+        elseif x.Name == "_LOLHAXHL" then
+            game:GetService("TweenService"):Create( x, TweenInfo.new( Options.ESPS_FadeTime.Value ), { FillTransparency = 1 } ):Play()
+            game:GetService("TweenService"):Create( x, TweenInfo.new( Options.ESPS_FadeTime.Value ), { OutlineTransparency = 1 } ):Play()
+
+            task.delay(Options.ESPS_FadeTime.Value, function()
+                x:Destroy()
+            end)
+        end
+    end
+end
+
+function SolveAnchor(Code, Offset)
+    local Result = ""
+
+    local NumberTable = {}
+    table.insert(NumberTable, 1, string.sub(tostring(Code), 1, 1))
+    table.insert(NumberTable, 2, string.sub(tostring(Code), 2, 2))
+    table.insert(NumberTable, 3, string.sub(tostring(Code), 3, 3))
+
+    for i ,Number in NumberTable do
+        Number += Offset
+
+        if Number > 9 then
+            Number -= 10
+        elseif Number < 0 then
+            Number += 10
+        end
+
+        NumberTable[i] = Number
+    end
+
+    for _, Number in NumberTable do
+        Result = Result..Number
+    end
+
+    return Result
+end
+
+-- Code vvv
+
+local CameraAdded = workspace.CurrentCamera.ChildAdded:Connect(function(v)
+
+    if v.Name == "Screech" then
+        if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Screech"] then
+            Notify("Entity 'Screech' has spawned!", "Look around and look at it quickly!")
+        end
+    elseif v.Name == "LiveSanity" then
+        task.delay(0.2, function()
+
+            if workspace:FindFirstChild("EntityModel") then
+                v.Enabled = not Toggles.VR_NoHasteEffect.Value
+            end
+
+        end)
+    end
+
+end)
+
+
+local Connections = {
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if not (LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Collision")) then return end
+        if Toggles.Spamtoolz.Value and Options.Spamtoolz_X:GetState() then
+            task.wait()
+            for _,Player in pairs(game.Players:GetPlayers()) do
+                if Player ~= LocalPlayer and Player and not table.find(friendz, Player.Name) then
+                    for _,v in pairs(Player.Backpack:GetChildren()) do
+                        if v.Name ~= "Candle" and v:FindFirstChildWhichIsA("RemoteEvent") then
+                            v:FindFirstChildWhichIsA("RemoteEvent"):FireServer()
+                        end
+                    end
+                    local Tool = Player.Character:FindFirstChildWhichIsA("Tool")
+                    if Tool and Tool.Name ~= "Candle" and Tool:FindFirstChild("Remote") then
+                        Tool.Remote:FireServer()
+                    end
+                end
+            end
+        end
+        -- slightly modified v2 code yea!
+        if Toggles.EB_ACManipulate.Value and Options.EB_ACManipulate_K:GetState() then
+            LocalPlayer.Character:PivotTo(LocalPlayer.Character:GetPivot() + workspace.CurrentCamera.CFrame.LookVector * Vector3.new(1, 0, 1) * -100)
+        end
+        if Main_Game then
+            if Options.VV_FieldOfView.Value ~= 0 then
+                Main_Game.fovtarget = Options.VV_FieldOfView.Value
+            end
+
+
                         if not x.HiddenPlayer.Value then
                             if Closest then
