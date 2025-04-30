@@ -870,5 +870,128 @@ function GetHiding()
                 for _, x in v:GetChildren() do
                     if x:IsA("Model") and x.Name == "Wardrobe" then
 
+if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            elseif v.Name == "Vents" then
+                for _, x in v:GetChildren() do
+                    if x.Name == "CircularVent" and v:FindFirstChild("Grate") and x.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not v:FindFirstChild("HideEntityOnSpot", true) then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = v
+                                    Prompt = x.Grate.HidePrompt
+                                end
+                            else
+                                Closest = v
+                                Prompt = x.Grate.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            end
+
+        end
+    end
+
+    for _, v in Rooms[LocalPlayer:GetAttribute("CurrentRoom")]:GetChildren() do
+        if v:IsA("Model") then
+            if v.Name == "CircularVent" and v.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                if v.HiddenPlayer.Value ~= nil or v.HiddenPlayer.Value ~= "" and not v:FindFirstChild("HideEntityOnSpot", true) then
+                    if Closest then
+                        if (LocalPlayer.Character.Collision.Position - v.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                            Closest = v
+                            Prompt = v.Grate.HidePrompt
+                        end
+                    else
+                        Closest = v
+                        Prompt = v.Grate.HidePrompt
+                    end
+                end
+
+            end
+        end
+    end
+
+    return Prompt
+end
+
+function FindLoot(Origin)
+    local Glowsticks = HasItem("Glowsticks")
+    local BandagePack = HasItem("BandagePack")
+    local BatteryPack = HasItem("BatteryPack")
+
+    for _, Loot in Origin:GetChildren() do
+        if Loot.Name == "Glowsticks" and not Options.GA_AutoInteract_Options.Value["Ignore Light Sources"] then
+
+            if not (Glowsticks and Glowsticks:GetAttribute("Durability") >= Glowsticks:GetAttribute("DurabilityMax")) then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "GoldPile" then
+
+            if (Loot.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.LootPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.LootPrompt)
+            end
+
+        elseif Loot.Name == "Bandage" then
+
+            if (LocalPlayer.Character.Humanoid.Health < 100 or (BandagePack and BandagePack:GetAttribute("Durability") < BandagePack:GetAttribute("DurabilityMax"))) then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "FuseHolder" then
+
+            if Loot:FindFirstChild("FuseObtain") and Loot.FuseObtain.Hitbox.FuseModel.LocalTransparencyModifier <= 0 then
+                if (Loot.FuseObtain.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.FuseObtain.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.FuseObtain.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "StarJug" or Loot.Name == "Lockpick" or Loot.Name == "StarVial" or Loot.Name == "SkeletonKey" or Loot.Name == "Crucifix" or Loot.Name == "CrucifixWall" or Loot.Name == "Flashlight" or Loot.Name == "Candle" or Loot.Name == "Straplight" or Loot.Name == "Vitamins" or Loot.Name == "Lighter" or Loot.Name == "Shears" or Loot.Name == "BatteryPack" or Loot.Name == "BandagePack" or Loot.Name == "LaserPointer" or Loot.Name == "Bulklight" then
+            local SameTool = HasItem(Loot:GetAttribute("Pickup"))
+
+            if table.find(LightSources, Loot.Name) and Options.GA_AutoInteract_Options.Value["Ignore Light Sources"] then
+                continue
+            end
+
+           if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.ModulePrompt)
+            end
+
+        elseif Loot.Name == "Candy" then
+
+            if Options.GA_AutoInteract_Options.Value["Ignore Can-Die"] then
+				if Loot:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then continue end
+			end
+
+            if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.ModulePrompt)
+            end
+
+        elseif Loot.Name == "KeyObtain" then
+
+            if not (HasItem("Key") or HasItem("KeyBackdoor")) then
+                if (Loot.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
                         if not x.HiddenPlayer.Value then
                             if Closest then
