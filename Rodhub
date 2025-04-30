@@ -3056,6 +3056,151 @@ Toggles.MA_SilentGloombat:OnChanged(function()
                     en
 
 
+Sound.Volume = (Toggles.MA_SilentGloombat.Value and 0 or Sound:GetAttribute("_Original"))
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.23) and not Library.Unloaded do
+        if Toggles.EB_SpeedBypass.Value then
+            if ClonedCollision then
+                ClonedCollision.Massless = false
+                task.wait(0.23)
+
+                if LocalPlayer.Character.HumanoidRootPart.Anchored then
+                    ClonedCollision.Massless = true
+                    task.wait(1)
+                end
+
+                ClonedCollision.Massless = true
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait() and not Library.Unloaded do
+        if LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and Toggles.VV_Thirdperson.Value and Options.VV_Thirdperson_K:GetState() then
+            for _, v in LocalPlayer.Character:GetChildren() do
+                if v:IsA("Accessory") then
+                    local Clone = v:FindFirstChildWhichIsA("MeshPart"):Clone()
+                    Clone.Parent = ThirdpersonParts
+                end
+            end
+
+            local Clone = LocalPlayer.Character.Head:Clone()
+            Clone.Parent = ThirdpersonParts
+            Clone.Material = "SmoothPlastic"
+
+            local ThirdpersonRenderstepped = game:GetService("RunService").RenderStepped:Connect(function()
+                if Main_Game then
+                    if Toggles.VV_ThirdpersonCamCollision.Value then
+                        local RaycastParams = RaycastParams.new()
+                        RaycastParams.FilterDescendantsInstances = {LocalPlayer.Character, ThirdpersonParts}
+                        RaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+
+                        local Direction = (Main_Game.basecamcf * CFrame.new(Options.VV_ThirdpersonOffset.Value, Options.VV_ThirdpersonOffsetUp.Value, 3.5 * (Options.VV_ThirdpersonDistance.Value / 7.5))).Position - Main_Game.basecamcf.Position
+                        local Spherecast = workspace:Spherecast(Main_Game.basecamcf.Position, 0.2, Direction, RaycastParams)
+
+                        if Spherecast and Spherecast.Instance.CanCollide and Spherecast.Instance.Transparency < 0.99 then
+                            local RayPosition = Main_Game.basecamcf.Position + Direction.Unit * Spherecast.Distance
+
+                            workspace.CurrentCamera.CFrame = CFrame.new(RayPosition, RayPosition + Main_Game.basecamcf.LookVector) * (Toggles.VV_NoCamShake.Value and CFrame.new() or Main_Game.csgo)
+                        else
+                            workspace.CurrentCamera.CFrame = Main_Game.basecamcf * CFrame.new(Options.VV_ThirdpersonOffset.Value, Options.VV_ThirdpersonOffsetUp.Value, 3.5 * (Options.VV_ThirdpersonDistance.Value / 7.5)) * (Toggles.VV_NoCamShake.Value and CFrame.new() or Main_Game.csgo)
+                        end
+                    else
+                        workspace.CurrentCamera.CFrame = Main_Game.basecamcf * CFrame.new(Options.VV_ThirdpersonOffset.Value, Options.VV_ThirdpersonOffsetUp.Value, 3.5 * (Options.VV_ThirdpersonDistance.Value / 7.5)) * (Toggles.VV_NoCamShake.Value and CFrame.new() or Main_Game.csgo)
+                    end
+                end
+            end)
+
+            repeat task.wait() until Library.Unloaded or not Options.VV_Thirdperson_K:GetState() or not Toggles.VV_Thirdperson.Value
+            ThirdpersonRenderstepped:Disconnect()
+            ThirdpersonParts:ClearAllChildren()
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait() and not Library.Unloaded and not PadlockCode_N do
+        local Paper = HasItem("LibraryHintPaper")
+
+        if not Paper then
+            for _, Player in game.Players:GetPlayers() do
+                if Player ~= LocalPlayer and (Player.Character:FindFirstChild("LibraryHintPaper") or Player.Backpack:FindFirstChild("LibraryHintPaper")) then
+                    Paper = Player.Character:FindFirstChild("LibraryHintPaper") or Player.Backpack:FindFirstChild("LibraryHintPaper")
+                end
+            end
+        end
+
+        if Paper and Paper:FindFirstChild("UI") and Rooms["50"].Door:FindFirstChild("Padlock") then
+            local Code = ""	
+            for _, x in Paper.UI:GetChildren() do
+                if tonumber(x.Name) then
+                    for _, y in LocalPlayer.PlayerGui.PermUI.Hints:GetChildren() do
+                        if y.Name == "Icon" then
+                            if y.ImageRectOffset == x.ImageRectOffset then
+                                Code = Code .. y.TextLabel.Text
+                            end
+                        end
+                    end
+                end
+
+                if #Code == 5 then
+                    if Toggles.GN_PadlockCode.Value then
+
+                        Notify("Padlock code found!", "The code is... '".. Code .."', this is also printed in console!", 10)
+                        print("[LOLHAX] The padlock code is: ".. Code)
+
+                        PadlockCode_N = Code
+                    end
+
+                    PadlockCode = Code
+                end
+
+                if PadlockCode then break end
+            end
+        end
+    end
+end)
+
+-- Everything else vvv
+
+task.spawn(function()
+    function updateRPC(Bool)
+        local LargeImage =  { assetId = 0, hoverText = "" }
+        local State = ""
+
+        if game.ReplicatedStorage.GameData.Floor.Value == "Hotel" then
+            State = `[ Door {game.ReplicatedStorage.GameData.LatestRoom.Value} ] In The Hotel`
+            LargeImage = { assetId = 16875079348, hoverText = "In The Hotel" }
+        elseif game.ReplicatedStorage.GameData.Floor.Value == "Retro" then
+            State = `[ Door {game.ReplicatedStorage.GameData.LatestRoom.Value} ] In The Retro Hotel`
+            LargeImage = { assetId = 16992279648, hoverText = "In The Retro Hotel" }
+        elseif game.ReplicatedStorage.GameData.Floor.Value == "Rooms" then
+            State = `[ Room {game.ReplicatedStorage.GameData.LatestRoom.Value} ] In The Rooms`
+            LargeImage = { assetId = 16874821428, hoverText = "In The Rooms" }
+        elseif game.ReplicatedStorage.GameData.Floor.Value == "Backdoor" then
+            State = `[ Door {game.ReplicatedStorage.GameData.LatestRoom.Value - 51} ] In The Backdoor`
+            LargeImage = { assetId = 16874352892, hoverText = "In The Backdoor" }
+        elseif game.ReplicatedStorage.GameData.Floor.Value == "Mines" then
+            State = `[ Door {game.ReplicatedStorage.GameData.LatestRoom.Value + 100} ] In The Mines`
+            LargeImage = { assetId = 138779629462354, hoverText = "In The Mines" }
+        end
+
+        print("[BloxstrapRPC] {\"command\": \"SetRichPresence\", \"data\": " .. game:GetService("HttpService"):JSONEncode({
+            details = Bool and "[ Playing DOORS 👁️ ] Lolhax.xyz" or "<reset>",
+            state = Bool and State or "<reset>",
+            largeImage = Bool and LargeImage or { reset = true },
+            smallImage = Bool and { assetId = 16874068594, hoverText = "LOLHAX" } or { reset = true }
+        }) .. "}")
+    end
+
+
 
 
 
