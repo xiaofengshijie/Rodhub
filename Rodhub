@@ -2105,5 +2105,146 @@ local Shade = not workspace.CurrentCamera:FindFirstChild("Shade")
                     RemoveEspSmooth(v)
                 end)
 
+elseif v.Name == "MinesGenerator" then
+
+                v:WaitForChild("GeneratorMain", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v, "Generator", Options.ESPI_C_Generators_F.Value, Options.ESPI_C_Generators_O.Value)
+                table.insert(EspTable.Interactables.Generators, {Highlight, TextLabel})
+
+                v.Lever.Sound.Played:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+            elseif v.Name == "KeyObtain" then
+
+                v:WaitForChild("Hitbox", 9e9)
+
+                task.delay(1, function()
+                    local Highlight, TextLabel = Esp(v, v, "Door Key", Options.ESPI_C_DoorKeys_F.Value, Options.ESPI_C_DoorKeys_O.Value)
+                    table.insert(EspTable.Interactables.DoorKeys, {Highlight, TextLabel})
+                end)
+
+            elseif v.Name == "GoldPile" then
+                v:WaitForChild("Hitbox", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v, "Gold Pile [ "..v:GetAttribute("GoldValue").." ]", Options.ESPI_C_GoldPiles_F.Value, Options.ESPI_C_GoldPiles_O.Value)
+                table.insert(EspTable.Interactables.GoldPiles, {Highlight, TextLabel})
+
+            elseif v.Name == "LeverForGate" then
+
+                v:WaitForChild("Main", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v.Main, "Gate Lever", Options.ESPI_C_GateLevers_F.Value, Options.ESPI_C_GateLevers_O.Value)
+                table.insert(EspTable.Interactables.GateLevers, {Highlight, TextLabel})
+
+                v:WaitForChild("ActivateEventPrompt", 9e9)
+
+                v.ActivateEventPrompt.AttributeChanged:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+
+            elseif v.Name == "TimerLever" then
+
+                task.delay(1, function()
+                    if not v.Parent then return end
+
+                    v:WaitForChild("Hitbox", 9e9)
+
+                    local Highlight, TextLabel = Esp(v, v.Hitbox, "Timer Lever", Options.ESPI_C_BackroomsLevers_F.Value, Options.ESPI_C_BackroomsLevers_O.Value)
+                    table.insert(EspTable.Interactables.BackroomsLevers, {Highlight, TextLabel})
+
+                    v:WaitForChild("ActivateEventPrompt", 9e9)
+
+                    if v.ActivateEventPrompt:GetAttribute("Interactions") then
+                        RemoveEspSmooth(v)
+                    else
+                        v.ActivateEventPrompt.AttributeChanged:Once(function()
+                            RemoveEspSmooth(v)
+                        end)
+                    end
+                end)
+
+            elseif v.Name == "LiveHintBook" then
+
+                v:WaitForChild("Base", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v, "Book", Options.ESPI_C_LibraryBooks_F.Value, Options.ESPI_C_LibraryBooks_O.Value)
+                table.insert(EspTable.Interactables.LibraryBooks, {Highlight, TextLabel})
+
+            elseif v.Name == "LiveBreakerPolePickup" then
+
+                v:WaitForChild("Base", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v, "Breaker Pole", Options.ESPI_C_BreakerPoles_F.Value, Options.ESPI_C_BreakerPoles_O.Value)
+                table.insert(EspTable.Interactables.BreakerPoles, {Highlight, TextLabel})
+
+            elseif MiscPickups[v.Name] then
+				
+                repeat task.wait() until v.PrimaryPart
+
+                local Highlight, TextLabel = Esp(v, v.PrimaryPart, MiscPickups[v.Name], Options.ESPI_C_MiscPickups_F.Value, Options.ESPI_C_MiscPickups_O.Value)
+                table.insert(EspTable.Interactables.MiscPickups, {Highlight, TextLabel})
+
+            elseif v.Name == "GiggleCeiling" then
+
+                v:WaitForChild("Hitbox", 9e9)
+                v.Hitbox.CanTouch = not Toggles.ES_AntiGiggle.Value
+
+                v:WaitForChild("Root", 9e9)
+                local Highlight, TextLabel = Esp(v, v.Root, "Giggle", Color3.new(0.9, 0.9, 0.9))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+            elseif v.Name == "Snare" then
+
+                v:WaitForChild("Hitbox", 9e9)
+                v.Hitbox.CanTouch = not Toggles.ES_AntiSnare.Value
+
+            elseif v.Name == "ChandelierObstruction" then
+
+                v:WaitForChild("HurtPart", 9e9)
+
+                v.HurtPart.CanTouch = not Toggles.ES_AntiChanedlier.Value
+
+            elseif v.Name == "Seek_Arm" then
+
+                v:WaitForChild("AnimatorPart", 9e9)
+
+                v.AnimatorPart.CanTouch = not Toggles.ES_AntiSeekArms.Value
+
+            elseif v.Name == "DoorFake" then
+
+                v:WaitForChild("Hidden", 9e9)
+                v.Hidden.CanTouch = not Toggles.ES_AntiDupe.Value
+
+                v:WaitForChild("LockPart", 2):WaitForChild("UnlockPrompt")
+                if v:FindFirstChild("LockPart") then
+                    v.LockPart.UnlockPrompt.Enabled = not Toggles.ES_AntiDupe.Value
+                end
+
+            elseif v.Name == "FigureRig" then
+
+                v:WaitForChild("Torso", 9e9)
+                local Highlight, TextLabel = Esp(v, v.Torso, "Figure", Color3.new(0.75, 0, 0))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+            elseif v.Name == "_NestHandler" then
+                v:WaitForChild("Console", 9e9):WaitForChild("Button", 9e9):WaitForChild("ActivateEventPrompt", 9e9)
+                repeat task.wait() until v.Console.Button.ActivateEventPrompt:GetAttribute("Interactions")
+
+                local Anchors = {}
+
+                while not next(Anchors) and task.wait() and not Library.Unloaded do
+                    for _, Anchor in v:GetChildren() do
+                        if Anchor.Name == "MinesAnchor" and not Anchor:GetAttribute("Activated") then
+                            table.insert(Anchors, AnchorIdentify[Anchor.Sign.TextLabel.Text], Anchor)
+                        end
+                    end
+
+                    local AnchorsIndex = {}
+                    for Index in Anchors do
+                        table.insert(AnchorsIndex, Index)
+                    end
+
+
 
 
