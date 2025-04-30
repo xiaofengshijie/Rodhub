@@ -302,3 +302,83 @@ MiscAudio:AddToggle("MA_NoHasteSound", { Text = "No Haste Sounds", Default = fal
 MiscAudio:AddToggle("MA_SilentInteracting", { Text = "No Interacting Sound", Default = false, Tooltip = "Mutes sound when interacting with a prompt." })
 MiscAudio:AddToggle("MA_NoRandomAmbience", { Text = "No Random Ambience", Default = false, Tooltip = "Removes any random noise ambience that may occur." })
 MiscAudio:AddToggle("MA_SilentGloombat", { Text = "Silent Gloombats", Default = false, Tooltip = "Makes any gloombat flying and roaring silent, due to it potentially triggering or heavily bothering some people." })
+--MiscAudio:AddToggle("MA_NoFigureFootsteps", { Text = "Silent Figure Steps", Default = false, Tooltip = "Removes figure footsteps." })
+
+local MiscellaneousOther = Tabs.Misc:AddLeftGroupbox("Other")
+MiscellaneousOther:AddToggle("MO_antirobloxvoid", { Text = "No Roblox Void", Default = false, Tooltip = "Removes the ROBLOX fallen parts destroy height." })
+MiscellaneousOther:AddDivider()
+MiscellaneousOther:AddButton("Play Again", function()
+    game.ReplicatedStorage.RemotesFolder.PlayAgain:FireServer()
+end)
+MiscellaneousOther:AddButton("Lobby", function()
+    game.ReplicatedStorage.RemotesFolder.Lobby:FireServer()
+end)
+MiscellaneousOther:AddButton("Revive", function()
+    game.ReplicatedStorage.RemotesFolder.Revive:FireServer()
+end)
+
+-- Variables vvv
+
+local A90Hook
+local ScreechHook
+local TimothyHook
+
+LocalPlayer.Character:SetAttribute("CanJump", LocalPlayer.Character:GetAttribute("CanJump") or false) 
+local CanJump = LocalPlayer.Character:GetAttribute("CanJump")
+
+LocalPlayer.Character:SetAttribute("SpeedBoost", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostBehind", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostExtra", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+
+local OldAccel = LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties
+
+local PadlockCode
+local PadlockCode_N
+local OldFog
+local Atmosphere = game.Lighting:FindFirstChildWhichIsA("Atmosphere")
+if Atmosphere then
+    OldFog = Atmosphere.Density
+end
+
+local OldFogEnd = game.Lighting.FogEnd
+
+-- Require Variables vvv
+
+local Main_Game = require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+local ShadeModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Shade)
+local GlitchModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Glitch)
+local VoidModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Void)
+local SeekModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Seek)
+
+local ShadeFunction = ShadeModule.stuff
+local GlitchFunction = GlitchModule.stuff
+local VoidFunction = VoidModule.stuff
+local SeekFunction = SeekModule.tease
+
+-- Instance Variables vvv
+
+local Rooms = workspace.CurrentRooms
+
+local ThirdpersonParts = Instance.new("Folder", workspace)
+ThirdpersonParts.Name = "_ThirdpersonParts"
+
+local LXNotifications = Instance.new("ScreenGui", game.CoreGui)
+LXNotifications.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+LXNotifications.ScreenInsets = Enum.ScreenInsets.None
+LXNotifications.Name = "_LXNotifications"
+
+local NotificationHolder = Instance.new("Frame", LXNotifications)
+NotificationHolder.Size = UDim2.fromScale(1, 1)
+NotificationHolder.Transparency = 1
+
+local ClonedCollision = LocalPlayer.Character.Collision:Clone()
+ClonedCollision.Name = "_CollisionClone"
+ClonedCollision.Massless = true
+ClonedCollision.Parent = LocalPlayer.Character
+ClonedCollision.CanCollide = false
+ClonedCollision.CanQuery = false
+ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 1, 1)
+if ClonedCollision:FindFirstChild("CollisionCrouch") then
+    ClonedCollision.CollisionCrouch:Destroy()
+end
