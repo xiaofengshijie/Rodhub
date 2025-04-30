@@ -382,3 +382,173 @@ ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 
 if ClonedCollision:FindFirstChild("CollisionCrouch") then
     ClonedCollision.CollisionCrouch:Destroy()
 end
+
+-- Table Variables vvv
+
+local AnchorIdentify = {
+    ["A"] = 1,
+    ["B"] = 2,
+    ["C"] = 3,
+    ["D"] = 4,
+    ["E"] = 5,
+    ["F"] = 6
+}
+local EntityDistances = {
+    ["RushMoving"] = 50,
+    ["BackdoorRush"] = 50,
+    ["AmbushMoving"] = 100,
+    ["A60"] = 100,
+    ["A120"] = 35
+}
+local LightSources = {
+    "Flashlight",
+    "Candle",
+    "Straplight",
+    "Lighter",
+    "LaserPointer",
+    "Bulklight",
+    "Glowsticks"
+}
+
+local MiscPickups = {
+    ["Glowsticks"] = "Glowstick",
+    ["StarJug"] = "Barrel of Starlight",
+    ["Lockpick"] = "Lock-Pick",
+    ["Bandage"] = "Bandage",
+    ["StarVial"] = "Vial of Starlight",
+    ["SkeletonKey"] = "Skeleton Key",
+    ["Crucifix"] = "Crucifix",
+    ["CrucifixWall"] = "Crucifix",
+    ["Flashlight"] = "Flashlight",
+    ["Candle"] = "Candle",
+    ["Straplight"] = "Straplight",
+    ["Vitamins"] = "Vitamins",
+    ["Lighter"] = "Lighter",
+    ["Shears"] = "Shears",
+    ["BatteryPack"] = "Battery Pack",
+    ["BandagePack"] = "Bandage Pack",
+    ["LaserPointer"] = "Laser Pointer",
+    ["Bulklight"] = "Bulk Light",
+    ["Battery"] = "Battery",
+    ["Candy"] = "Candy"
+}
+local EspTable = {
+    Interactables = {
+        GoldPiles = {},
+        Doors = {},
+        DoorKeys = {},
+        GeneratorFuses = {},
+        Generators = {},
+        GateLevers = {},
+        BackroomsLevers = {},
+        LibraryBooks = {},
+        BreakerPoles = {},
+        Anchors = {},
+
+        MiscPickups = {}
+    },
+
+    Entities = {},
+    Players = {}
+}
+
+task.spawn(function()
+	while task.wait() and not Library.Unloaded do
+        if Toggles.DS_Debug and Toggles.DS_Debug.Value then
+            for _, Table in EspTable.Interactables do
+        
+                for i, v in Table do
+                    print(i, unpack(v))
+                end
+
+            end
+            for i, v in EspTable.Entities do
+        
+                print(i, unpack(v))
+
+            end
+        end
+	end
+end)
+
+-- Functions vvv
+
+function lawl(Parent, Text)
+    if Toggles.ESPP_Enabled.Value then
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.ESPPLAYERFILLCOLOR.Value, Options.ESPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.ESPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(epiklistofpeople) do          
+                RemoveEspSmoothNoanim(Player.Character)  
+            end
+            task.wait(0.1)
+            epiklistofpeople = {}
+        end)
+    end
+end
+
+function LXSmth(Parent, Text)
+    if Toggles.LXPP_Enabled.Value then
+        RemoveEspSmoothNoanim(Parent)  
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.LXPLAYERFILLCOLOR.Value, Options.LXPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.LXPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(LXUser) do         
+                RemoveEspSmoothNoanim(Player.Character)  
+                task.wait()   
+                table.insert(epiklistofpeople, Player.Character)
+                lawl(Player.Character, Player.Name)
+            end
+            task.wait(0.1)
+            LXUser = {}  
+        end)
+    end
+end
+
+task.spawn(function()
+    repeat task.wait() 
+        if not Toggles.ESPP_Enabled.Value and not Library.Unloaded then
+            epiklistofpeople = {}
+        end
+        if not Toggles.LXPP_Enabled.Value and not Library.Unloaded then
+            LXUser = {}
+        end
+        for _,Player in pairs(game.Players:GetPlayers()) do            
+            if Player ~= LocalPlayer and not table.find(epiklistofpeople, Player) and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Toggles.ESPP_Enabled.Value and not table.find(LXUser, Player) then
+                lawl(Player.Character, Player.Name)
+                table.insert(epiklistofpeople, Player)
+            end
+            if Player ~= LocalPlayer and not table.find(LXUser, Player) and Player.Character:FindFirstChild("HumanoidRootPart") and Toggles.LXPP_Enabled.Value and not Library.Unloaded then
+                if Player:GetAttribute("USINGLOLHAX") == true then
+                    RemoveEspSmoothNoanim(Player.Character)
+                    task.wait()
+                    table.insert(LXUser, Player)
+                    LXSmth(Player.Character, Player.Name)
+                    epiklistofpeople = {}
+                end
+            end
+        end
+    until Library.Unloaded
+end)
+-- this is modified version of the lolhaxv2 get player function!
+
+local GlobalOffset = 0
+function Notify(TitleText, SubText, Duration, Force)
+    if not Force then
+        if not Toggles.GN_Enabled.Value then return end
+    end
+
+    local DPISize = Options.GN_NotificationDPISize.Value
+
+    local Offset = GlobalOffset
+    GlobalOffset += 0.05 * DPISize
+
+    local MainColor = Options.AccentColor.Value
+    local Alignment = 0.5
+    if Options.GN_NotificationAlignment.Value == "Left" then
+        Alignment = 1
+    elseif Options.GN_NotificationAlignment.Value == "Right" then
+        Alignment = 0
+    end
