@@ -175,3 +175,49 @@ ESPEntities:AddToggle("ESPE_Name", { Text = "Name", Default = false })
 ESPEntities:AddToggle("ESPE_Distance", { Text = "Distance", Default = false })
 ESPEntities:AddToggle("ESPE_Fill", { Text = "Highlight Fill", Default = false })
 ESPEntities:AddToggle("ESPE_Enabled", { Text = "Highlight Outline", Default = false })]]
+
+-- we have notify entity which uhh gives entity esps! so like very useless!!!!!!!!!!!!!!!!!!!
+local ESPLXUSER = Tabs.ESP:AddLeftGroupbox("LXStuff")
+ESPLXUSER:AddToggle("LXPP_Enabled", { Text = "ESP LXUSER", Default = false })
+:AddColorPicker("LXPLAYERFILLCOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "Fill Color" })
+:AddColorPicker("LXPPLAYEROUTLINECOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "Outline Color" })
+ESPLXUSER:AddDivider()
+
+
+local ESPPlayers = Tabs.ESP:AddLeftGroupbox("Players")
+ESPPlayers:AddToggle("ESPP_Enabled", { Text = "Enabled", Default = false })
+:AddColorPicker("ESPPLAYERFILLCOLOR", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPPLAYEROUTLINECOLOR", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+
+local ESPInteractables = Tabs.ESP:AddRightTabbox("Interactables")
+
+local ESPInteractables_Main = ESPInteractables:AddTab("Main")
+ESPInteractables_Main:AddToggle("ESPI_M_Enabled", { Text = "Enabled", Default = false })
+ESPInteractables_Main:AddDivider()
+ESPInteractables_Main:AddToggle("ESPI_M_Name", { Text = "Name", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Distance", { Text = "Distance", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Fill", { Text = "Highlight Fill", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Enabled", { Text = "Highlight Outline", Default = false })
+
+-- BRO IM SO SORRY LINORIA MADE ME DO IT THIS WAY PLEASE LORD FORGIVE ME
+local ESPInteractables_Configurate = ESPInteractables:AddTab("Configurate")
+ESPInteractables_Configurate:AddToggle("ESPI_C_Doors", { Text = "Door", Default = false })
+:AddColorPicker("ESPI_C_Doors_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_Doors_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_DoorKeys", { Text = "Door Key", Default = false })
+:AddColorPicker("ESPI_C_DoorKeys_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_DoorKeys_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_GoldPiles", { Text = "Door", Default = false })
+:AddColorPicker("ESPI_C_GoldPiles_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_GoldPiles_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_GeneratorFuses", { Text = "Generator Fuse", Default = false })
+:AddColorPicker("ESPI_C_GeneratorFuses_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_GeneratorFuses_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_Generators", { Text = "Generator", Default = false })
+:AddColorPicker("ESPI_C_Generators_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_Generators_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
