@@ -1955,4 +1955,155 @@ elseif Root.Name == "TimerLever" and not Root.ActivateEventPrompt:GetAttribute("
             LocalPlayer.Character.Humanoid.WalkSpeed = Options.MM_Walkspeed_S.Value + (LocalPlayer.Character:GetAttribute("Climbing") and Options.MM_Walkspeed_Boost.Value or 0) + LocalPlayer.Character:GetAttribute("SpeedBoost") + LocalPlayer.Character:GetAttribute("SpeedBoostBehind") + LocalPlayer.Character:GetAttribute("SpeedBoostExtra")
         end
 
+local Shade = not workspace.CurrentCamera:FindFirstChild("Shade")
+        local Haste = not workspace.CurrentCamera:FindFirstChild("EntityModel")
+
+        LocalPlayer.PlayerGui.MainUI.Jumpscare.Jumpscare_Shade.Visible = not (Toggles.VR_NoHaltEffect.Value or Shade)
+        LocalPlayer.PlayerGui.MainUI.MainFrame.DreadVignette.Visible = not (Toggles.VR_NoHasteEffect.Value or Haste)
+        LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties = (Toggles.MM_NoAcceleration.Value and PhysicalProperties.new(100, 0.7, 0, 1, 1) or OldAccel)
+    end),
+
+    -- this is fucked.
+    LocalPlayer.Character:GetAttributeChangedSignal("CanJump"):Connect(function()
+        LocalPlayer.Character:SetAttribute("CanJump", Toggles.ES_AlwaysJump.Value or CanJump)     
+
+        if not Toggles.ES_AlwaysJump.Value then
+            CanJump = LocalPlayer.Character:GetAttribute("CanJump")
+        end
+    end),
+
+    LocalPlayer.CharacterAdded:Connect(function(v)
+        v:WaitForChild("Collision", 9e9)
+
+        ClonedCollision = v.Collision:Clone()
+        ClonedCollision.Parent = v
+
+        ClonedCollision.Name = "_CollisionClone"
+        ClonedCollision.Massless = true
+        ClonedCollision.CanCollide = false
+        ClonedCollision.CanQuery = false
+        ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 1, 1)
+        ClonedCollision.CollisionCrouch:Destroy()
+    end),
+
+    LocalPlayer.PlayerGui.ChildAdded:Connect(function(v)
+        if v.Name == "MainUI" then
+            v:WaitForChild("Initiator",9e9):WaitForChild("Main_Game",9e9):WaitForChild("RemoteListener",9e9):WaitForChild("Modules",9e9)
+            v:WaitForChild("MainFrame",9e9):WaitForChild("HideVignette",9e9)
+            v.Initiator.Main_Game:WaitForChild("Health",9e9):WaitForChild("Jam",9e9)
+            v.Initiator.Main_Game:WaitForChild("PromptService",9e9):WaitForChild("Triggered",9e9)
+
+            Main_Game = require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+            A90Hook = hookfunction(require(v.Initiator.Main_Game.RemoteListener.Modules.A90), function(...)
+                if Toggles.ER_NoA90.Value then
+                    game.ReplicatedStorage.RemotesFolder.A90:FireServer("didnt")
+                    return
+                end
+
+                return A90Hook(...)
+            end)
+            ScreechHook = hookfunction(require(v.Initiator.Main_Game.RemoteListener.Modules.Screech), function(...)
+                if Toggles.ER_NoScreech.Value then
+                    game.ReplicatedStorage.RemotesFolder.Screech:FireServer(true)
+                    return
+                end
+
+                return ScreechHook(...)
+            end)
+            TimothyHook = hookfunction(require(v.Initiator.Main_Game.RemoteListener.Modules.SpiderJumpscare), function(...)
+                if Toggles.VR_TimothyJumpscare.Value then
+                    return
+                end
+
+                return TimothyHook(...)
+            end)
+
+            local Jammin = not game.ReplicatedStorage.LiveModifiers:FindFirstChild("Jammin")
+            v.Initiator.Main_Game.Health.Jam.Playing = not (Toggles.MA_SilentJammin.Value or Jammin)
+            v.MainFrame.HideVignette.Image = (Toggles.VR_NoHidingVignette.Value and "rbxassetid://0" or "rbxassetid://6100076320")
+            v.Initiator.Main_Game.PromptService.Triggered.Volume = (Toggles.MA_SilentInteracting.Value and 0 or 0.04)
+
+            task.wait(0.5)
+            Main_Game.spring.Speed = (Toggles.VV_NoLookBob.Value and 9e9 or 8)
+        end
+    end),
+
+    workspace.Terrain.ChildAdded:Connect(function(v)
+        task.wait()
+
+        if Toggles.MA_NoRandomAmbience.Value and v:IsA("Attachment") then
+            v:Destroy()
+        end
+    end),
+
+    Rooms.ChildAdded:Connect(function(v)
+        repeat task.wait() until v:GetAttribute("RawName")
+
+        if v:GetAttribute("RawName") == "HaltHallway" and Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Halt"] then
+            Notify("Entity 'Halt' spawns in the next room!", "...")
+        end
+    end),
+
+    game.Lighting:GetPropertyChangedSignal("FogEnd"):Connect(function()
+        if game.Lighting.FogEnd ~= 9999 then
+            OldFogEnd = game.Lighting.FogEnd
+        end
+
+        if Toggles.VW_NoFog.Value then
+            game.Lighting.FogEnd = 9999
+        end
+    end),
+
+    -- heh.. 😼
+    game.Lighting:GetPropertyChangedSignal("OutdoorAmbient"):Connect(function()
+        if Toggles.VW_Ambience.Value then
+            game.Lighting.OutdoorAmbient = Options.VW_Ambience_C.Value
+        end
+    end),
+
+    Rooms.DescendantAdded:Connect(function(v)
+
+        if v:IsA("Model") then
+            if v.Name == "Door" then    
+
+                v:WaitForChild("Door", 9e9)
+
+                local RoomID = v:GetAttribute("RoomID")
+
+                if RoomID then
+                    local Adornee = v.Door
+
+                    if game.ReplicatedStorage.GameData.Floor.Value == "Hotel" then
+                        if RoomID >= 50 and RoomID <= 51 then
+                        	Adornee = v
+                        end
+                    end
+
+                    local Highlight, TextLabel = Esp(Adornee, Adornee, "Door", Options.ESPI_C_Doors_F.Value, Options.ESPI_C_Doors_O.Value)
+                    table.insert(EspTable.Interactables.Doors, {Highlight, TextLabel})
+
+                    task.delay(1, function()
+                        if v:GetAttribute("Opened") then
+                            RemoveEspSmooth(Adornee)
+                        else
+                            v.AttributeChanged:Once(function()
+                                RemoveEspSmooth(Adornee)
+                            end)
+                        end
+                    end)
+                end
+
+            elseif v.Name == "FuseObtain" then
+
+                v:WaitForChild("Hitbox", 9e9)
+
+                local Highlight, TextLabel = Esp(v, v, "Generator Fuse", Options.ESPI_C_GeneratorFuses_F.Value, Options.ESPI_C_GeneratorFuses_O.Value)
+                table.insert(EspTable.Interactables.GeneratorFuses, {Highlight, TextLabel})
+
+                v.Hitbox.FuseModel.Changed:Once(function()
+                    RemoveEspSmooth(v)
+                end)
+
+
 
