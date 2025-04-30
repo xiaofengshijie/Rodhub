@@ -2245,6 +2245,167 @@ elseif v.Name == "MinesGenerator" then
                         table.insert(AnchorsIndex, Index)
                     end
 
+local AnchorsIndex = {}
+                    for Index in Anchors do
+                        table.insert(AnchorsIndex, Index)
+                    end
+
+                    local NumberIndex = math.min( unpack(AnchorsIndex) )
+                    local NextAnchor = Anchors[NumberIndex]
+
+                    if NumberIndex > 1 then
+                        local Code = LocalPlayer.PlayerGui.MainUI.MainFrame.AnchorHintFrame.Code.Text
+                        local Offset = tonumber(NextAnchor.Note.SurfaceGui.TextLabel.Text)
+
+                        local Solved = SolveAnchor(Code, Offset)
+
+                        task.spawn(function()
+                            while not Library.Unloaded and task.wait() and not NextAnchor:GetAttribute("Activated") do
+                                if Toggles.GA_AnchorAutoSolve.Value and (LocalPlayer.Character.Collision.Position - NextAnchor.AnchorBase.Position).Magnitude < 12 then
+                                    NextAnchor.AnchorRemote:InvokeServer( tostring(Code) )
+                                end
+                            end
+                        end)
+
+                        if Toggles.GN_AnchorCode.Value then
+                            Notify("Anchor code solved.", "The code for Anchor "..NextAnchor.Sign.TextLabel.Text.." is '".. Solved .."'.", 10)
+                        end
+
+                        local Highlight, TextLabel = Esp(NextAnchor, NextAnchor.AnchorBase, "( ".. Solved .." ) Anchor "..NextAnchor.Sign.TextLabel.Text, Color3.new(0.5, 0.25, 1))
+                        table.insert(EspTable.Interactables.Anchors, {Highlight, TextLabel})
+					else
+                        task.spawn(function()
+                            local Code = LocalPlayer.PlayerGui.MainUI.MainFrame:WaitForChild("AnchorHintFrame", 9e9).Code.Text
+
+                            while not Library.Unloaded and task.wait() and not NextAnchor:GetAttribute("Activated") do
+                                if Toggles.GA_AnchorAutoSolve.Value and (LocalPlayer.Character.Collision.Position - NextAnchor.AnchorBase.Position).Magnitude < 12 then
+                                    NextAnchor.AnchorRemote:InvokeServer( tostring(Code) )
+                                end
+                            end
+                        end)
+
+                        local Highlight, TextLabel = Esp(NextAnchor, NextAnchor.AnchorBase, "Anchor "..NextAnchor.Sign.TextLabel.Text, Color3.new(0.5, 0.25, 1))
+                        table.insert(EspTable.Interactables.Anchors, {Highlight, TextLabel})
+                    end
+
+                    repeat task.wait() until NextAnchor:GetAttribute("Activated")
+
+                    RemoveEspSmooth(NextAnchor)
+                    v.Console.Button.ActivateEventPrompt:GetAttributeChangedSignal("Interactions"):Wait()
+
+                    table.clear(Anchors)
+                end
+            elseif v.Name == "GrumbleRig" then
+                v:WaitForChild("Root", 9e9)
+                task.wait(1)
+
+                local Highlight, TextLabel = Esp(v, v, "Grumble", Color3.new(0.85, 0.85, 0.85))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+            elseif v.Name == "GloomEgg" then
+                v:WaitForChild("Egg", 9e9)
+
+                v.Egg.CanTouch = not Toggles.ES_AntiGloombat.Value
+
+            elseif v.Name == "TriggerEventCollision" then
+                while task.wait() and v and #v:GetChildren() > 0 do
+                    local Part = v:FindFirstChildWhichIsA("BasePart")
+
+                    if Part and Toggles.ER_RemoveSeek.Value then
+                        firetouchinterest(LocalPlayer.Character.Collision, Part, true and false)
+                    end
+                end
+            end
+
+        elseif v.Parent and v.Parent.Name == "PathfindNodes" then
+            v.Transparency = Toggles.VW_RushNodes.Value and 0 or 1
+        end
+
+    end),
+
+    workspace.ChildAdded:Connect(function(v)
+        if v:IsA("Camera") then
+
+            CameraAdded = workspace.CurrentCamera.ChildAdded:Connect(function(v)
+
+                if v.Name == "Screech" then
+                    if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Screech"] then
+                        Notify("Entity 'Screech' has spawned!", "Look around and look at it quickly!")
+                    end
+                elseif v.Name == "LiveSanity" then
+                    task.delay(0.2, function()
+
+                        if workspace:FindFirstChild()("EntityModel") then
+                            v.Enabled = not Toggles.VR_NoHasteEffect.Value
+                        end
+
+                    end)
+                end
+
+            end)
+
+        elseif v:IsA("Model") then
+            if v.Name == "GloombatSwarm" then
+                v:WaitForChild("BatsHolder", 9e9)
+
+                v.BatsHolder.ChildAdded:Connect(function(Bat)
+                    Bat:WaitForChild("LiveClientBat", 9e9):WaitForChild("Main", 9e9)
+
+                    for _, Sound in Bat.LiveClientBat.Main:GetChildren() do
+                        if Sound:IsA("Sound") then
+                            Sound:SetAttribute("_Original", Sound.Volume)
+
+                            if Toggles.MA_SilentGloombat.Value then
+                                Sound.Volume = 0
+                            end
+                        end
+
+                    end
+                end)
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Gloombat Swarm"] then
+                    Notify(v:GetAttribute("WaitForOpen") and "A gloombat swarm will occur in the next few rooms." or "A gloombat swarm has spawned!", "Keep off all light sources and keep going!")
+                end
+
+            elseif v.Name == "Dread" then
+
+                v:WaitForChild("Main", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Main.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Main, "Dread", Color3.new(0.4, 0.4, 0.4))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Dread"] then
+                    Notify("Entity 'Dread' has spawned!", "Open the next door quickly!")
+                end
+
+            elseif v.Name == "RushMoving" then
+
+                v:WaitForChild("RushNew", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.RushNew.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v, "Rush", Color3.new(0.35, 0.4, 0.45))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Rush"] then
+                    print("sdfsdfsdfsdf")
+                    Notify("Entity 'Rush' has spawned!", "Find a hiding spot quickly!")
+                end
+
+            elseif v.Name == "AmbushMoving" then
+
+                v:WaitForChild("RushNew", 9e9)
+
+                Instance.new("Humanoid",v)
+                v.RushNew.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v, "Ambush", Color3.fromRGB(80, 255, 110))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+
 
 
 
