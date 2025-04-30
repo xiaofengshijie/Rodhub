@@ -2405,6 +2405,235 @@ local AnchorsIndex = {}
                 local Highlight, TextLabel = Esp(v, v, "Ambush", Color3.fromRGB(80, 255, 110))
                 table.insert(EspTable.Entities, {Highlight, TextLabel})
 
+if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Ambush"] then
+                    Notify("Entity 'Ambush' has spawned!", "Ambush can rebound 2 - 4 times, find a hiding spot quickly!")
+                end
+
+            elseif v.Name == "A60" then
+
+                v:WaitForChild("Main", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Main.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Main, "A-60", Color3.fromRGB(200, 50, 50))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["A-60"] then
+                    Notify("Entity 'A-60' has spawned!", "Find a hiding spot quickly!")
+                end
+
+            elseif v.Name == "A120" then
+
+                v:WaitForChild("Main", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Main.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Main, "A-120", Color3.fromRGB(55, 55, 55))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["A-120"] then
+                    Notify("Entity 'A-120' has spawned!", "Find a hiding spot quickly!")
+                end
+
+            elseif v.Name == "BackdoorRush" then
+
+                v:WaitForChild("Main", 9e9):WaitForChild("AttachmentSwitch", 9e9):WaitForChild("ParticleEmitter", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Main.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Main, "Blitz", Color3.fromRGB(0, 175, 80))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Blitz"] then
+                    Notify("Entity 'Blitz' has spawned!", "Blitz can rebound and pause in place at random, Find a hiding spot quickly!", 5)
+                end
+
+                local EnableChanged = v.Main.AttachmentSwitch.ParticleEmitter:GetPropertyChangedSignal("Enabled"):Connect(function()
+                    local Color = v.Main.AttachmentSwitch.ParticleEmitter.Enabled and Color3.fromRGB(235, 80, 80) or Color3.fromRGB(0, 175, 80)
+
+                    game:GetService("TweenService"):Create( v._LOLHAXHL, TweenInfo.new(2 / 3), { FillColor = Color } ):Play()
+                    game:GetService("TweenService"):Create( v._LOLHAXHL, TweenInfo.new(2 / 3), { OutlineColor = Color } ):Play()
+                    game:GetService("TweenService"):Create( v._LOLHAXBG.TextLabel, TweenInfo.new(2 / 3), { TextColor3 = Color } ):Play()
+                end)
+
+                v.Destroying:Once(function()
+                    EnableChanged:Disconnect()
+                end)
+
+            elseif v.Name == "Eyes" then
+
+                v:WaitForChild("Core", 9e9):WaitForChild("Ambience", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Core.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Core, "Eyes", Color3.fromRGB(127, 30, 220))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Eyes"] then
+                    Notify("Entity 'Eyes' has spawned!", "Avoid looking at it!")
+                end
+
+            elseif v.Name == "BackdoorLookman" then
+
+                v:WaitForChild("Core", 9e9):WaitForChild("Ambience", 9e9)
+
+                Instance.new("Humanoid", v)
+                v.Core.Transparency = 0.999
+
+                local Highlight, TextLabel = Esp(v, v.Core, "Lookman", Color3.fromRGB(110, 15, 15))
+                table.insert(EspTable.Entities, {Highlight, TextLabel})
+
+                if Toggles.GN_Entities.Value and Options.GN_Entities_Options.Value["Lookman"] then
+                    Notify("Entity 'Lookman' has spawned!", "Avoid looking at it!")
+                end
+
+            end
+
+            if EntityDistances[v.Name] then
+                task.wait(1)
+
+                local Part = v.PrimaryPart
+                v:SetAttribute("_Prediction", Part.Position)
+
+                if Toggles.DS_Debug.Value then
+                    local Folder = Instance.new("Folder", workspace)
+                    Folder.Name = "LXDebug"
+
+                    for i = 1, 5 do
+                        local DebugPart = Instance.new("Part", Folder)
+                        DebugPart.CanCollide = false
+                        DebugPart.CanQuery = false
+                        DebugPart.Anchored = true
+                        DebugPart.Name = i
+                        DebugPart.Shape = "Ball"
+                        DebugPart.Size = Vector3.new(3, 3, 3)
+
+                        Instance.new("Highlight", DebugPart)
+                    end
+                end
+
+                while task.wait() and v.Parent do
+                    task.spawn(function()
+                        local LastPosition = Part.Position
+
+                        task.wait(1 / 3)
+
+                        v:SetAttribute("_Prediction", Part.Position - LastPosition)
+                    end)
+    
+                    if Toggles.GA_AutoHide.Value then
+                        local IncludeList = {}
+
+                        for _, Room in Rooms:GetChildren() do
+                            if Room:FindFirstChild("Assets") then
+                                table.insert(IncludeList, Room.Assets)
+                            end
+                            if Room:FindFirstChild("Parts") then
+                                table.insert(IncludeList, Room.Parts)
+                            end
+                        end
+
+                        local RaycastParams = RaycastParams.new()
+                        RaycastParams.FilterDescendantsInstances = IncludeList
+                        RaycastParams.FilterType = Enum.RaycastFilterType.Include
+
+                        local Count = {0.2, 0.4, 0.6, 0.8, 1}
+
+                        for i = 1, #Count do -- Raycast before the set time for safety reasons, for example if they have it set very high..
+                            local Number = Options.GA_AutoHide_PredictionTime.Value * Count[i]
+                            local Prediction = (v:GetAttribute("_Prediction") * 3) * Number
+
+                            if workspace:FindFirstChild("LXDebug") then
+                                workspace.LXDebug[i].Position = Part.Position + Prediction
+                            end
+
+                            if not LocalPlayer.Character:GetAttribute("Hiding") and Vector3.new(Prediction.X, 0, Prediction.Z).Magnitude > 1 then
+                                local PredictionPosition = Part.Position + Prediction
+
+                                local Raycast
+
+                                if Toggles.GA_AutoHide_VisCheck.Value then
+                                    Raycast = workspace:Raycast(LocalPlayer.Character.Collision.Position, PredictionPosition - LocalPlayer.Character.Collision.Position, RaycastParams)
+                                end
+
+                                if not Raycast and (PredictionPosition - LocalPlayer.Character.Collision.Position).Magnitude <= EntityDistances[v.Name] * Options.GA_AutoHide_PredictionDistanceMultiplier.Value then
+                                    local Prompt = GetHiding()
+
+                                    if Prompt then
+                                        fireproximityprompt(Prompt)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if workspace:FindFirstChild("LXDebug") then
+                    workspace.LXDebug:Destroy()
+                end
+            end
+        end
+    end),
+}
+table.insert(Connections, CameraAdded)
+
+if game.ReplicatedStorage.FloorReplicated.ClientRemote:FindFirstChild("Haste") then
+    local HasteChanged = game.ReplicatedStorage.FloorReplicated.ClientRemote.Haste.Ambience:GetPropertyChangedSignal("Playing"):Connect(function()
+        if Toggles.MA_NoHasteSound.Value then
+            game.ReplicatedStorage.FloorReplicated.ClientRemote.Haste.Ambience.Playing = false
+        end
+    end)
+
+    table.insert(Connections, HasteChanged)
+end
+
+local namecall
+namecall = hookmetamethod(game, "__namecall", newcclosure(function(v, ...)
+    local Method = getnamecallmethod()
+    local Arguments = {...}
+
+    if not Library.Unloaded then
+        if Method == "FireServer" then
+
+            if v.Name == "Crouch" and Toggles.EB_CrouchSpoof.Value then
+
+                Arguments[1] = true
+
+            elseif v.Name == "Underwater" then
+
+                Arguments[1] = false
+
+            elseif v.Name == "Screech" and Toggles.ER_NoScreechDamage.Value then
+
+                local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+
+                Arguments[1] = not (Tool and Tool.Name == "Crucifix") ~= nil
+
+            elseif v.Name == "A90" and Toggles.ER_NoA90Damage.Value then
+
+                Arguments[1] = "didnt"
+
+            elseif v.Name == "ShadeResult" and Toggles.ER_NoShadeDamage.Value then
+
+                return
+
+            end
+
+            return namecall(v, unpack(Arguments))
+
+        elseif Method == "Destroy" then
+   
+            if v.Name == "PathfindNodes" then
+                return
+            end
+
+        end
+    end
+
 
 
 
