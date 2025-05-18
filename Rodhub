@@ -88,3 +88,114 @@ local function initializeTabs()
             highlighttools(state)
         end,
     })
+
+-- 视觉标签页功能
+    local visualLeftGroup = VisualTab:AddLeftGroupbox("视觉功能")
+    local visualRightGroup = VisualTab:AddRightGroupbox("高级视觉功能")
+
+    visualLeftGroup:AddToggle("工具高亮", {
+        Default = false,
+        Callback = function(state)
+            highlighttools(state)
+        end,
+    })
+
+    visualLeftGroup:AddToggle("生存者高亮", {
+        Default = false,
+        Callback = function(state)
+            survivorHighlighter(state)
+        end,
+    })
+
+    visualRightGroup:AddToggle("杀手高亮", {
+        Default = false,
+        Callback = function(state)
+            killerHighlighter(state)
+        end,
+    })
+
+    visualRightGroup:AddToggle("自然腐化高亮", {
+        Default = false,
+        Callback = function(state)
+            corruptnatureesp(state)
+        end,
+    })
+
+    visualRightGroup:AddToggle("生存者工具高亮", {
+        Default = false,
+        Callback = function(state)
+            survivorutilesp(state)
+        end,
+    })
+
+    -- 杀手标签页功能
+    local chartabLeftGroup = chartab:AddLeftGroupbox("杀手功能")
+    chartabLeftGroup:AddButton("Hawk Tuah模式", function()
+        hawktuahmode(true)
+    end)
+
+    -- 生存者标签页功能
+    local survivortabLeftGroup = survivortab:AddLeftGroupbox("生存者功能")
+    survivortabLeftGroup:AddButton("生存者功能1", function()
+        -- 添加生存者相关功能
+        print("执行生存者功能1")
+    end)
+
+    survivortabLeftGroup:AddButton("生存者功能2", function()
+        -- 添加生存者相关功能
+        print("执行生存者功能2")
+    end)
+
+    -- 显式标签页功能
+    local blatanttabLeftGroup = blatanttab:AddLeftGroupbox("显式功能")
+    blatanttabLeftGroup:AddButton("显式功能1", function()
+        -- 添加显式相关功能
+        print("执行显式功能1")
+    end)
+
+    blatanttabLeftGroup:AddButton("显式功能2", function()
+        -- 添加显式相关功能
+        print("执行显式功能2")
+    end)
+
+    -- 其他标签页功能
+    local misctabLeftGroup = misctab:AddLeftGroupbox("其他功能")
+    local misctabRightGroup = misctab:AddRightGroupbox("高级设置")
+
+    misctabLeftGroup:AddButton("解锁客户端角色", function()
+        unlockclientcharacters()
+    end)
+
+    misctabLeftGroup:AddToggle("隐藏玩家栏", {
+        Default = false,
+        Callback = function(state)
+            togglehidebar(state)
+        end,
+    })
+
+    misctabRightGroup:AddSlider("视野调整", {
+        Default = 1,
+        Min = 1,
+        Max = 2,
+        Rounding = 1,
+        Suffix = ";",
+        Callback = function(value)
+            FOVmulti(value)
+        end,
+    })
+
+    misctabRightGroup:AddKeyPicker("翻转", {
+        Default = "~",
+        Callback = function()
+            flip()
+        end,
+    })
+
+    -- 替换通知逻辑
+    local function notify(title, content, duration)
+        Library:Notify({
+            Title = title,
+            Description = content,
+            Time = duration,
+        })
+    end
