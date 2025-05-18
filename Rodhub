@@ -347,3 +347,46 @@ local function hawktuahmode(state)
         })
         return
     end
+  end
+    hawktuahactive = state
+    print("Hawk Tuah模式已 " .. (state and "启用" or "禁用"))
+end
+
+local function unlockclientcharacters()
+    print("解锁客户端角色")
+end
+
+local function togglehidebar(state)
+    hideplayerbar = state
+    print("玩家栏隐藏已 " .. (state and "启用" or "禁用"))
+end
+
+local function FOVmulti(value)
+    print("视野已设置为: " .. value)
+end
+
+local function flip()
+    print("执行翻转")
+end
+
+-- 定义全局变量
+local isHighlightActive = false
+local toolhighlightActive = false
+local hawktuahactive = false
+local isCorruptNatureEspActive = false
+local isSurvivorUtilEspActive = false
+local run = false
+local delay = 0.1
+local isSurvivorHighlightActive = false
+local givepizza = false
+local connections = {}
+local isKillerHighlightActive = false
+local hideplayerbar = false
+local jumppowerenabled = false
+local VirtualBallsManager = game:GetService('VirtualInputManager')
+
+local player = game.Players.LocalPlayer
+
+-- 初始化脚本
+createKeyInputDialog() -- 创建卡密输入对话框
+initializeTabs() -- 初始化标签页和功能
