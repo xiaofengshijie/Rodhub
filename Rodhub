@@ -1,4 +1,4 @@
-local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local repo = "https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
@@ -9,67 +9,23 @@ local Toggles = Library.Toggles
 Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
 
+-- 初始化主窗口（初始时隐藏）
 local Window = Library:CreateWindow({
-    Title = "Rodhub",
-    Footer = "version: example",
+    Title = "Rodhub（中文版）",
+    Footer = "版本: 2.0",
     Icon = 95816097006870,
     NotifySide = "Right",
     ShowCustomCursor = true,
+    Visible = false, -- 初始时隐藏窗口
 })
 
-local Tabs = {
-    ["基本功能"] = Window:AddTab("基本功能", "user"),
-    ["作弊"] = Window:AddTab("作弊", "cheat"),
-    ["视觉"] = Window:AddKeyTab("视觉"),
-    ["楼层"] = Window:AddTab("楼层", "floor"),
-    ["UI Settings"] = Window:AddTab("UI Settings", "settings"),
-}
+-- 创建所有标签页
+local VisualTab, gentab, chartab, survivortab, blatanttab, misctab = nil, nil, nil, nil, nil, nil
 
-local Light = game:GetService("Lighting")
-
-local function dofullbright()
-    Light.Ambient = Color3.new(1, 1, 1)
-    Light.ColorShift_Bottom = Color3.new(1, 1, 1)
-    Light.ColorShift_Top = Color3.new(1, 1, 1)
-end
-
-local VisualGroup = Tabs["视觉"]:AddLeftGroupbox("光照效果")
-
-VisualGroup:AddToggle("永久亮光", {
-    Text = "永久亮光（FullBright）",
-    Default = false,
-    Tooltip = "使游戏场景永久保持最亮状态",
-    Callback = function(Value)
-        if Value then
-            dofullbright()
-            Light.LightingChanged:Connect(dofullbright)
-        else
-            Light.Ambient = Color3.fromRGB(0, 0, 0)
-            Light.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
-            Light.ColorShift_Top = Color3.fromRGB(0, 0, 0)
-        end
-    end
-})
-
-local LeftGroupBox = Tabs["基本功能"]:AddLeftGroupbox("Groupbox")
-
-LeftGroupBox:AddToggle("MyToggle", {
-    Text = "This is a toggle",
-    Default = true,
-    Callback = function(Value)
-        print("[cb] MyToggle changed to:", Value)
-    end,
-})
-
-ThemeManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({})
-
-ThemeManager:SetFolder("Rodhub")
-SaveManager:SetFolder("Rodhub/specific-game")
-
-ThemeManager:ApplyToTab(Tabs["UI Settings"])
-SaveManager:ApplyToTab(Tabs["UI Settings"])
-
-Library:Notify("UI 加载完成！", 5)
+local function initializeTabs()
+    VisualTab = Window:AddTab("视觉", "eye")
+    gentab = Window:AddTab("生成器", "archive")
+    chartab = Window:AddTab("杀手", "axe")
+    survivortab = Window:AddTab("生存者", "key")
+    blatanttab = Window:AddTab("显式", "laugh")
+    misctab = Window:AddTab("其他", "meh")
