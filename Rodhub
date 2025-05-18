@@ -29,3 +29,62 @@ local function initializeTabs()
     survivortab = Window:AddTab("生存者", "key")
     blatanttab = Window:AddTab("显式", "laugh")
     misctab = Window:AddTab("其他", "meh")
+
+-- 定义生成器标签页的左右分栏功能
+    local leftGroup = gentab:AddLeftGroupbox("生成器功能")
+    local rightGroup = gentab:AddRightGroupbox("高级功能")
+
+    leftGroup:AddButton("瞬间解谜", function()
+        instantsolvegen()
+    end)
+
+    leftGroup:AddButton("地狱模式瞬间解谜", function()
+        instantsolvegenhell()
+    end)
+
+    leftGroup:AddButton("单次解谜", function()
+        solvegen()
+    end)
+
+    rightGroup:AddToggle("自动解谜", {
+        Default = false,
+        Callback = function(state)
+            autogen(state)
+        end,
+    })
+
+    rightGroup:AddToggle("生成器高亮", {
+        Default = false,
+        Callback = function(state)
+            toggleHighlightGen(state)
+        end,
+    })
+
+    rightGroup:AddSlider("自动解谜延迟", {
+        Default = 0.1,
+        Min = 2.5,
+        Max = 10,
+        Rounding = 1,
+        Suffix = "秒",
+        Callback = function(value)
+            delay = value
+        end,
+    })
+
+    rightGroup:AddKeyPicker("执行当前解谜", {
+        Default = "H",
+        Callback = function()
+            solvegen()
+        end,
+    })
+
+    -- 视觉标签页功能
+    local visualLeftGroup = VisualTab:AddLeftGroupbox("视觉功能")
+    local visualRightGroup = VisualTab:AddRightGroupbox("高级视觉功能")
+
+    visualLeftGroup:AddToggle("工具高亮", {
+        Default = false,
+        Callback = function(state)
+            highlighttools(state)
+        end,
+    })
