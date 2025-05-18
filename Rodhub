@@ -199,3 +199,151 @@ local function initializeTabs()
             Time = duration,
         })
     end
+
+-- 发送通知
+    notify("加入Discord", "请访问 https://discord.gg/fGFV3r9yKC", 60)
+    notify("欢迎使用Rodhub", "请随时在服务器中发布任何错误或建议 :)", 10)
+end
+
+-- 卡密验证函数
+local function validateKey(key)
+    -- 示例卡密数据库（字母和数字组合）
+    local keys = {
+        ["KEY-ABC123"] = {Type = "Temporary", Expiry = os.time() + 60 * 60 * 24 * 7}, -- 7天后过期
+        ["KEY-DEF456"] = {Type = "Permanent"}, -- 永久有效
+        ["KEY-GHI789"] = {Type = "Temporary", Expiry = os.time() + 60 * 60 * 24 * 30}, -- 30天后过期
+    }
+
+    if not keys[key] then
+        return false, "无效的卡密"
+    end
+
+    if keys[key].Type == "Temporary" and keys[key].Expiry < os.time() then
+        return false, "卡密已过期"
+    end
+
+    if keys[key].Used then
+        return false, "卡密已使用"
+    end
+
+    keys[key].Used = true
+    return true, keys[key]
+end
+
+-- 应用卡密
+local function applyKey(key)
+    local success, result = validateKey(key)
+    if success then
+        if result.Type == "Permanent" then
+            Library:Notify({
+                Title = "成功",
+                Description = "永久卡密已激活！",
+                Time = 5,
+            })
+        else
+            Library:Notify({
+                Title = "成功",
+                Description = "临时卡密已激活！有效期：" .. math.floor((result.Expiry - os.time()) / 86400) .. "天",
+                Time = 5,
+            })
+        end
+        Window:SetVisibility(true) -- 验证成功后显示主窗口
+    else
+        Library:Notify({
+            Title = "错误",
+            Description = result,
+            Time = 5,
+        })
+    end
+end
+
+-- 创建卡密输入对话框
+local function createKeyInputDialog()
+    local keyInputWindow = Library:CreateWindow({
+        Title = "Rodhub 卡密验证",
+        Footer = "版本: 2.0",
+        Icon = 95816097006870,
+        NotifySide = "Right",
+        ShowCustomCursor = true,
+        Position = Vector2.new(500, 300),
+        Size = Vector2.new(400, 200),
+    })
+
+    local keyInputGroup = keyInputWindow:AddTab("卡密验证", "key")
+
+    keyInputGroup:AddInput("卡密输入", {
+        Default = "",
+        Numeric = false,
+        Finished = true,
+        ClearTextOnFocus = false,
+        Text = "输入卡密",
+        Tooltip = "输入您的卡密",
+        Placeholder = "例如: KEY-ABC123",
+        Callback = function(value)
+            applyKey(value)
+            keyInputWindow:Close() -- 验证后关闭对话框
+        end,
+    })
+
+    keyInputGroup:AddButton("取消", function()
+        keyInputWindow:Close() -- 关闭对话框
+    end)
+end
+
+-- 定义功能函数
+local function instantsolvegen()
+    print("执行瞬间解谜")
+end
+
+local function instantsolvegenhell()
+    print("执行地狱模式瞬间解谜")
+end
+
+local function solvegen()
+    print("执行单次解谜")
+end
+
+local function autogen(state)
+    run = state
+    print("自动解谜已 " .. (state and "启用" or "禁用"))
+end
+
+local function toggleHighlightGen(state)
+    isHighlightActive = state
+    print("生成器高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function highlighttools(state)
+    toolhighlightActive = state
+    print("工具高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function survivorHighlighter(state)
+    isSurvivorHighlightActive = state
+    print("生存者高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function killerHighlighter(state)
+    isKillerHighlightActive = state
+    print("杀手高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function corruptnatureesp(state)
+    isCorruptNatureEspActive = state
+    print("自然腐化高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function survivorutilesp(state)
+    isSurvivorUtilEspActive = state
+    print("生存者工具高亮已 " .. (state and "启用" or "禁用"))
+end
+
+local function hawktuahmode(state)
+    if player.Character.Name ~= "c00lkidd" then
+        Library:Notify({
+            Title = "错误",
+            Description = "当前角色不是 Coolkid，可能会出现错误！",
+            Time = 5,
+        })
+        return
+    end
