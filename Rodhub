@@ -1,1023 +1,777 @@
-local OrionLib = loadstring(game:HttpGet("https://pastebin.com/raw/VeaMSRZK"))()
-wait(1)
-OrionLib:MakeNotification({local UserInputService = game:GetService("UserInputService") local TweenService = game:GetService("TweenService") local RunService = game:GetService("RunService") local LocalPlayer = game:GetService("Players").LocalPlayer local Mouse = LocalPlayer:GetMouse() local HttpService = game:GetService("HttpService") local OrionLib = { 	Elements = {}, 	ThemeObjects = {}, 	Connections = {}, 	Flags = {}, 	Themes = { 		Default = { 			Main = Color3.fromRGB(25, 25, 25), 			Second = Color3.fromRGB(32, 32, 32), 			Stroke = Color3.fromRGB(60, 60, 60), 			Divider = Color3.fromRGB(60, 60, 60), 			Text = Color3.fromRGB(240, 240, 240), 			TextDark = Color3.fromRGB(150, 150, 150) 		} 	}, 	SelectedTheme = "Default", 	Folder = nil, 	SaveCfg = false } --Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh local Icons = {} local Success, Response = pcall(function() 	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons end) if not Success then 	warn("\nOrion Library - Failed to load Feather Icons. Error code: " .. Response .. "\n") end	 local function GetIcon(IconName) 	if Icons[IconName] ~= nil then 		return Icons[IconName] 	else 		return nil 	end end local Orion = Instance.new("ScreenGui") Orion.Name = "Orion" if syn then 	syn.protect_gui(Orion) 	Orion.Parent = game.CoreGui else 	Orion.Parent = gethui() or game.CoreGui end if gethui then 	for _, Interface in ipairs(gethui():GetChildren()) do 		if Interface.Name == Orion.Name and Interface ~= Orion then 			Interface:Destroy() 		end 	end else 	for _, Interface in ipairs(game.CoreGui:GetChildren()) do 		if Interface.Name == Orion.Name and Interface ~= Orion then 			Interface:Destroy() 		end 	end end function OrionLib:IsRunning() 	if gethui then 		return Orion.Parent == gethui() 	else 		return Orion.Parent == game:GetService("CoreGui") 	end end local function AddConnection(Signal, Function) 	if (not OrionLib:IsRunning()) then 		return 	end 	local SignalConnect = Signal:Connect(Function) 	table.insert(OrionLib.Connections, SignalConnect) 	return SignalConnect end task.spawn(function() 	while (OrionLib:IsRunning()) do 		wait() 	end 	for _, Connection in next, OrionLib.Connections do 		Connection:Disconnect() 	end end) local function MakeDraggable(DragPoint, Main) 	pcall(function() 		local Dragging, DragInput, MousePos, FramePos = false 		AddConnection(DragPoint.InputBegan, function(Input) 			if Input.UserInputType == Enum.UserInputType.MouseButton1 then 				Dragging = true 				MousePos = Input.Position 				FramePos = Main.Position 				Input.Changed:Connect(function() 					if Input.UserInputState == Enum.UserInputState.End then 						Dragging = false 					end 				end) 			end 		end) 		AddConnection(DragPoint.InputChanged, function(Input) 			if Input.UserInputType == Enum.UserInputType.MouseMovement then 				DragInput = Input 			end 		end) 		AddConnection(UserInputService.InputChanged, function(Input) 			if Input == DragInput and Dragging then 				local Delta = Input.Position - MousePos 				--TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play() 				Main.Position = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y) 			end 		end) 	end) end local function Create(Name, Properties, Children) 	local Object = Instance.new(Name) 	for i, v in next, Properties or {} do 		Object[i] = v 	end 	for i, v in next, Children or {} do 		v.Parent = Object 	end 	return Object end local function CreateElement(ElementName, ElementFunction) 	OrionLib.Elements[ElementName] = function(...) 		return ElementFunction(...) 	end end local function MakeElement(ElementName, ...) 	local NewElement = OrionLib.Elements[ElementName](...) 	return NewElement end local function SetProps(Element, Props) 	table.foreach(Props, function(Property, Value) 		Element[Property] = Value 	end) 	return Element end local function SetChildren(Element, Children) 	table.foreach(Children, function(_, Child) 		Child.Parent = Element 	end) 	return Element end local function Round(Number, Factor) 	local Result = math.floor(Number/Factor + (math.sign(Number) * 0.5)) * Factor 	if Result < 0 then Result = Result + Factor end 	return Result end local function ReturnProperty(Object) 	if Object:IsA("Frame") or Object:IsA("TextButton") then 		return "BackgroundColor3" 	end 	if Object:IsA("ScrollingFrame") then 		return "ScrollBarImageColor3" 	end 	if Object:IsA("UIStroke") then 		return "Color" 	end 	if Object:IsA("TextLabel") or Object:IsA("TextBox") then 		return "TextColor3" 	end 	if Object:IsA("ImageLabel") or Object:IsA("ImageButton") then 		return "ImageColor3" 	end end local function AddThemeObject(Object, Type) 	if not OrionLib.ThemeObjects[Type] then 		OrionLib.ThemeObjects[Type] = {} 	end 	table.insert(OrionLib.ThemeObjects[Type], Object) 	Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Type] 	return Object end local function SetTheme() 	for Name, Type in pairs(OrionLib.ThemeObjects) do 		for _, Object in pairs(Type) do 			Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Name] 		end 	end end local function PackColor(Color) 	return {R = Color.R * 255, G = Color.G * 255, B = Color.B * 255} end local function UnpackColor(Color) 	return Color3.fromRGB(Color.R, Color.G, Color.B) end local function LoadCfg(Config) 	local Data = HttpService:JSONDecode(Config) 	table.foreach(Data, function(a,b) 		if OrionLib.Flags[a] then 			spawn(function() 				if OrionLib.Flags[a].Type == "Colorpicker" then 					OrionLib.Flags[a]:Set(UnpackColor(b)) 				else 					OrionLib.Flags[a]:Set(b) 				end 			end) 		else 			warn("Orion Library Config Loader - Could not find ", a ,b) 		end 	end) end local function SaveCfg(Name) 	local Data = {} 	for i,v in pairs(OrionLib.Flags) do 		if v.Save then 			if v.Type == "Colorpicker" then 				Data[i] = PackColor(v.Value) 			else 				Data[i] = v.Value 			end 		end	 	end 	writefile(OrionLib.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data))) end local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3} local BlacklistedKeys = {Enum.KeyCode.Unknown,Enum.KeyCode.W,Enum.KeyCode.A,Enum.KeyCode.S,Enum.KeyCode.D,Enum.KeyCode.Up,Enum.KeyCode.Left,Enum.KeyCode.Down,Enum.KeyCode.Right,Enum.KeyCode.Slash,Enum.KeyCode.Tab,Enum.KeyCode.Backspace,Enum.KeyCode.Escape} local function CheckKey(Table, Key) 	for _, v in next, Table do 		if v == Key then 			return true 		end 	end end CreateElement("Corner", function(Scale, Offset) 	local Corner = Create("UICorner", { 		CornerRadius = UDim.new(Scale or 0, Offset or 10) 	}) 	return Corner end) CreateElement("Stroke", function(Color, Thickness) 	local Stroke = Create("UIStroke", { 		Color = Color or Color3.fromRGB(255, 255, 255), 		Thickness = Thickness or 1 	}) 	return Stroke end) CreateElement("List", function(Scale, Offset) 	local List = Create("UIListLayout", { 		SortOrder = Enum.SortOrder.LayoutOrder, 		Padding = UDim.new(Scale or 0, Offset or 0) 	}) 	return List end) CreateElement("Padding", function(Bottom, Left, Right, Top) 	local Padding = Create("UIPadding", { 		PaddingBottom = UDim.new(0, Bottom or 4), 		PaddingLeft = UDim.new(0, Left or 4), 		PaddingRight = UDim.new(0, Right or 4), 		PaddingTop = UDim.new(0, Top or 4) 	}) 	return Padding end) CreateElement("TFrame", function() 	local TFrame = Create("Frame", { 		BackgroundTransparency = 1 	}) 	return TFrame end) CreateElement("Frame", function(Color) 	local Frame = Create("Frame", { 		BackgroundColor3 = Color or Color3.fromRGB(255, 255, 255), 		BorderSizePixel = 0 	}) 	return Frame end) CreateElement("RoundFrame", function(Color, Scale, Offset) 	local Frame = Create("Frame", { 		BackgroundColor3 = Color or Color3.fromRGB(255, 255, 255), 		BorderSizePixel = 0 	}, { 		Create("UICorner", { 			CornerRadius = UDim.new(Scale, Offset) 		}) 	}) 	return Frame end) CreateElement("Button", function() 	local Button = Create("TextButton", { 		Text = "", 		AutoButtonColor = false, 		BackgroundTransparency = 1, 		BorderSizePixel = 0 	}) 	return Button end) CreateElement("ScrollFrame", function(Color, Width) 	local ScrollFrame = Create("ScrollingFrame", { 		BackgroundTransparency = 1, 		MidImage = "rbxassetid://7445543667", 		BottomImage = "rbxassetid://7445543667", 		TopImage = "rbxassetid://7445543667", 		ScrollBarImageColor3 = Color, 		BorderSizePixel = 0, 		ScrollBarThickness = Width, 		CanvasSize = UDim2.new(0, 0, 0, 0) 	}) 	return ScrollFrame end) CreateElement("Image", function(ImageID) 	local ImageNew = Create("ImageLabel", { 		Image = ImageID, 		BackgroundTransparency = 1 	}) 	if GetIcon(ImageID) ~= nil then 		ImageNew.Image = GetIcon(ImageID) 	end	 	return ImageNew end) CreateElement("ImageButton", function(ImageID) 	local Image = Create("ImageButton", { 		Image = ImageID, 		BackgroundTransparency = 1 	}) 	return Image end) CreateElement("Label", function(Text, TextSize, Transparency) 	local Label = Create("TextLabel", { 		Text = Text or "", 		TextColor3 = Color3.fromRGB(240, 240, 240), 		TextTransparency = Transparency or 0, 		TextSize = TextSize or 15, 		Font = Enum.Font.Gotham, 		RichText = true, 		BackgroundTransparency = 1, 		TextXAlignment = Enum.TextXAlignment.Left 	}) 	return Label end) local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), { 	SetProps(MakeElement("List"), { 		HorizontalAlignment = Enum.HorizontalAlignment.Center, 		SortOrder = Enum.SortOrder.LayoutOrder, 		VerticalAlignment = Enum.VerticalAlignment.Bottom, 		Padding = UDim.new(0, 5) 	}) }), { 	Position = UDim2.new(1, -25, 1, -25), 	Size = UDim2.new(0, 300, 1, -25), 	AnchorPoint = Vector2.new(1, 1), 	Parent = Orion }) function OrionLib:MakeNotification(NotificationConfig) 	spawn(function() 		NotificationConfig.Name = NotificationConfig.Name or "Notification" 		NotificationConfig.Content = NotificationConfig.Content or "Test" 		NotificationConfig.Image = NotificationConfig.Image or "rbxassetid://4384403532" 		NotificationConfig.Time = NotificationConfig.Time or 15 		local NotificationParent = SetProps(MakeElement("TFrame"), { 			Size = UDim2.new(1, 0, 0, 0), 			AutomaticSize = Enum.AutomaticSize.Y, 			Parent = NotificationHolder 		}) 		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(25, 25, 25), 0, 10), { 			Parent = NotificationParent, 			Size = UDim2.new(1, 0, 0, 0), 			Position = UDim2.new(1, -55, 0, 0), 			BackgroundTransparency = 0, 			AutomaticSize = Enum.AutomaticSize.Y 		}), { 			MakeElement("Stroke", Color3.fromRGB(93, 93, 93), 1.2), 			MakeElement("Padding", 12, 12, 12, 12), 			SetProps(MakeElement("Image", NotificationConfig.Image), { 				Size = UDim2.new(0, 20, 0, 20), 				ImageColor3 = Color3.fromRGB(240, 240, 240), 				Name = "Icon" 			}), 			SetProps(MakeElement("Label", NotificationConfig.Name, 15), { 				Size = UDim2.new(1, -30, 0, 20), 				Position = UDim2.new(0, 30, 0, 0), 				Font = Enum.Font.GothamBold, 				Name = "Title" 			}), 			SetProps(MakeElement("Label", NotificationConfig.Content, 14), { 				Size = UDim2.new(1, 0, 0, 0), 				Position = UDim2.new(0, 0, 0, 25), 				Font = Enum.Font.GothamSemibold, 				Name = "Content", 				AutomaticSize = Enum.AutomaticSize.Y, 				TextColor3 = Color3.fromRGB(200, 200, 200), 				TextWrapped = true 			}) 		}) 		TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play() 		wait(NotificationConfig.Time - 0.88) 		TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play() 		TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.6}):Play() 		wait(0.3) 		TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency = 0.9}):Play() 		TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.4}):Play() 		TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.5}):Play() 		wait(0.05) 		NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0),'In','Quint',0.8,true) 		wait(1.35) 		NotificationFrame:Destroy() 	end) end function OrionLib:MakeWindow(WindowConfig) 	local FirstTab = true 	local Minimized = false 	local Loaded = false 	local UIHidden = false 	WindowConfig = WindowConfig or {} 	WindowConfig.Name = WindowConfig.Name or "Orion Library" 	WindowConfig.ConfigFolder = WindowConfig.ConfigFolder or WindowConfig.Name 	WindowConfig.SaveConfig = WindowConfig.SaveConfig or false 	WindowConfig.HidePremium = WindowConfig.HidePremium or false 	if WindowConfig.IntroEnabled == nil then 		WindowConfig.IntroEnabled = true 	end 	WindowConfig.IntroText = WindowConfig.IntroText or "Orion Library" 	WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end 	WindowConfig.ShowIcon = WindowConfig.ShowIcon or false 	WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103" 	WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103" 	OrionLib.Folder = WindowConfig.ConfigFolder 	OrionLib.SaveCfg = WindowConfig.SaveConfig 	if WindowConfig.SaveConfig then 		if not isfolder(WindowConfig.ConfigFolder) then 			makefolder(WindowConfig.ConfigFolder) 		end	 	end 	local TabHolder = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 4), { 		Size = UDim2.new(1, 0, 1, -50) 	}), { 		MakeElement("List"), 		MakeElement("Padding", 8, 0, 0, 8) 	}), "Divider") 	AddConnection(TabHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function() 		TabHolder.CanvasSize = UDim2.new(0, 0, 0, TabHolder.UIListLayout.AbsoluteContentSize.Y + 16) 	end) 	local CloseBtn = SetChildren(SetProps(MakeElement("Button"), { 		Size = UDim2.new(0.5, 0, 1, 0), 		Position = UDim2.new(0.5, 0, 0, 0), 		BackgroundTransparency = 1 	}), { 		AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072725342"), { 			Position = UDim2.new(0, 9, 0, 6), 			Size = UDim2.new(0, 18, 0, 18) 		}), "Text") 	}) 	local MinimizeBtn = SetChildren(SetProps(MakeElement("Button"), { 		Size = UDim2.new(0.5, 0, 1, 0), 		BackgroundTransparency = 1 	}), { 		AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072719338"), { 			Position = UDim2.new(0, 9, 0, 6), 			Size = UDim2.new(0, 18, 0, 18), 			Name = "Ico" 		}), "Text") 	}) 	local DragPoint = SetProps(MakeElement("TFrame"), { 		Size = UDim2.new(1, 0, 0, 50) 	}) 	local WindowStuff = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), { 		Size = UDim2.new(0, 150, 1, -50), 		Position = UDim2.new(0, 0, 0, 50) 	}), { 		AddThemeObject(SetProps(MakeElement("Frame"), { 			Size = UDim2.new(1, 0, 0, 10), 			Position = UDim2.new(0, 0, 0, 0) 		}), "Second"), 		AddThemeObject(SetProps(MakeElement("Frame"), { 			Size = UDim2.new(0, 10, 1, 0), 			Position = UDim2.new(1, -10, 0, 0) 		}), "Second"), 		AddThemeObject(SetProps(MakeElement("Frame"), { 			Size = UDim2.new(0, 1, 1, 0), 			Position = UDim2.new(1, -1, 0, 0) 		}), "Stroke"), 		TabHolder, 		SetChildren(SetProps(MakeElement("TFrame"), { 			Size = UDim2.new(1, 0, 0, 50), 			Position = UDim2.new(0, 0, 1, -50) 		}), { 			AddThemeObject(SetProps(MakeElement("Frame"), { 				Size = UDim2.new(1, 0, 0, 1) 			}), "Stroke"), 			AddThemeObject(SetChildren(SetProps(MakeElement("Frame"), { 				AnchorPoint = Vector2.new(0, 0.5), 				Size = UDim2.new(0, 32, 0, 32), 				Position = UDim2.new(0, 10, 0.5, 0) 			}), { 				SetProps(MakeElement("Image", "https://www.roblox.com/headshot-thumbnail/image?userId=".. LocalPlayer.UserId .."&width=420&height=420&format=png"), { 					Size = UDim2.new(1, 0, 1, 0) 				}), 				AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://4031889928"), { 					Size = UDim2.new(1, 0, 1, 0), 				}), "Second"), 				MakeElement("Corner", 1) 			}), "Divider"), 			SetChildren(SetProps(MakeElement("TFrame"), { 				AnchorPoint = Vector2.new(0, 0.5), 				Size = UDim2.new(0, 32, 0, 32), 				Position = UDim2.new(0, 10, 0.5, 0) 			}), { 				AddThemeObject(MakeElement("Stroke"), "Stroke"), 				MakeElement("Corner", 1) 			}), 			AddThemeObject(SetProps(MakeElement("Label", LocalPlayer.DisplayName, WindowConfig.HidePremium and 14 or 13), { 				Size = UDim2.new(1, -60, 0, 13), 				Position = WindowConfig.HidePremium and UDim2.new(0, 50, 0, 19) or UDim2.new(0, 50, 0, 12), 				Font = Enum.Font.GothamBold, 				ClipsDescendants = true 			}), "Text"), 			AddThemeObject(SetProps(MakeElement("Label", "", 12), { 				Size = UDim2.new(1, -60, 0, 12), 				Position = UDim2.new(0, 50, 1, -25), 				Visible = not WindowConfig.HidePremium 			}), "TextDark") 		}), 	}), "Second") 	local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), { 		Size = UDim2.new(1, -30, 2, 0), 		Position = UDim2.new(0, 25, 0, -24), 		Font = Enum.Font.GothamBlack, 		TextSize = 20 	}), "Text") 	local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), { 		Size = UDim2.new(1, 0, 0, 1), 		Position = UDim2.new(0, 0, 1, -1) 	}), "Stroke") 	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), { 		Parent = Orion, 		Position = UDim2.new(0.5, -307, 0.5, -172), 		Size = UDim2.new(0, 615, 0, 344), 		ClipsDescendants = true, 		Active = true, 		Draggable = true 	}), { 		--SetProps(MakeElement("Image", "rbxassetid://3523728077"), { 		--	AnchorPoint = Vector2.new(0.5, 0.5), 		--	Position = UDim2.new(0.5, 0, 0.5, 0), 		--	Size = UDim2.new(1, 80, 1, 320), 		--	ImageColor3 = Color3.fromRGB(33, 33, 33), 		--	ImageTransparency = 0.7 		--}), 		SetChildren(SetProps(MakeElement("TFrame"), { 			Size = UDim2.new(1, 0, 0, 50), 			Name = "TopBar" 		}), { 			WindowName, 			WindowTopBarLine, 			AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 7), { 				Size = UDim2.new(0, 70, 0, 30), 				Position = UDim2.new(1, -90, 0, 10) 			}), { 				AddThemeObject(MakeElement("Stroke"), "Stroke"), 				AddThemeObject(SetProps(MakeElement("Frame"), { 					Size = UDim2.new(0, 1, 1, 0), 					Position = UDim2.new(0.5, 0, 0, 0) 				}), "Stroke"), 				CloseBtn, 				MinimizeBtn 			}), "Second"), 		}), 		DragPoint, 		WindowStuff 	}), "Main") 	if WindowConfig.ShowIcon then 		WindowName.Position = UDim2.new(0, 50, 0, -24) 		local WindowIcon = SetProps(MakeElement("Image", WindowConfig.Icon), { 			Size = UDim2.new(0, 20, 0, 20), 			Position = UDim2.new(0, 25, 0, 15) 		}) 		WindowIcon.Parent = MainWindow.TopBar 	end	 	MakeDraggable(DragPoint, MainWindow) 	AddConnection(CloseBtn.MouseButton1Up, function() 		MainWindow.Visible = false 		UIHidden = true 		OrionLib:MakeNotification({ 			Name = "再见！", 			Content = "不辜负生活，不迷失方向", 			Time = 5 		}) 		WindowConfig.CloseCallback() 	end) 	AddConnection(UserInputService.InputBegan, function(Input) 		if Input.KeyCode == Enum.KeyCode.RightShift and UIHidden then 			MainWindow.Visible = true 		end 	end) 	AddConnection(MinimizeBtn.MouseButton1Up, function() 		if Minimized then 			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 615, 0, 344)}):Play() 			MinimizeBtn.Ico.Image = "rbxassetid://7072719338" 			wait(.02) 			MainWindow.ClipsDescendants = false 			WindowStuff.Visible = true 			WindowTopBarLine.Visible = true 		else 			MainWindow.ClipsDescendants = true 			WindowTopBarLine.Visible = false 			MinimizeBtn.Ico.Image = "rbxassetid://7072720870" 			TweenService:Create(MainWindow, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, WindowName.TextBounds.X + 140, 0, 50)}):Play() 			wait(0.1) 			WindowStuff.Visible = false	 		end 		Minimized = not Minimized 	end) 	local function LoadSequence() 		MainWindow.Visible = false 		local LoadSequenceLogo = SetProps(MakeElement("Image", WindowConfig.IntroIcon), { 			Parent = Orion, 			AnchorPoint = Vector2.new(0.5, 0.5), 			Position = UDim2.new(0.5, 0, 0.4, 0), 			Size = UDim2.new(0, 28, 0, 28), 			ImageColor3 = Color3.fromRGB(255, 255, 255), 			ImageTransparency = 1 		}) 		local LoadSequenceText = SetProps(MakeElement("Label", WindowConfig.IntroText, 14), { 			Parent = Orion, 			Size = UDim2.new(1, 0, 1, 0), 			AnchorPoint = Vector2.new(0.5, 0.5), 			Position = UDim2.new(0.5, 19, 0.5, 0), 			TextXAlignment = Enum.TextXAlignment.Center, 			Font = Enum.Font.GothamBold, 			TextTransparency = 1 		}) 		TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {ImageTransparency = 0, Position = UDim2.new(0.5, 0, 0.5, 0)}):Play() 		wait(0.8) 		TweenService:Create(LoadSequenceLogo, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -(LoadSequenceText.TextBounds.X/2), 0.5, 0)}):Play() 		wait(0.3) 		TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0}):Play() 		wait(2) 		TweenService:Create(LoadSequenceText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1}):Play() 		MainWindow.Visible = true 		LoadSequenceLogo:Destroy() 		LoadSequenceText:Destroy() 	end 	if WindowConfig.IntroEnabled then 		LoadSequence() 	end	 	local TabFunction = {} 	function TabFunction:MakeTab(TabConfig) 		TabConfig = TabConfig or {} 		TabConfig.Name = TabConfig.Name or "Tab" 		TabConfig.Icon = TabConfig.Icon or "" 		TabConfig.PremiumOnly = TabConfig.PremiumOnly or false 		local TabFrame = SetChildren(SetProps(MakeElement("Button"), { 			Size = UDim2.new(1, 0, 0, 30), 			Parent = TabHolder 		}), { 			AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), { 				AnchorPoint = Vector2.new(0, 0.5), 				Size = UDim2.new(0, 18, 0, 18), 				Position = UDim2.new(0, 10, 0.5, 0), 				ImageTransparency = 0.4, 				Name = "Ico" 			}), "Text"), 			AddThemeObject(SetProps(MakeElement("Label", TabConfig.Name, 14), { 				Size = UDim2.new(1, -35, 1, 0), 				Position = UDim2.new(0, 35, 0, 0), 				Font = Enum.Font.GothamSemibold, 				TextTransparency = 0.4, 				Name = "Title" 			}), "Text") 		}) 		if GetIcon(TabConfig.Icon) ~= nil then 			TabFrame.Ico.Image = GetIcon(TabConfig.Icon) 		end	 		local Container = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255, 255, 255), 5), { 			Size = UDim2.new(1, -150, 1, -50), 			Position = UDim2.new(0, 150, 0, 50), 			Parent = MainWindow, 			Visible = false, 			Name = "ItemContainer" 		}), { 			MakeElement("List", 0, 6), 			MakeElement("Padding", 15, 10, 10, 15) 		}), "Divider") 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function() 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30) 		end) 		if FirstTab then 			FirstTab = false 			TabFrame.Ico.ImageTransparency = 0 			TabFrame.Title.TextTransparency = 0 			TabFrame.Title.Font = Enum.Font.GothamBlack 			Container.Visible = true 		end 		AddConnection(TabFrame.MouseButton1Click, function() 			for _, Tab in next, TabHolder:GetChildren() do 				if Tab:IsA("TextButton") then 					Tab.Title.Font = Enum.Font.GothamSemibold 					TweenService:Create(Tab.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0.4}):Play() 					TweenService:Create(Tab.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0.4}):Play() 				end 			end 			for _, ItemContainer in next, MainWindow:GetChildren() do 				if ItemContainer.Name == "ItemContainer" then 					ItemContainer.Visible = false 				end 			end 			TweenService:Create(TabFrame.Ico, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = 0}):Play() 			TweenService:Create(TabFrame.Title, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {TextTransparency = 0}):Play() 			TabFrame.Title.Font = Enum.Font.GothamBlack 			Container.Visible = true 		end) 		local function GetElements(ItemParent) 			local ElementFunction = {} 			function ElementFunction:AddLabel(Text) 				local LabelFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), { 					Size = UDim2.new(1, 0, 0, 30), 					BackgroundTransparency = 0.7, 					Parent = ItemParent 				}), { 					AddThemeObject(SetProps(MakeElement("Label", Text, 15), { 						Size = UDim2.new(1, -12, 1, 0), 						Position = UDim2.new(0, 12, 0, 0), 						Font = Enum.Font.GothamBold, 						Name = "Content" 					}), "Text"), 					AddThemeObject(MakeElement("Stroke"), "Stroke") 				}), "Second") 				local LabelFunction = {} 				function LabelFunction:Set(ToChange) 					LabelFrame.Content.Text = ToChange 				end 				return LabelFunction 			end 			function ElementFunction:AddParagraph(Text, Content) 				Text = Text or "Text" 				Content = Content or "Content" 				local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), { 					Size = UDim2.new(1, 0, 0, 30), 					BackgroundTransparency = 0.7, 					Parent = ItemParent 				}), { 					AddThemeObject(SetProps(MakeElement("Label", Text, 15), { 						Size = UDim2.new(1, -12, 0, 14), 						Position = UDim2.new(0, 12, 0, 10), 						Font = Enum.Font.GothamBold, 						Name = "Title" 					}), "Text"), 					AddThemeObject(SetProps(MakeElement("Label", "", 13), { 						Size = UDim2.new(1, -24, 0, 0), 						Position = UDim2.new(0, 12, 0, 26), 						Font = Enum.Font.GothamSemibold, 						Name = "Content", 						TextWrapped = true 					}), "TextDark"), 					AddThemeObject(MakeElement("Stroke"), "Stroke") 				}), "Second") 				AddConnection(ParagraphFrame.Content:GetPropertyChangedSignal("Text"), function() 					ParagraphFrame.Content.Size = UDim2.new(1, -24, 0, ParagraphFrame.Content.TextBounds.Y) 					ParagraphFrame.Size = UDim2.new(1, 0, 0, ParagraphFrame.Content.TextBounds.Y + 35) 				end) 				ParagraphFrame.Content.Text = Content 				local ParagraphFunction = {} 				function ParagraphFunction:Set(ToChange) 					ParagraphFrame.Content.Text = ToChange 				end 				return ParagraphFunction 			end 			function ElementFunction:AddButton(ButtonConfig) 				ButtonConfig = ButtonConfig or {} 				ButtonConfig.Name = ButtonConfig.Name or "Button" 				ButtonConfig.Callback = ButtonConfig.Callback or function() end 				ButtonConfig.Icon = ButtonConfig.Icon or "rbxassetid://3944703587" 				local Button = {} 				local Click = SetProps(MakeElement("Button"), { 					Size = UDim2.new(1, 0, 1, 0) 				}) 				local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 5), { 					Size = UDim2.new(1, 0, 0, 33), 					Parent = ItemParent 				}), { 					AddThemeObject(SetProps(MakeElement("Label", ButtonConfig.Name, 15), { 						Size = UDim2.new(1, -12, 1, 0), 						Position = UDim2.new(0, 12, 0, 0), 						Font = Enum.Font.GothamBold, 						Name = "Content" 					}), "Text"), 					AddThemeObject(SetProps(MakeElement("Image", ButtonConfig.Icon), { 						Size = UDim2.new(0, 20, 0, 20), 						Position = UDim2.new(1, -30, 0, 7), 					}), "TextDark"), 					AddThemeObject(MakeElement("Stroke"), "Stroke"), 					Click 				}), "Second") 				AddConnection(Click.MouseEnter, function() 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play() 				end) 				AddConnection(Click.MouseLeave, function() 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play() 				end) 				AddConnection(Click.MouseButton1Up, function() 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play() 					spawn(function() 						ButtonConfig.Callback() 					end) 				end) 				AddConnection(Click.MouseButton1Down, function() 					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play() 				end) 				function Button:Set(ButtonText) 					ButtonFrame.Content.Text = ButtonText 				end	 				return Button 			end 			function ElementFunction:AddToggle(ToggleConfig) 				ToggleConfig = ToggleConfig or {} 				ToggleConfig.Name = ToggleConfig.Name or "Toggle" 				ToggleConfig.Default = ToggleConfig.Default or false 				ToggleConfig.Callback = ToggleConfig.Callback or function() end 				ToggleConfig.Color = ToggleConfig.Color or Color3.fromRGB(9, 99, 195) 				ToggleConfig.Flag = ToggleConfig.Flag or nil 				ToggleConfig.Save = ToggleConfig.Save or false 				local Toggle = {Value = ToggleConfig.Default, Save = ToggleConfig.Save} 				local Click = SetProps(MakeElement("Button"), { 					Size = UDim2.new(1, 0, 1, 0) 				}) 				local ToggleBox = SetChildren(SetProps(MakeElement("RoundFrame", ToggleConfig.Color, 0, 4), { 					Size = UDim2.new(0, 24, 0, 24), 					Position = UDim2.new(1, -24, 0.5, 0), 					AnchorPoint = Vector2.new(0.5, 0.5) 				}), { 					SetProps(MakeEleme
-                    Name = "mspaint V3修复",
-                    Content = "欢迎使用【修复补缺:小玄奘】",
-                    Time = 10
-                })    
-                
-                local sound = Instance.new("Sound", workspace)
-sound.SoundId = "rbxassetid://4590662766"
-sound:Play()
+local CoreGui = game:GetService("StarterGui")
 
-wait(1)
-OrionLib:MakeNotification({
-                    Name = "mspaint V3汉化",
-                    Content = "汉化作者:R-Exploit",
-                    Time = 10
-                })    
-                
-                local sound = Instance.new("Sound", workspace)
-sound.SoundId = "rbxassetid://4590662766"
-sound:Play()
-
-wait(1)
-OrionLib:MakeNotification({
-                    Name = "感谢",
-                    Content = "测试员:NIDO_MUNCISEEK--",
-                    Time = 10
-                })    
-                
-                local sound = Instance.new("Sound", workspace)
-sound.SoundId = "rbxassetid://4590662766"
-sound:Play()
-
-wait(1)
-
-OrionLib:MakeNotification({
-                    Name = "你的注入器："..identifyexecutor(),
-                    Content = "测试",
-                    Time = 30
-                })
-                
-                local sound = Instance.new("Sound", workspace)
-sound.SoundId = "rbxassetid://4590662766"
-sound:Play()
-
--- ++++++++ WAX BUNDLED DATA BELOW ++++++++ --
-if not isfolder("mspaint/doors/hotel") then
-    makefolder("mspaint/doors/hotel")
-elseif not isfolder("mspaint/doors/mines") then
-    makefolder("mspaint/doors/mines")
-elseif not isfolder("mspaint/doors/backdoor") then
-    makefolder("mspaint/doors/backdoor")
-elseif not isfolder("mspaint/doors/rooms") then
-    makefolder("mspaint/doors/rooms")
-end
--- Will be used later for getting flattened globals
-local ImportGlobals
-
--- Holds direct closure data (defining this before the DOM tree for line debugging etc)
-local ClosureBindings = {
-    function()local wax,script,require=ImportGlobals(1)local ImportGlobals return (function(...)if getgenv().mspaint_loading then print("[mspaint] Loading stopped. (ERROR: Loading)"); return end
-if getgenv().mspaint_loaded then print("[mspaint] Loading stopped. (ERROR: Already loaded)"); return end
-
-getgenv().mspaint_loading = true
-
---// Loading Wait \\--
-if not game:IsLoaded() then game.Loaded:Wait() end
-
---// Services \\--
-local Services = require("Utils/Services")
-Services:GetServices({
-    "Players",
-    "UserInputService",
-    "TextChatService",
-    "ProximityPromptService",
-    "PathfindingService",
-
-    "CoreGui",
-    "StarterGui",
-
-    "Workspace",
-    "Lighting",
-    "ReplicatedStorage",
-
-    "HttpService",
-    "RunService",
-    "SoundService",
-    "TeleportService",
-    "TweenService",
-    "MarketplaceService"
+CoreGui:SetCore("SendNotification", {
+    Title = "Rod脚本中心",
+    Text = "正在加载",
+    Duration = 5, 
+})
+print("反挂机开启")
+		local vu = game:GetService("VirtualUser")
+		game:GetService("Players").LocalPlayer.Idled:connect(function()
+		   vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+		   wait(1)
+		   vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+		end)
+local OrionLib = loadstring(game:HttpGet('https://pastebin.com/raw/SePpsSPZ'))()
+local Window = OrionLib:MakeWindow({Name = "Rod", HidePremium = false, SaveConfig = true,IntroText = "欢迎使用Rod脚本", ConfigFolder = "欢迎Rod脚本"})
+local about = Window:MakeTab({
+    Name = "脚本名称",
+    Icon = "rbxassetid://11109742737",
+    PremiumOnly = false
 })
 
---// Utils \\--
-if not wax.shared.ExecutorSupport then
-    wax.shared.ExecutorSupport = require("Utils/ExecutorSupport")
+about:AddParagraph("您的用户名:"," "..game.Players.LocalPlayer.Name.."")
+about:AddParagraph("您的注入器:"," "..identifyexecutor().."")
+about:AddParagraph("QQ群 : ","658358286")
+
+local Tab = Window:MakeTab({
+  Name = "通用",
+  Icon = "rbxassetid://12493754210",
+  PremiumOnly = false
+  })
+Tab:AddButton({
+	Name = "玩家控制",
+	Callback = function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/krlpl/dfhj/main/%E6%AD%BB%E4%BA%A1%E7%AC%94%E8%AE%B0.txt"))()
+
 end
+})
+Tab:AddButton({
+	Name = "飞行",
+	Callback = function()
 
-if not wax.shared.BloxstrapRPC then
-    wax.shared.BloxstrapRPC = require("Utils/BloxstrapRPC")
+loadstring(game:HttpGet'https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt')()
+
 end
+})
+Tab:AddButton({
+	Name = "一拳",
+	Callback = function()
 
-if not wax.shared.FileHelper then
-    wax.shared.FileHelper = require("Utils/FileHelper")
+loadstring(game:HttpGet('https://raw.githubusercontent.com/0Ben1/fe/main/obf_rf6iQURzu1fqrytcnLBAvW34C9N55kS9g9G3CKz086rC47M6632sEd4ZZYB0AYgV.lua.txt'))()
+
 end
+})
+Tab:AddButton({
+	Name = "无限跳",
+	Callback = function()
 
---// mspaint Loader \\--
-if not wax.shared.GotPlace then
-    wax.shared.GotPlace = true
+loadstring(game:HttpGet("https://pastebin.com/raw/V5PQy3y0", true))()
 
-    shared.ScriptName = "Universal"
-    shared.ScriptLoader = "Universal"
-    
-    local Mappings = require("Mappings")
-    
-    local MappingID = Mappings[game.GameId]
-    if MappingID then
-        local Folder = MappingID["Folder"]
-        local Name = MappingID["Name"] or Folder
-        local GameExclusions = MappingID["Exclusions"] or {}
-        local Exclusion = GameExclusions[game.PlaceId]
-        
-        shared.ScriptName = Name
-        shared.ScriptLoader = Folder .. "/" .. MappingID["Main"]
-
-        shared.Mapping = MappingID
-        shared.ScriptFolder = Folder
-        shared.ScriptExclusion = Exclusion
-    
-        if Exclusion then
-            shared.ScriptName = Name .. " (" .. Exclusion .. ")"
-            shared.ScriptLoader = Folder .. "/" .. Exclusion
-        end
-    end
 end
+})
+local Tab = Window:MakeTab({
+  Name = "DOORS脚本",
+  Icon = "rbxassetid://10983763163",
+  PremiumOnly = false
+  })
+Tab:AddButton({
+	Name = "引导之光手电",
+	Callback = function()
 
---// Global functions \\--
-shared.Script = {
-    Functions = {}
-}
-shared.Hooks = {}
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Matthew201322/Doors-Scriptee/refs/heads/main/Shakelight.lua"))()
 
-shared.Script.Functions.EnforceTypes = function(args, template)
-    args = if typeof(args) == "table" then args else {}
-
-    for key, value in pairs(template) do
-        local argValue = args[key]
-
-        if argValue == nil or (value ~= nil and typeof(argValue) ~= typeof(value)) then
-            args[key] = value
-        elseif typeof(value) == "table" then
-            args[key] = shared.Script.Functions.EnforceTypes(argValue, value)
-        end
-    end
-
-    return args
 end
+})
+Tab:AddButton({
+	Name = "控制物品变大物品",
+	Callback = function()
 
-shared.Load = require("Utils/Loader")
-shared.Logs = require("Utils/Logs")
-shared.Connect = require("Utils/Connections")
+loadstring(game:HttpGet('https://gist.githubusercontent.com/IdkMyNameLoll/f0178af2301ca90c09895f10f3e7bd4b/raw/46899ccc3626f3485d85f990012f7ef37ae52e5e/resizerDoorsRemake'))()
 
---// Player Variables \\--
-shared.Camera = workspace.CurrentCamera
-
-shared.LocalPlayer = shared.Players.LocalPlayer
-shared.PlayerGui = shared.LocalPlayer.PlayerGui
-shared.PlayerScripts = shared.LocalPlayer.PlayerScripts
-
-shared.Fly = require("Utils/Universal/Fly")
-shared.Twerk = require("Utils/Universal/Twerk")
-shared.ControlModule = require("Utils/Universal/ControlModule")
-
-local TextChannels = shared.TextChatService:FindFirstChild("TextChannels")
-if TextChannels and TextChannels:FindFirstChild("RBXGeneral") then
-    shared.RBXGeneral = TextChannels.RBXGeneral
 end
+})
+Tab:AddButton({
+	Name = "MS中文[V3][来源XK][想加插件进群]",
+	Callback = function()
 
---// Load \\--
-local UICreator = require("Utils/GUI/Creator")
-shared.Window = UICreator:CreateWindow()
+getgenv().Spy="mspaint" loadstring(game:HttpGet("https://raw.githubusercontent.com/XiaoXuAnZang/XKscript/refs/heads/main/DOORS.txt"))()
 
-require("Places/Loaders/" .. shared.ScriptLoader)
-
-UICreator:CreateSettingsTab()
-require("Utils/GUI/Addons")
-
-getgenv().mspaint_loading = false
-end)() end,
-    function()local wax,script,require=ImportGlobals(2)local ImportGlobals return (function(...)return {
-    [2440500124] = {
-        ["Folder"] = "Doors",
-        ["Main"] = "Doors",
-        ["Name"] = "DOORS",
-        ["Exclusions"] = {
-            [6516141723] = "Lobby",
-            [12308344607] = "Lobby"
-        }
-    },
-
-    -- Regular 3008
-    [1000233041] = {
-        ["Folder"] = "3008",
-        ["Main"] = "3008",
-        ["Name"] = "3008"
-    },
-
-    -- 100 Players 3008
-    [3462404408] = {
-        ["Folder"] = "3008",
-        ["Main"] = "3008",
-        ["Name"] = "3008"
-    }
-}
-end)() end,
-    [6] = function()local wax,script,require=ImportGlobals(6)local ImportGlobals return (function(...)--// Linoria \\--
-local Toggles = shared.Toggles
-local Options = shared.Options
-
---// Variables \\--
-local Script = shared.Script
-
-Script.DidGodmode = false
-
-Script.DefaultFogEnd = shared.Lighting.FogEnd
-
-Script.CurrentAmbient = shared.Lighting.Ambient
-Script.CurrentColorShift_Bottom = shared.Lighting.ColorShift_Bottom
-Script.CurrentColorShift_Top = shared.Lighting.ColorShift_Top
-if shared.Lighting:FindFirstChild("FoggyDay_Atmosphere") then
-    Script.CurrentFoggyDayDensity = shared.Lighting["FoggyDay_Atmosphere"].Density
 end
+})
+Tab:AddButton({
+	Name = "LX|DOORS中文",
+	Callback = function()
 
-Script.Physical = workspace:WaitForChild("GameObjects"):WaitForChild("Physical")
-Script.Map = Script.Physical:WaitForChild("Map")
-Script.Items = Script.Physical:WaitForChild("Items")
-Script.Employees = Script.Physical:WaitForChild("Employees")
+loadstring(game:HttpGet("\104\116\116\112\115\58\47\47\114\97\119\46\103\105\116\104\117\98\117\115\101\114\99\111\110\116\101\110\116\46\99\111\109\47\76\88\51\49\56\47\76\88\47\109\97\105\110\47\76\88\37\50\48\50\46\108\117\97\0"))()
 
-Script.FeatureConnections = {
-    Item = {},
-    Employee = {},
-    Player = {},
-    ESPTemp = {}
+end
+})
+Tab:AddButton({
+	Name = "生成巨魔脸",
+	Callback = function()
+
+loadstring(game:HttpGet("https://api.hugebonus.xyz/scripts/TrollFaceSpawner.lua"))()
+
+end
+})
+Tab:AddButton({
+	Name = "杰夫毛绒玩具",
+	Callback = function()
+
+local tool = game:GetObjects("rbxassetid://13069619857")[1]
+tool.Parent = game.Players.LocalPlayer.Backpack
+
+end
+})
+Tab:AddButton({
+	Name = "变成杰夫杀手",
+	Callback = function()
+
+_G.ThirdPerson = true
+loadstring(game:HttpGet("https://raw.githubusercontent.com/idkbutiampoggers/JeffTheKillerMorphV2/main/Source.lua"))()
+
+end
+})
+Tab:AddButton({
+	Name = "生成giggle",
+	Callback = function()
+
+getgenv().GIGGLE_SPAWN_CONFIG = {
+     Damage = 6,
+     AttackingTime = math.random(7, 10), -- The time giggle will be attacking for.
+     FallSpeed = 3,        -- Speed for when giggle spawns, can be mininum 2 and how high you want
+     
+     Stunnable = true,    -- If set to true, Giggle will be stunnable with glowstick
+     StunTime = 5, -- The time giggle will be stun for
+     
+     RagdollThrowForce = 50,    -- The Ragdoll's Force when its thrown
+     RagdollDissapears = true,  -- If set to true the ragdoll will dissapear once giggle finishes attacking.
+  
+     RoomSpawning = {
+          Enabled = true   -- If set to false, giggle will spawn around the player.
+     },
+     
+     PlayerSpawning = { -- This table will be used if Room Spawning is Disabled
+          MinRadius = -20,  -- The minimum distance giggle can spawn from the player.
+          MaxRadius = 20.  --  The maximum distance giggle can spawn from the player.
+     },
+     
+     SpawningKey = { -- Key for Spawning
+          Enabled = false,  -- If enabled once the key is pressed, giggle will spawn.
+          Key = "G"    -- Key that is used for spawning giggle
+     }
 }
 
-Script.ESPTable = {
-    Item = {},
-    Employee = {},
-    Player = {}
-}
+loadstring(game:HttpGet("https://raw.githubusercontent.com/DripCapybara/Test/refs/heads/main/Doors/GiggleSpawn.lua"))()
 
-Script.InteractableItems = {
-	"Medkit",
-	"Pizza",
-	"Beans",
-	"Meatballs",
-	"Apple",
-	"Lemon",
-	"Lemon Slice",
-	"Burger",
-	"Banana",
-	"Hotdog",
-	"Striped Donut",
-	"Chips",
-	"Ice Cream",
-	"Chocolate",
-	"Cookie",
-	"Bloxy Soda",
-	"2 Litre Dr. Bob",
-    "Dr. Bob Soda",
-	"Water",
-	"Jeff"
-}
---// Player Variables \\--
-shared.Character = shared.LocalPlayer.Character or shared.LocalPlayer.CharacterAdded:Wait()
-shared.Humanoid = nil
+end
+})
+Tab:AddButton({
+	Name = "金色手摇",
+	Callback = function()
 
-Script.System = shared.Character:WaitForChild("System")
-Script.Event = Script.System:WaitForChild("Event")
-Script.Action = Script.System:WaitForChild("Action")
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/aadyian9000/the-thing/main/GoldenGummyFlashlight.lua"),true))()
 
-Script.DeathScreen = shared.PlayerGui:WaitForChild("DeathScreen")
-Script.Settings = shared.PlayerGui:WaitForChild("PlayerInfo"):WaitForChild("Settings")
-Script.MainGui = shared.PlayerGui:WaitForChild("MainGui")
-Script.PlayerStats = Script.MainGui:WaitForChild("PlayerStats")
+end
+})
+Tab:AddButton({
+	Name = "召唤肘击王（快跑）",
+	Callback = function()
 
-Script.TopBar = Script.MainGui:WaitForChild("TopBar")
-Script.Calendar = Script.TopBar:WaitForChild("Calendar")
-Script.CurrentDay = Script.Calendar:WaitForChild("Middle"):WaitForChild("CurrentDay")
-Script.TimeLeft = shared.ReplicatedStorage:WaitForChild("ServerSettings"):WaitForChild("TimeSettings"):WaitForChild("TimeLeft")
+loadstring(game:HttpGet("https://raw.githubusercontent.com/DripCapybara/Doors-Mode-Remakes/refs/heads/main/PandemoniumProtected.lua"))()
 
-Script.Source = shared.PlayerScripts:WaitForChild("source")
-Script.Client = Script.Source:WaitForChild("client")
+end
+})
+Tab:AddButton({
+	Name = "小恶魔玩具",
+	Callback = function()
 
-Script.ToolSystem = Script.Client:WaitForChild("ToolSystem")
-Script.WaypointsMenu = Script.Client:WaitForChild("GUI"):WaitForChild("GuiMenus"):WaitForChild("Extras"):WaitForChild("WaypointsMenu")
+local Players = game:GetService("Players")
+local Equipped = false
+local Plr = Players.LocalPlayer
+local Char = Plr.Character or Plr.CharacterAdded:Wait()
+local Hum = Char:WaitForChild("Humanoid")
+local Root = Char:WaitForChild("HumanoidRootPart")
+local RightArm = Char:WaitForChild("RightUpperArm")
+local LeftArm = Char:WaitForChild("LeftUpperArm")
+local RightC1 = RightArm.RightShoulder.C1
+local LeftC1 = LeftArm.LeftShoulder.C1
+local CustomShop = loadstring(game:HttpGet("https://raw.githubusercontent.com/MateiDaBest/Utilities/main/Doors/Custom%20Shop%20Items/Main.lua"))()
+local Goblino = game:GetObjects("rbxassetid://12856605563")[1]
 
-Script.GamePassClockVisible = Script.Calendar:WaitForChild("Gamepass_Clock").Visible
+Goblino.Parent = game.Players.LocalPlayer.Backpack
 
---// Functions \\--
-Script._mspaint_custom_captions = Instance.new("ScreenGui") do
-    local Frame = Instance.new("Frame", Script._mspaint_custom_captions)
-    local TextLabel = Instance.new("TextLabel", Frame)
-    local UITextSizeConstraint = Instance.new("UITextSizeConstraint", TextLabel)
+CustomShop.CreateItem({
+	Title = "El Goblino",
+	Desc = "Door 52",
+	Image = "https://cdn.discordapp.com/attachments/970078853127110677/1087774910706888824/12372522258.png",
+	Price = 52,
+	Stack = 1,
+})
 
-    Script._mspaint_custom_captions.Parent = shared.ReplicatedStorage
-    Script._mspaint_custom_captions.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local function setupHands(tool)
+	tool.Equipped:Connect(function()
+		Equipped = true
+		Char:SetAttribute("Hiding", true)
+		for _, v in next, Hum:GetPlayingAnimationTracks() do
+			v:Stop()
+		end
 
-    Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    Frame.BackgroundColor3 = shared.Library.MainColor
-    Frame.BorderColor3 = shared.Library.AccentColor
-    Frame.BorderSizePixel = 2
-    Frame.Position = UDim2.new(0.5, 0, 0.8, 0)
-    Frame.Size = UDim2.new(0, 200, 0, 75)
-    shared.Library:AddToRegistry(Frame, {
-        BackgroundColor3 = "MainColor",
-        BorderColor3 = "AccentColor"
-    })
+		RightArm.Name = "R_Arm"
+		LeftArm.Name = "L_Arm"
 
-    TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel.BackgroundTransparency = 1.000
-    TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TextLabel.BorderSizePixel = 0
-    TextLabel.Size = UDim2.new(1, 0, 1, 0)
-    TextLabel.Font = Enum.Font.Code
-    TextLabel.Text = ""
-    TextLabel.TextColor3 = shared.Library.FontColor
-    TextLabel.TextScaled = true
-    TextLabel.TextSize = 14
-    TextLabel.TextWrapped = true
-    shared.Library:AddToRegistry(TextLabel, {
-        TextColor3 = "FontColor"
-    })
+		RightArm.RightShoulder.C1 = RightC1
+			* CFrame.Angles(math.rad(-90), math.rad(-10), 0)
+		LeftArm.LeftShoulder.C1 = LeftC1
+			* CFrame.new(-0.2, -0.4, -0.5)
+			* CFrame.Angles(math.rad(-110), math.rad(30), math.rad(0))	
+	end)
 
-    UITextSizeConstraint.MaxTextSize = 35
+	tool.Unequipped:Connect(function()
+		Equipped = false
+		Char:SetAttribute("Hiding", nil)
+		RightArm.Name = "RightUpperArm"
+		LeftArm.Name = "LeftUpperArm"
 
-    function Script.Functions.HideCaptions()
-        Script._mspaint_custom_captions.Parent = shared.ReplicatedStorage
-    end
+		RightArm.RightShoulder.C1 = RightC1
+		LeftArm.LeftShoulder.C1 = LeftC1
+	end)
+end
 
-    local CaptionsLastUsed = os.time()
-    function Script.Functions.Captions(caption: string)
-        CaptionsLastUsed = os.time()
+setupHands(Goblino)
 
-        if Script._mspaint_custom_captions.Parent == shared.ReplicatedStorage then
-            local success = pcall(function()
-                Script._mspaint_custom_captions.Parent = if gethui then gethui() else shared.CoreGui
+end
+})
+Tab:AddButton({
+	Name = "万圣节糖果透视",
+	Callback = function()
+
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/turtle"))()
+
+local OwO = library:Window("万圣节糖果透视🎃")
+
+local candyEspEnabled = false
+local showDistance = false
+local connections = {}
+
+OwO:Toggle("🍬糖果透视", false, function(enabled)
+    candyEspEnabled = enabled
+
+    local function addEspToCandy(candy)
+        if not candy:FindFirstChild("🍬糖果透视") then
+            -- Create BillboardGui
+            local billboardGui = Instance.new("BillboardGui")
+            billboardGui.Name = "CandyESP"
+            billboardGui.Size = UDim2.new(4, 0, 3, 0) -- Larger size for better visibility
+            billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+            billboardGui.AlwaysOnTop = true
+            billboardGui.Parent = candy
+
+            -- Create "Candy Root" TextLabel
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Text = "糖果"
+            textLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            textLabel.TextColor3 = Color3.new(1, 0, 1) -- Pink color for "Candy Root"
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextSize = 35 -- Font size
+            textLabel.Font = Enum.Font.SourceSansBold
+            textLabel.Parent = billboardGui
+
+            -- Create Distance Label (positioned further below the "Candy Root" text)
+            local distanceLabel = Instance.new("TextLabel")
+            distanceLabel.Name = "距离"
+            distanceLabel.Size = UDim2.new(1, 0, 0.3, 0)
+            distanceLabel.Position = UDim2.new(0, 0, 0.7, 0) -- Positioned farther below the "Candy Root" label
+            distanceLabel.TextColor3 = Color3.new(1, 1, 1) -- White color for distance
+            distanceLabel.BackgroundTransparency = 1
+            distanceLabel.TextSize = 25 -- Font size for distance
+            distanceLabel.Font = Enum.Font.SourceSansBold
+            distanceLabel.Parent = billboardGui
+
+            -- Update the distance if showDistance is enabled
+            game:GetService("RunService").RenderStepped:Connect(function()
+                if candyEspEnabled and showDistance then
+                    local player = game.Players.LocalPlayer
+                    local distance = (candy.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    distanceLabel.Text = string.format("距离: %.1f", distance)
+                else
+                    distanceLabel.Text = ""
+                end
             end)
-
-            if not success then
-                Script._mspaint_custom_captions.Parent = shared.PlayerGui
-            end 
         end
-        
-        TextLabel.Text = caption
+    end
 
-        task.spawn(function()
-            task.wait(5)
-            if os.time() - CaptionsLastUsed >= 5 then
-                Script.Functions.HideCaptions()
+    local function findAllCandyRoots()
+        -- Search all descendants in Workspace for parts named "CandyRoot"
+        for _, descendant in ipairs(workspace:GetDescendants()) do
+            if descendant:IsA("BasePart") and descendant.Name == "CandyRoot" then
+                addEspToCandy(descendant)
+            end
+        end
+    end
+
+    if candyEspEnabled then
+        findAllCandyRoots()
+
+        -- Listen for new parts being added to Workspace
+        connections.candyRootAdded = workspace.DescendantAdded:Connect(function(descendant)
+            if descendant:IsA("BasePart") and descendant.Name == "CandyRoot" then
+                addEspToCandy(descendant)
             end
         end)
-    end
-end
-
-function Script.Functions.DistanceFromCharacter(position: Instance | Vector3, getPositionFromCamera: boolean | nil)
-    if not position then return 9e9 end
-    if typeof(position) == "Instance" then
-        position = position:GetPivot().Position
-    end
-
-    if getPositionFromCamera and (shared.Camera or workspace.CurrentCamera) then
-        local cameraPosition = if shared.Camera then shared.Camera.CFrame.Position else workspace.CurrentCamera.CFrame.Position
-
-        return (cameraPosition - position).Magnitude
-    end
-
-    if shared.RootPart then
-        return (shared.RootPart.Position - position).Magnitude
-    elseif shared.Camera then
-        return (shared.Camera.CFrame.Position - position).Magnitude
-    end
-
-    return 9e9
-end
-
-function Script.Functions.CameraChildAdded(child)
-    if Toggles.AutoTPWhistle.Value then
-        for playerName, _ in pairs(Options.AutoTPWhistlePlayers.Value) do
-            if child.Name == playerName .. "_EchoLocation" then
-                shared.Character:PivotTo(child.CFrame)
-            end
-        end
-    end
-end
-
-function Script.Functions.IsNaN(x)
-    return x ~= x
-end
-
-function Script.Functions.UpdateBloxstrapRPC()
-    if not wax.shared.BloxstrapRPC then return end
-    
-    wax.shared.BloxstrapRPC.SetRichPresence({
-        details = "Playing 3008 [ mspaint v3 ]",
-        state = string.lower(Script.CurrentDay.Text):gsub("^%l", string.upper),
-        largeImage = {
-            hoverText = "Using mspaint v3"
-        },
-        smallImage = {
-            assetId = 6925817108,
-            hoverText = shared.LocalPlayer.Name
-        }
-    })
-end
-
-function Script.Functions.Respawn()
-    if shared.Humanoid.Health > 0 or Script.Functions.IsNaN(shared.Humanoid.Health) then
-        shared.Character:BreakJoints()
-    end
-
-    repeat task.wait(0.1) until Script.DeathScreen.BG.Visible
-    
-    Script.Event:FireServer("Respawn")
-
-    Script.DeathScreen.DeathSound:Stop()
-    Script.DeathScreen.DeathMusic:Stop()
-end
-
-shared.Load("Utils", "ConnectionsFuncs")
-shared.Load("Utils", "ESP")
-
---// Tabs \\--
-Script.Tabs = {
-    Main = shared.Window:AddTab("主要的"),
-    Exploits = shared.Window:AddTab("移除类"),
-    Visuals = shared.Window:AddTab("怪物物品"),
-}
-
-shared.Load("Tabs", "Main")
-shared.Load("Tabs", "Exploits")
-shared.Load("Tabs", "Visuals")
---// Metamethod hooks \\--
-if wax.shared.ExecutorSupport["hookmetamethod"] and wax.shared.ExecutorSupport["getnamecallmethod"] then
-    if wax.shared.ExecutorSupport["require"] then
-        Script.ToolGStep = wax.require(Script.ToolSystem).GlobalRenderStep
-    end
-
-    shared.Hooks.mtHook = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        local args = {...}
-
-        local isAction = method == "InvokeServer" and self.Name == "Action"
-
-        if isAction then
-            local actionType = args[1]
-            local actionData = args[2]
-
-            if actionType == "Store" and args[3] ~= "_internal_origin_mspaint" then
-                if Toggles.InfiniteInventory.Value and wax.shared.ExecutorSupport["require"] then
-                    require(Script.ToolSystem).GlobalRenderStep = function() end
-                    local parentedTools = {}
-                    
-                    for _, tool in pairs(shared.LocalPlayer.Backpack:GetChildren()) do
-                        table.insert(parentedTools, tool)
-                    
-                        shared.Humanoid:EquipTool(tool)
-                        tool.Parent = workspace
-                    end
-    
-                    task.wait()
-                    local modelName = actionData.Model.Name
-    
-                    Script.Action:InvokeServer("Store", actionData, "_internal_origin_mspaint")
-                    
-                    local newTool = shared.LocalPlayer.Backpack:WaitForChild(modelName)
-    
-                    shared.Humanoid:EquipTool(newTool)
-    
-                    for _, tool in pairs(parentedTools)  do
-                        tool.Parent = shared.Character
-                        shared.Humanoid:EquipTool(tool)
-                    end
-                    
-                    shared.Humanoid:UnequipTools()
-    
-                    require(Script.ToolSystem).GlobalRenderStep = Script.ToolGStep
-
-                    return
-                end
-            end
-    
-            if actionType == "Drop" then
-                if Toggles.ThrowPowerBoost.Value then
-                    actionData.ThrowPower = Options.ThrowPower.Value
-                    actionData.Throw = true
-                    actionData.CameraCFrame = actionData.CameraCFrame * Options.ThrowPower.Value
-                end
-
-                if Toggles.DeleteObject.Value then
-                    actionData.ThrowPower = 555
-                    actionData.Throw = true
-                    actionData.CameraCFrame = actionData.CameraCFrame * -1000
-                end
-            end
-
-            return shared.Hooks.mtHook(self, table.unpack({
-                actionType,
-                actionData
-            }))
-        end
-
-        return shared.Hooks.mtHook(self, ...)
-    end))
-end
-
---// Function hooks \\--
-if wax.shared.ExecutorSupport["hookfunction"] and wax.shared.ExecutorSupport["getcallingscript"] then
-    shared.Hooks.instantInteract = hookfunction(TweenInfo.new, newcclosure(function(self, ...)
-        if not shared.Library.Unloaded then
-            if Toggles.InstantInteract.Value then
-                local caller = getcallingscript()
-    
-                local isInputController = caller and caller.Name == "InputControl"
-                local isValidArgument = self and typeof(self) == "number"
-    
-                if isInputController and isValidArgument then
-                    self = 0
-                end
+    else
+        -- Remove ESP from each candy root when the toggle is off
+        for _, descendant in ipairs(workspace:GetDescendants()) do
+            if descendant:IsA("BasePart") and descendant:FindFirstChild("糖果透视") then
+                descendant.CandyESP:Destroy()
             end
         end
 
-        return shared.Hooks.instantInteract(self, ...)
-    end))
-end
-
---// Connections \\--
-shared.Connect:GiveSignal(shared.LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-    task.delay(1, Script.Functions.SetupCharacterConnection, newCharacter)
-end))
-
-shared.Connect:GiveSignal(shared.Camera.ChildAdded:Connect(Script.Functions.CameraChildAdded))
-
-shared.Connect:GiveSignal(shared.Players.PlayerAdded:Connect(function(player)
-    task.spawn(Script.Functions.SetupOtherPlayerConnection, player)
-end))
-
---// Load \\--
-task.spawn(Script.Functions.SetupCharacterConnection, shared.Character)
-task.spawn(Script.Functions.SetupLightingConnection)
-task.spawn(Script.Functions.SetupExploitInfModulesConnection)
-task.spawn(Script.Functions.SetupBloxstrapRPCConnection)
-
-task.spawn(Script.Functions.SetupEmployeeConnection)
-task.spawn(Script.Functions.SetupItemConnection)
-task.spawn(Script.Functions.SetupOtherPlayerConnection)
-
-for _, child in pairs(shared.Camera:GetChildren()) do
-    Script.Functions.CameraChildAdded(child)
-end
-
---// Unload \\--
-shared.Library:OnUnload(function()
-    if wax.shared.ExecutorSupport["hookmetamethod"] and wax.shared.ExecutorSupport["getnamecallmethod"] then
-        hookmetamethod(game, "__namecall", shared.Hooks.mtHook)
-    end
-
-    if wax.shared.BloxstrapRPC then
-        wax.shared.BloxstrapRPC.SetRichPresence({
-            details = "<reset>",
-            state = "<reset>",
-            largeImage = {
-                reset = true
-            },
-            smallImage = {
-                reset = true
-            }
-        })
+        -- Disconnect any connections to prevent memory leaks
+        if connections.candyRootAdded then
+            connections.candyRootAdded:Disconnect()
+            connections.candyRootAdded = nil
+        end
     end
 end)
 
-getgenv().mspaint_loaded = true
-end)() end,
-    [8] = function()local wax,script,require=ImportGlobals(8)local ImportGlobals return (function(...)--// Loading Wait \\--
-if shared.LocalPlayer and shared.LocalPlayer.PlayerGui:FindFirstChild("LoadingUI") and shared.LocalPlayer.PlayerGui.LoadingUI.Enabled then
-    print("[mspaint] Waiting for game to load...")
-    repeat task.wait() until not shared.LocalPlayer.PlayerGui:FindFirstChild("LoadingUI") and true or not shared.LocalPlayer.PlayerGui.LoadingUI.Enabled
+-- Second toggle: Show/Hide Distance
+OwO:Toggle("糖果距离", false, function(enabled)
+    showDistance = enabled
+end)
+
+
+OwO:Button("键盘", function()
+ loadstring(game:HttpGet("https://raw.githubusercontent.com/advxzivhsjjdhxhsidifvsh/mobkeyboard/main/main.txt", true))()
+end)
+
+OwO:Button("低画质", function()
+       for _,v in pairs(workspace:GetDescendants()) do
+if v.ClassName == "Part"
+or v.ClassName == "SpawnLocation"
+or v.ClassName == "WedgePart"
+or v.ClassName == "Terrain"
+or v.ClassName == "MeshPart" then
+v.Material = "Plastic"
 end
-
---// Linoria \\--
-local Toggles = shared.Toggles
-local Options = shared.Options
-
---// Variables \\--
-local Script = shared.Script
-Script.FeatureConnections = {
-    Character = {},
-    Clip = {},
-    Door = {},
-    Humanoid = {},
-    Player = {},
-    Pump = {},
-    RootPart = {},
-}
-Script.ESPTable = {
-    Chest = {},
-    Door = {},
-    Entity = {},
-    SideEntity = {},
-    Gold = {},
-    Guiding = {},
-    DroppedItem = {},
-    Item = {},
-    Objective = {},
-    Player = {},
-    HidingSpot = {},
-    None = {}
-}
-
-Script.Functions.Minecart = {}
-
-Script.Temp = {
-    AnchorFinished = {},
-    AutoWardrobeEntities = {},
-    Bridges = {},
-    PipeBridges = {},
-    CollisionSize = Vector3.new(5.5, 3, 3),
-    Guidance = {},
-    PaintingDebounce = {},
-    UsedBreakers = {},
-    VoidGlitchNotifiedRooms = {}
-}
-
-Script.FakeRevive = {
-    Debounce = false,
-    Enabled = false,
-    Connections = {}
-}
-
-Script.WhitelistConfig = {
-    [45] = {firstKeep = 3, lastKeep = 2},
-    [46] = {firstKeep = 2, lastKeep = 2},
-    [47] = {firstKeep = 2, lastKeep = 2},
-    [48] = {firstKeep = 2, lastKeep = 2},
-    [49] = {firstKeep = 2, lastKeep = 4},
-}
-
-Script.SuffixPrefixes = {
-    ["Backdoor"] = "",
-    ["Ceiling"] = "",
-    ["Moving"] = "",
-    ["Ragdoll"] = "",
-    ["Rig"] = "",
-    ["Wall"] = "",
-    ["Clock"] = "警戒表",
-    ["Key"] = "钥匙",
-    ["Pack"] = "包",
-    ["Pointer"] = "(激光笔)",
-    ["Swarm"] = "群",
-}
-
-Script.PrettyFloorName = {
-    ["Fools"] = "Super Hard Mode",
-    ["Retro"] = "Retro Mode"
-}
-
-Script.FloorImages = {
-    ["Hotel"] = 16875079348,
-    ["Mines"] = 138779629462354,
-    ["Retro"] = 16992279648,
-    ["Rooms"] = 16874821428,
-    ["Fools"] = 17045908353,
-    ["Backdoor"] = 16874352892
-}
-
-Script.EntityTable = {
-    ["Names"] = {"BackdoorRush", "BackdoorLookman", "RushMoving", "AmbushMoving", "Eyes", "JeffTheKiller", "Dread", "A60", "A120"},
-    ["SideNames"] = {"FigureRig", "GiggleCeiling", "GrumbleRig", "Snare"},
-    ["ShortNames"] = {
-        ["BackdoorRush"] = "Blitz",
-        ["JeffTheKiller"] = "Jeff The Killer"
-    },
-    ["NotifyMessage"] = {
-        ["GloombatSwarm"] = "Gloombats in next room!"
-    },
-    ["Avoid"] = {
-        "RushMoving",
-        "AmbushMoving"
-    },
-    ["NotifyReason"] = {
-        ["A60"] = {
-            ["Image"] = "12350986086",
-        },
-        ["A120"] = {
-            ["Image"] = "12351008553",
-        },
-        ["BackdoorRush"] = {
-            ["Image"] = "11102256553",
-        },
-        ["RushMoving"] = {
-            ["Image"] = "11102256553",
-        },
-        ["AmbushMoving"] = {
-            ["Image"] = "10938726652",
-        },
-        ["Eyes"] = {
-            ["Image"] = "10865377903",
-            ["Spawned"] = true
-        },
-        ["BackdoorLookman"] = {
-            ["Image"] = "16764872677",
-            ["Spawned"] = true
-        },
-        ["JeffTheKiller"] = {
-            ["Image"] = "98993343",
-            ["Spawned"] = true
-        },
-        ["GloombatSwarm"] = {
-            ["Image"] = "79221203116470",
-            ["Spawned"] = true
-        },
-        ["HaltRoom"] = {
-            ["Image"] = "11331795398",
-            ["Spawned"] = true
-        }
-    },
-    ["NoCheck"] = {
-        "Eyes",
-        "BackdoorLookman",
-        "JeffTheKiller"
-    },
-    ["InfCrucifixVelocity"] = {
-        ["RushMoving"] = {
-            threshold = 52,
-            minDistance = 55,
-        },
-        ["RushNew"] = {
-            threshold = 52,
-            minDistance = 55,
-        },    
-        ["AmbushMoving"] = {
-            threshold = 70,
-            minDistance = 80,
-        }
-    },
-    ["AutoWardrobe"] = {
-        ["Entities"] = {
-            "RushMoving",
-            "AmbushMoving",
-            "BackdoorRush",
-            "A60",
-            "A120",
-        },
-        ["Distance"] = {
-            ["RushMoving"] = {
-                Distance = 100,
-                Loader = 175
-            },
-            ["BackdoorRush"] = {
-                Distance = 100,
-                Loader = 175
-            },
-    
-            ["AmbushMoving"] = {
-                Distance = 155,
-                Loader = 200
-            },
-            ["A60"] = {
-                Distance = 200,
-                Loader = 200
-            },
-            ["A120"] = {
-                Distance = 200,
-                Loader = 200
-            }
-        }
-    }
-}
-
-Script.HidingPlaceName = {
-    ["Hotel"] = "柜子",
-    ["Backdoor"] = "柜子",
-    ["Fools"] = "柜子",
-    ["Retro"] = "柜子",
-
-    ["Rooms"] = "柜子",
-    ["Mines"] = "柜子"
-}
-
-Script.CutsceneExclude = {
-    "FigureHotelChase",
-    "Elevator1",
-    "MinesFinale"
-}
-
-Script.SlotsName = {
-    "Oval",
-    "Square",
-    "Tall",
-    "Wide"
-}
-
-Script.PromptTable = {
-    GamePrompts = {},
-
-    Aura = {
-        ["ActivateEventPrompt"] = false,
-        ["AwesomePrompt"] = true,
-        ["FusesPrompt"] = true,
-        ["HerbPrompt"] = false,
-        ["LeverPrompt"] = true,
-        ["LootPrompt"] = false,
-        ["ModulePrompt"] = true,
-        ["SkullPrompt"] = false,
-        ["UnlockPrompt"] = true,
-        ["ValvePrompt"] = false,
-        ["PropPrompt"] = true
-    },
-    AuraObjects = {
-        "Lock",
-        "Button"
-    },
-
-    Clip = {
-        "AwesomePrompt",
-        "FusesPrompt",
-        "HerbPrompt",
-        "HidePrompt",
-        "LeverPrompt",
-        "LootPrompt",
-        "ModulePrompt",
-        "Prompt",
-        "PushPrompt",
-        "SkullPrompt",
-        "UnlockPrompt",
-        "ValvePrompt"
-    },
-    ClipObjects = {
-        "LeverForGate",
-        "LiveBreakerPolePickup",
-        "LiveHintBook",
-        "Button",
-    },
-
-    Excluded = {
-        Prompt = {
-            "HintPrompt",
-            "InteractPrompt"
-        },
-
-        Parent = {
-            "KeyObtainFake",
-            "Padlock"
-        },
-
-        ModelAncestor = {
-            "DoorFake"
-        }
-    }
-}
-
-Script.HideTimeValues = {
-    {min = 1, max = 5, a = -1/6, b = 1, c = 20},
-    {min = 6, max = 19, a = -1/13, b = 6, c = 19},
-    {min = 19, max = 22, a = -1/4, b = 19, c = 18},
-    {min = 23, max = 26, a = 1/3, b = 23, c = 18},
-    {min = 26, max = 30, a = -1/4, b = 26, c = 19},
-    {min = 30, max = 35, a = -1/3, b = 30, c = 18},
-    {min = 36, max = 60, a = -1/12, b = 36, c = 18},
-    {min = 60, max = 90, a = -1/30, b = 60, c = 16},
-    {min = 90, max = 99, a = -1/6, b = 90, c = 15}
-}
-
-Script.VoidThresholdValues = {
-    ["Hotel"] = 3,
-    ["Mines"] = 3,
-    ["Retro"] = 3,
-    ["Rooms"] = 4,
-    ["Fools"] = 3,
-    ["Backdoor"] = 2,
-}
-
-Script.MinecartPathNodeColor = {
-    Disabled = nil,
-    Red = Color3.new(1, 0, 0),
-    Yellow = Color3.new(1, 1, 0),
-    Purple = Color3.new(1, 0, 1),
-    Green = Color3.new(0, 1, 0),
-    Cyan = Color3.new(0, 1, 1),
-    Orange = Color3.new(1, 0.5, 0),
-    White = Color3.new(1, 1, 1),
-}
-
-Script.MinecartPathfind = {
-    -- ground chase [41 to 44]
-    -- minecart chase [45 to 49]
-}
-
-Script.Anims = {}
-Script.Anims.HoldAnim = Instance.new("Animation"); Script.Anims.HoldAnim.AnimationId = "rbxassetid://10479585177"
-Script.Anims.ThrowAnim = Instance.new("Animation"); Script.Anims.ThrowAnim.AnimationId = "rbxassetid://10482563149"
-
-Script.Tracks = {
-    ItemHoldTrack = nil,
-    ItemThrowTrack = nil,
-}
-
-function Script.Functions.Warn(message: string)
-    warn("WARN - mspaint:", message)
 end
+end)
 
-Script._mspaint_custom_captions = Instance.new("ScreenGui"); do
-    local Frame = Instance.new("Frame", Script._mspaint_custom_captions)
-    local TextLabel = Instance.new("TextLabel", Frame)
-    local UITextSizeConstraint = Instance.new("UITextSizeConstraint", TextLabel)
 
-    Script._mspaint_custom_captions.Parent = shared.ReplicatedStorage
-    Script._mspaint_custom_captions.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-    Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    Frame.BackgroundColor3 = shared.Library.MainColor
-    Frame.BorderColor3 = shared.Library.AccentColor
-    Frame.BorderSizePixel = 2
-    Frame.Position = UDim2.new(0.5, 0, 0.8, 0)
-    Frame.Size = UDim2.new(0, 200, 0, 75)
-    shared.Library:AddToRegistry(Frame, {
-        BackgroundColor3 = "MainColor",
-        BorderColor3 = "AccentColor"
+OwO:Label("by:佐菲", Color3.fromRGB(255, 255, 255))
+
+end
+})
+Tab:AddButton({
+	Name = "DOORS旧版大厅",
+	Callback = function()
+
+local game_id = 110258689672367
+        local game_url = "https://www.roblox.com/games/"..game_id
+        game:GetService("TeleportService"):Teleport(game_id, game.Players.LocalPlayer)
+
+end
+})
+Tab:AddButton({
+	Name = "APT|DOORS脚本",
+	Callback = function()
+
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({IntroText = "“门” 脚本 APT汉化",Name = "“门” APT汉化", HidePremium = false, SaveConfig = true, ConfigFolder = "DoorsSex"})
+if game.PlaceId == 6516141723 then
+    OrionLib:MakeNotification({
+        Name = "错误",
+        Content = "此脚本不能在大厅执行",
+        Time = 5
     })
+end
+local VisualsTab = Window:MakeTab({
+	Name = "透视",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
 
-    TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TextLabel.BackgroundTransparency = 1.000
-    TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    TextLabel.BorderSizePixel = 0
-    TextLabel.Size = UDim2.new(1, 0, 1, 0)
-    TextLabel.Font = Enum.Font.Code
-    TextLabel.Text = ""
-    TextLabel.TextColor3 = shared.Library.FontColor
-    TextLabel.TextScaled = true
-    TextLabel.TextSize = 14
-    TextLabel.TextWrapped = true
-    shared.Library:AddToRegistry(TextLabel, {
-        TextColor3 = "FontColor"
-    })
+local CF = CFrame.new
+local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
 
-    UITextSizeConstraint.MaxTextSize = 35
-
-    local IsCaptionHidden = true
-    local CaptionsLastUsed = os.time()
-    
-    function Script.Functions.HideCaptions()
-        IsCaptionHidden = true
-        Script._mspaint_custom_captions.Parent = shared.ReplicatedStorage
-    end
-
-    function Script.Functions.Captions(caption: string)
-        CaptionsLastUsed = os.time()
-
-        if IsCaptionHidden then
-            local success = pcall(function()
-                Script._mspaint_custom_captions.Parent = if gethui then gethui() else shared.CoreGui
-            end)
-
-            if not success then
-                Script._mspaint_custom_captions.Parent = shared.PlayerGui
-            end 
-
-            IsCaptionHidden = false
+local KeyChams = {}
+VisualsTab:AddToggle({
+	Name = "钥匙透视",
+	Default = false,
+    Flag = "KeyToggle",
+    Save = true,
+	Callback = function(Value)
+		for i,v in pairs(KeyChams) do
+            v.Enabled = Value
         end
-        
-        TextLabel.Text = caption
+	end    
+})
 
-        task.spawn(function()
-            task.wait(5)
-            if os.time() - CaptionsLastUsed >= 5 then
-                Script.Functions.HideCaptions()
+local function ApplyKeyChams(inst)
+    wait()
+    local Cham = Instance.new("Highlight")
+    Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    Cham.FillColor = Color3.new(0.980392, 0.670588, 0)
+    Cham.FillTransparency = 0.5
+    Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
+    Cham.Parent = game:GetService("CoreGui")
+    Cham.Adornee = inst
+    Cham.Enabled = OrionLib.Flags["KeyToggle"].Value
+    Cham.RobloxLocked = true
+    return Cham
+end
+
+local KeyCoroutine = coroutine.create(function()
+    workspace.CurrentRooms.DescendantAdded:Connect(function(inst)
+        if inst.Name == "KeyObtain" then
+            table.insert(KeyChams,ApplyKeyChams(inst))
+        end
+    end)
+end)
+for i,v in ipairs(workspace:GetDescendants()) do
+    if v.Name == "KeyObtain" then
+        table.insert(KeyChams,ApplyKeyChams(v))
+    end
+end
+coroutine.resume(KeyCoroutine)
+
+local BookChams = {}
+VisualsTab:AddToggle({
+	Name = "50关书透视",
+	Default = false,
+    Flag = "BookToggle",
+    Save = true,
+	Callback = function(Value)
+		for i,v in pairs(BookChams) do
+            v.Enabled = Value
+        end
+	end    
+})
+
+local FigureChams = {}
+VisualsTab:AddToggle({
+	Name = "50关Figure透视",
+	Default = false,
+    Flag = "FigureToggle",
+    Save = true,
+    Callback = function(Value)
+        for i,v in pairs(FigureChams) do
+            v.Enabled = Value
+        end
+    end
+})
+
+local function ApplyBookChams(inst)
+    if inst:IsDescendantOf(game:GetService("Workspace").CurrentRooms:FindFirstChild("50")) and game:GetService("ReplicatedStorage").GameData.LatestRoom.Value == 50 then
+        wait()
+        local Cham = Instance.new("Highlight")
+        Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        Cham.FillColor = Color3.new(0, 1, 0.749019)
+        Cham.FillTransparency = 0.5
+        Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
+        Cham.Parent = game:GetService("CoreGui")
+        Cham.Enabled = OrionLib.Flags["BookToggle"].Value
+        Cham.Adornee = inst
+        Cham.RobloxLocked = true
+        return Cham
+    end
+end
+
+local function ApplyEntityChams(inst)
+    wait()
+    local Cham = Instance.new("Highlight")
+    Cham.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    Cham.FillColor = Color3.new(1, 0, 0)
+    Cham.FillTransparency = 0.5
+    Cham.OutlineColor = Color3.new(0.792156, 0.792156, 0.792156)
+    Cham.Parent = game:GetService("CoreGui")
+    Cham.Enabled = OrionLib.Flags["FigureToggle"].Value
+    Cham.Adornee = inst
+    Cham.RobloxLocked = true
+    return Cham
+end
+
+local BookCoroutine = coroutine.create(function()
+    task.wait(1)
+    for i,v in pairs(game:GetService("Workspace").CurrentRooms["50"].Assets:GetDescendants()) do
+        if v.Name == "LiveHintBook" then
+            table.insert(BookChams,ApplyBookChams(v))
+        end
+    end
+end)
+local EntityCoroutine = coroutine.create(function()
+    local Entity = game:GetService("Workspace").CurrentRooms["50"].FigureSetup:WaitForChild("FigureRagdoll",5)
+    Entity:WaitForChild("Torso",2.5)
+    table.insert(FigureChams,ApplyEntityChams(Entity))
+end)
+
+
+local GameTab = Window:MakeTab({
+	Name = "主要功能",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local CharTab = Window:MakeTab({
+	Name = "其他",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local TargetWalkspeed
+CharTab:AddSlider({
+	Name = "速度",
+	Min = 0,
+	Max = 50,
+	Default = 5,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	Callback = function(Value)
+		TargetWalkspeed = Value
+	end    
+})
+
+local pcl = Instance.new("SpotLight")
+pcl.Brightness = 1
+pcl.Face = Enum.NormalId.Front
+pcl.Range = 90
+pcl.Parent = game.Players.LocalPlayer.Character.Head
+pcl.Enabled = false
+
+
+CharTab:AddToggle({
+	Name = "灯光(别人看不见)",
+	Default = false,
+    Callback = function(Value)
+        pcl.Enabled = Value
+    end
+})
+
+GameTab:AddToggle({
+	Name = "追逐无火",
+	Default = false,
+    Flag = "NoSeek",
+    Save = true
+})
+
+GameTab:AddToggle({
+	Name = "瞬间互动",
+	Default = false,
+    Flag = "InstantToggle",
+    Save = true
+})
+GameTab:AddButton({
+	Name = "过一道门",
+	Callback = function()
+        pcall(function()
+            local HasKey = false
+            local CurrentDoor = workspace.CurrentRooms[tostring(game:GetService("ReplicatedStorage").GameData.LatestRoom.Value)]:WaitForChild("Door")
+            for i,v in ipairs(CurrentDoor.Parent:GetDescendants()) do
+                if v.Name == "KeyObtain" then
+                    HasKey = v
+                end
+            end
+            if HasKey then
+                game.Players.LocalPlayer.Character:PivotTo(CF(HasKey.Hitbox.Position))
+                wait(0.3)
+                fireproximityprompt(HasKey.ModulePrompt,0)
+                game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+                wait(0.3)
+                fireproximityprompt(CurrentDoor.Lock.UnlockPrompt,0)
+            end
+            if LatestRoom == 50 then
+                CurrentDoor = workspace.CurrentRooms[tostring(LatestRoom+1)]:WaitForChild("Door")
+            end
+            game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+            wait(0.3)
+            CurrentDoor.ClientOpen:FireServer()
+        end)
+  	end    
+})
+
+GameTab:AddToggle({
+	Name = "连续过门",
+	Default = false,
+    Save = false,
+    Flag = "AutoSkip"
+})
+
+local AutoSkipCoro = coroutine.create(function()
+        while true do
+            task.wait()
+            pcall(function()
+            if OrionLib.Flags["AutoSkip"].Value == true and game:GetService("ReplicatedStorage").GameData.LatestRoom.Value < 100 then
+                local HasKey = false
+                local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom.Value
+                local CurrentDoor = workspace.CurrentRooms[tostring(LatestRoom)]:WaitForChild("Door")
+                for i,v in ipairs(CurrentDoor.Parent:GetDescendants()) do
+                    if v.Name == "KeyObtain" then
+                        HasKey = v
+                    end
+                end
+                if HasKey then
+                    game.Players.LocalPlayer.Character:PivotTo(CF(HasKey.Hitbox.Position))
+                    task.wait(0.3)
+                    fireproximityprompt(HasKey.ModulePrompt,0)
+                    game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+                    task.wait(0.3)
+                    fireproximityprompt(CurrentDoor.Lock.UnlockPrompt,0)
+                end
+                if LatestRoom == 50 then
+                    CurrentDoor = workspace.CurrentRooms[tostring(LatestRoom+1)]:WaitForChild("Door")
+                end
+                game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+                task.wait(0.3)
+                CurrentDoor.ClientOpen:FireServer()
             end
         end)
-    end
-end
-
-function Script.Functions.RandomString()
-    local length = math.random(10,20)
-    local array = {}
-    for i = 1, length do
-        array[i] = string.char(math.random(32, 126))
-    end
-    return table.concat(array)
-end
-
-function Script.Functions.NotifyGlitch()
-    if Options.NotifyEntity.Value["Void/Glitch"] and Script.LatestRoom.Value > Script.CurrentRoom + Script.VoidThresholdValues[Script.Floor.Value] and Script.Alive and not table.find(Script.Temp.VoidGlitchNotifiedRooms, Script.CurrentRoom) then
-        table.insert(Script.Temp.VoidGlitchNotifiedRooms, Script.CurrentRoom)
-
-        local message = "Void/Glitch is coming once the next door is opened."
-
-        if Script.IsRooms then
-            local roomsLeft = (6 - (Script.LatestRoom.Value - Script.CurrentRoom))
-            message = "Void/Glitch is coming " .. (if roomsLeft == 0 then "once the next door is opened." else "in " .. roomsLeft .. " rooms") .. "."
         end
+end)
+coroutine.resume(AutoSkipCoro)
 
-        shared.Notify:Alert({
-            Title = "ENTITIES",
-            Description = message,
-            Reason = "Go to the next room to avoid it.",
+GameTab:AddButton({
+	Name = "没有跳杀",
+	Callback = function()
+        pcall(function()
+            game:GetService("ReplicatedStorage").Bricks.Jumpscare:Destroy()
+        end)
+  	end    
+})
+GameTab:AddToggle({
+	Name = "自动躲避rush/ambush",
+	Default = false,
+    Flag = "AvoidRushToggle",
+    Save = true
+})
+GameTab:AddToggle({
+	Name = "取消Screech跳杀",
+	Default = false,
+    Flag = "ScreechToggle",
+    Save = true
+})
 
-            Warning = true
-        })
+GameTab:AddToggle({
+	Name = "取消心跳游戏",
+	Default = false,
+    Flag = "HeartbeatWin",
+    Save = true
+})
+
+GameTab:AddToggle({
+	Name = "跳过追逐战",
+	Default = false,
+    Flag = "PredictToggle" ,
+    Save = true
+})
+GameTab:AddToggle({
+	Name = "怪物通知",
+	Default = false,
+    Flag = "MobToggle" ,
+    Save = true
+})
+GameTab:AddButton({
+	Name = "无用",
+	Callback = function()
+        game:GetService("ReplicatedStorage").Bricks.EBF:FireServer()
+  	end    
+})
+GameTab:AddButton({
+	Name = "无用",
+	Callback = function()
+        local CurrentDoor = workspace.CurrentRooms[tostring(LatestRoom+1)]:WaitForChild("Door")
+        game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+  	end    
+})
+GameTab:AddParagraph("警告","如果你按下没用那就开/关菜单几次")
+
+--// ok actual code starts here
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    pcall(function()
+        if game.Players.LocalPlayer.Character.Humanoid.MoveDirection.Magnitude > 0 then
+            game.Players.LocalPlayer.Character:TranslateBy(game.Players.LocalPlayer.Character.Humanoid.MoveDirection * TargetWalkspeed/50)
+        end
+    end)
+end)
+
+game:GetService("Workspace").CurrentRooms.DescendantAdded:Connect(function(descendant)
+    if OrionLib.Flags["NoSeek"].Value == true and descendant.Name == ("Seek_Arm" or "ChandelierObstruction") then
+        task.spawn(function()
+            wait()
+            descendant:Destroy()
+        end)
     end
-end
+end)
 
-function Script.Functions.UpdateRPC()
-    if not wax.shared.BloxstrapRPC then return end
-
-    local roomNumberPrefix = "Room "
-    local prettifiedRoomNumber = Script.CurrentRoom
-
-    if Script.IsBackdoor then
-        prettifiedRoomNumber = -50 + Script.CurrentRoom
+game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+    if OrionLib.Flags["InstantToggle"].Value == true then
+        fireproximityprompt(prompt)
     end
+end)
 
-    if Script.IsMines then
-        prett
+local old
+old = hookmetamethod(game,"__namecall",newcclosure(function(self,...)
+    local args = {...}
+    local method = getnamecallmethod()
+    
+    if tostring(self) == 'Screech' and method == "FireServer" and OrionLib.Flags["ScreechToggle"].Value == true then
+        args[1] = true
+        return old(self,unpack(args))
+    end
+    if tostring(self) == 'ClutchHeartbeat' and method == "FireServer" and OrionLib.Flags["HeartbeatWin"].Value == true then
+        args[2] = true
+        return old(self,unpack(args))
+    end
+    
+    return old(self,...)
+end))
+
+workspace.CurrentCamera.ChildAdded:Connect(function(child)
+    if child.Name == "Screech" and OrionLib.Flags["ScreechToggle"].Value == true then
+        child:Destroy()
+    end
+end)
+
+local NotificationCoroutine = coroutine.create(function()
+    workspace.ChildAdded:Connect(function(inst)
+        if inst.Name == "RushMoving" and OrionLib.Flags["MobToggle"].Value == true then
+            if OrionLib.Flags["AvoidRushToggle"].Value == true then
+                OrionLib:MakeNotification({
+                    Name = "警告",
+                    Content = "躲避rush请稍等",
+                    Time = 5
+                })
+                local OldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+                local con = game:GetService("RunService").Heartbeat:Connect(function()
+                    game.Players.LocalPlayer.Character:MoveTo(OldPos + Vector3.new(0,20,0))
+                end)
+                
+                inst.Destroying:Wait()
+                con:Disconnect()
+
+                game.Players.LocalPlayer.Character:MoveTo(OldPos)
+            else
+                OrionLib:MakeNotification({
+                    Name = "警告",
+                    Content = "rush已刷新",
+                    Time = 5
+                })
+            end
+        elseif inst.Name == "AmbushMoving" and OrionLib.Flags["MobToggle"].Value == true then
+            if OrionLib.Flags["AvoidRushToggle"].Value == true then
+                OrionLib:MakeNotification({
+                    Name = "警告",
+                    Content = "躲避ambush请稍等",
+                    Time = 5
+                })
+                local OldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+                local con = game:GetService("RunService").Heartbeat:Connect(function()
+                    game.Players.LocalPlayer.Character:MoveTo(OldPos + Vector3.new(0,20,0))
+                end)
+                
+                inst.Destroying:Wait()
+                con:Disconnect()
+                
+                game.Players.LocalPlayer.Character:MoveTo(OldPos)
+            else
+                OrionLib:MakeNotification({
+                    Name = "警告",
+                    Content = "ambush刷新",
+                    Time = 5
+                })
+            end
+        end
+    end)
+end)
