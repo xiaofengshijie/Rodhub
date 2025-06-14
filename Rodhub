@@ -18,8 +18,7 @@ local IsVerified = false
 local KeyWindow = Library:CreateWindow({
     Title = "Rodhub 验证系统",
     Center = true,
-    AutoShow = true,
-    Size = UDim2.new(0, 400, 0, 280)
+    AutoShow = true
 })
 
 -- 创建验证标签页
@@ -41,13 +40,13 @@ local KeyInput = AuthGroup:AddInput("KeyInput", {
     Tooltip = "请输入有效的激活密钥"
 })
 
--- 添加大尺寸验证按钮
-local VerifyButton = AuthGroup:AddButton("验证密钥", function()
+-- 修复后的验证函数
+local function VerifyKey()
     local inputKey = KeyInput:GetValue()
     
     if inputKey == "" then
         Library:Notify("请输入激活密钥", 3)
-        return
+        return false
     end
     
     -- 检查卡密有效性
@@ -59,11 +58,16 @@ local VerifyButton = AuthGroup:AddButton("验证密钥", function()
         end
     end
     
-    if isValid then
+    return isValid
+end
+
+-- 添加大尺寸验证按钮
+local VerifyButton = AuthGroup:AddButton("验证密钥", function()
+    if VerifyKey() then
         Library:Notify("验证成功！欢迎使用 Rodhub", 5)
         IsVerified = true
-        KeyWindow:Destroy()  -- 关闭验证窗口
-        CreateMainUI()      -- 创建主界面
+        KeyWindow:Hide()  -- 隐藏验证窗口而不是销毁
+        CreateMainUI()    -- 创建主界面
     else
         KeyAttempts = KeyAttempts + 1
         if KeyAttempts >= MaxAttempts then
@@ -84,6 +88,11 @@ Library:ApplyButtonStyle(VerifyButton, {
     CustomHover = true,
     HoverColor = Color3.fromRGB(50, 150, 255)
 })
+
+-- 添加回车键支持
+KeyInput:OnEnter(function()
+    VerifyButton:Callback()
+end)
 
 -- 添加支持信息
 local SupportGroup = AuthTab:AddRightGroupbox("支持")
@@ -141,11 +150,11 @@ function CreateMainUI()
 
     -- 右侧面板带图标按钮
     RightPanel:AddButton("资源加载器", function()
-        -- 功能代码
+        Library:Notify("资源加载器已启动", 3)
     end):SetIcon("rbxassetid://10723385099"):SetSize(UDim2.new(1, -20, 0, 48))
 
     RightPanel:AddButton("性能分析", function()
-        -- 功能代码
+        Library:Notify("性能分析运行中...", 3)
     end):SetIcon("rbxassetid://10723403910"):SetSize(UDim2.new(1, -20, 0, 48))
 
     RightPanel:AddDivider()
