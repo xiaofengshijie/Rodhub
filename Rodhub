@@ -14,15 +14,17 @@ local KeyAttempts = 0
 local MaxAttempts = 3
 local IsVerified = false
 
--- 创建卡密验证窗口
-local KeyWindow = Library:CreateWindow({
-    Title = "Rodhub 验证系统",
+-- 创建主窗口（但暂不显示）
+local MainWindow = Library:CreateWindow({
+    Title = "Rodhub Premium",
     Center = true,
-    AutoShow = true
+    AutoShow = false,  -- 初始不显示
+    TabPadding = 12,
+    MenuFadeTime = 0.2
 })
 
--- 创建验证标签页
-local AuthTab = KeyWindow:AddTab("授权验证")
+-- 创建验证标签页（在主窗口中）
+local AuthTab = MainWindow:AddTab("授权验证")
 local AuthGroup = AuthTab:AddLeftGroupbox("产品激活")
 
 -- 添加品牌标识
@@ -40,7 +42,7 @@ local KeyInput = AuthGroup:AddInput("KeyInput", {
     Tooltip = "请输入有效的激活密钥"
 })
 
--- 修复后的验证函数
+-- 验证函数
 local function VerifyKey()
     local inputKey = KeyInput:GetValue()
     
@@ -50,24 +52,24 @@ local function VerifyKey()
     end
     
     -- 检查卡密有效性
-    local isValid = false
     for _, validKey in ipairs(ValidKeys) do
         if inputKey == validKey then
-            isValid = true
-            break
+            return true
         end
     end
     
-    return isValid
+    return false
 end
 
 -- 添加大尺寸验证按钮
 local VerifyButton = AuthGroup:AddButton("验证密钥", function()
     if VerifyKey() then
-        Library:Notify("验证成功！欢迎使用 Rodhub", 5)
         IsVerified = true
-        KeyWindow:Hide()  -- 隐藏验证窗口而不是销毁
-        CreateMainUI()    -- 创建主界面
+        Library:Notify("验证成功！欢迎使用 Rodhub", 5)
+        
+        -- 切换到主界面
+        CreateMainUI()
+        MainWindow:Show()  -- 显示主窗口
     else
         KeyAttempts = KeyAttempts + 1
         if KeyAttempts >= MaxAttempts then
@@ -105,23 +107,13 @@ end):SetSize(UDim2.new(1, -20, 0, 36))
 
 -- 主界面创建函数
 function CreateMainUI()
-    -- 创建主窗口
-    local MainWindow = Library:CreateWindow({
-        Title = "Rodhub Premium",
-        Center = true,
-        AutoShow = true,
-        TabPadding = 12,
-        MenuFadeTime = 0.2
-    })
-
-    -- 创建标签页
+    -- 移除验证标签页
+    MainWindow:RemoveTab(AuthTab)
+    
+    -- 创建主功能标签页
     local MainTab = MainWindow:AddTab("主面板")
     local SettingsTab = MainWindow:AddTab("设置")
     local FeaturesTab = MainWindow:AddTab("高级功能")
-
-    -- 主面板分组
-    local LeftPanel = MainTab:AddLeftGroupbox("核心功能")
-    local RightPanel = MainTab:AddRightGroupbox("工具")
 
     -- 设置主题样式
     Library.ThemeManager.AccentColor = Color3.fromRGB(255, 85, 0)  -- Rodhub橙色主题
@@ -132,6 +124,10 @@ function CreateMainUI()
         CustomHover = true,
         CustomHoverColor = Color3.fromRGB(60, 60, 60)
     }
+
+    -- 主面板分组
+    local LeftPanel = MainTab:AddLeftGroupbox("核心功能")
+    local RightPanel = MainTab:AddRightGroupbox("工具")
 
     -- 添加大尺寸功能按钮
     LeftPanel:AddButton("执行功能 A", function()
@@ -247,6 +243,9 @@ function CreateMainUI()
     SaveManager:LoadAutoloadConfig()
 end
 
--- 设置水印
+-- 初始设置
 Library:SetWatermarkVisibility(true)
 Library:SetWatermark("Rodhub | 等待验证...")
+
+-- 显示验证窗口
+MainWindow:Show()
