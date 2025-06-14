@@ -3,40 +3,22 @@ local Library = loadstring(game:HttpGet(Repository .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(Repository .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(Repository .. "addons/SaveManager.lua"))()
 
--- 永久密钥系统配置
-local PermanentKeys = {
-    "RODHUB-PERMANENT-ADMIN",
-    "RODHUB-PERMANENT-DEV",
-    "RODHUB-PERMANENT-VIP"
-}
-
+-- 永久密钥系统
+local PermanentKeys = {"RODHUB-PERMA-ADMIN-1234"}
 local KeyAttempts = 0
-local MaxAttempts = 3
-local IsVerified = false
-
--- 调试信息
-print("[Rodhub] 脚本加载中...")
-print("[Rodhub] 永久密钥列表:")
-for i, key in ipairs(PermanentKeys) do
-    print(string.format("[Rodhub] %d. %s", i, key))
-end
+local MaxAttempts = 5
 
 -- 创建验证窗口
 local KeyWindow = Library:CreateWindow({
     Title = "Rodhub 验证系统",
     Center = true,
     AutoShow = true,
-    Size = UDim2.new(0, 450, 0, 350)  -- 增加窗口高度
+    Size = UDim2.new(0, 450, 0, 300)
 })
 
 -- 创建验证标签页
-local AuthTab = KeyWindow:AddTab("永久密钥激活")
-local AuthGroup = AuthTab:AddLeftGroupbox("验证流程")
-
--- 添加品牌标识
-AuthGroup:AddLabel("Rodhub Premium 永久版")
-AuthGroup:AddLabel("版本 3.0 | 高级功能")
-AuthGroup:AddDivider()
+local AuthTab = KeyWindow:AddTab("密钥验证")
+local AuthGroup = AuthTab:AddLeftGroupbox("输入密钥")
 
 -- 密钥输入框
 local KeyInput = AuthGroup:AddInput("KeyInput", {
@@ -44,312 +26,80 @@ local KeyInput = AuthGroup:AddInput("KeyInput", {
     Numeric = false,
     Finished = false,
     Text = "输入永久密钥",
-    Placeholder = "RODHUB-PERMANENT-XXXX",
-    Tooltip = "请输入有效的永久密钥"
+    Placeholder = "RODHUB-PERMA-ADMIN-1234",
 })
 
--- 添加大尺寸验证按钮
+-- 验证按钮（关键修复代码）
 local VerifyButton = AuthGroup:AddButton("验证密钥", function()
     local inputKey = KeyInput:GetValue()
     
     if inputKey == "" then
-        Library:Notify("请输入永久密钥", 3)
+        Library:Notify("请输入密钥", 3)
         return
     end
     
-    print("[验证] 用户输入密钥: " .. inputKey)
-    
-    -- 检查密钥是否为永久密钥
+    -- 验证逻辑
     local isValid = false
-    for _, permKey in ipairs(PermanentKeys) do
-        print("[验证] 对比: " .. inputKey .. " vs " .. permKey)
-        if inputKey == permKey then
+    for _, key in ipairs(PermanentKeys) do
+        if inputKey == key then
             isValid = true
-            print("[验证] 密钥匹配成功: " .. permKey)
             break
         end
     end
     
     if isValid then
-        Library:Notify("永久密钥验证成功！", 5)
-        IsVerified = true
+        Library:Notify("验证成功！", 5)
         
-        -- 保存永久密钥到本地
-        SaveManager:SetLibrary(Library)
-        SaveManager:SetIgnoreIndexes({})
-        SaveManager:SetFolder("RodhubPermanent")
-        SaveManager:Save("PERMANENT_KEY", inputKey)
-        print("[保存] 永久密钥已保存: " .. inputKey)
+        -- 销毁验证窗口
+        KeyWindow:Destroy()
         
-        KeyWindow:Hide()
-        CreateMainUI() -- 创建主界面
+        -- 确保窗口完全销毁
+        wait(0.1)
+        
+        -- 创建主界面
+        CreateMainUI()
     else
         KeyAttempts = KeyAttempts + 1
-        print("[验证] 密钥无效，尝试次数: " .. KeyAttempts)
-        
-        if KeyAttempts >= MaxAttempts then
-            Library:Notify("验证失败次数过多，脚本已关闭", 5)
-            wait(2)
-            game:Shutdown()
-        else
-            local remaining = MaxAttempts - KeyAttempts
-            Library:Notify("无效密钥! 剩余尝试次数: " .. remaining, 4)
-        end
+        Library:Notify("无效密钥 尝试: "..KeyAttempts.."/"..MaxAttempts, 4)
     end
 end)
 
--- 设置按钮样式
-VerifyButton:SetSize(UDim2.new(1, -20, 0, 48))
-Library:ApplyButtonStyle(VerifyButton, {
-    Roundness = 10,
-    CustomHover = true,
-    HoverColor = Color3.fromRGB(50, 150, 255)
-})
-
--- 添加支持信息
-local SupportGroup = AuthTab:AddRightGroupbox("支持信息")
-SupportGroup:AddLabel("永久密钥说明:")
-SupportGroup:AddLabel("• 每个密钥仅限一台设备")
-SupportGroup:AddLabel("• 区分大小写")
-SupportGroup:AddLabel("• 包含连字符(-)")
-SupportGroup:AddDivider()
-SupportGroup:AddButton("获取帮助", function()
-    Library:Notify("联系: support@rodhub.com", 6)
-end):SetSize(UDim2.new(1, -20, 0, 36))
-
--- 检查永久密钥函数
-local function CheckPermanentKey()
-    print("[自动登录] 检查永久密钥...")
-    
-    SaveManager:SetLibrary(Library)
-    SaveManager:SetIgnoreIndexes({})
-    SaveManager:SetFolder("RodhubPermanent")
-    SaveManager:Load("PERMANENT_KEY")
-    
-    local savedKey = SaveManager:Get("PERMANENT_KEY")
-    
-    if savedKey then
-        print("[自动登录] 找到保存的密钥: " .. savedKey)
-        
-        for _, permKey in ipairs(PermanentKeys) do
-            print("[自动登录] 对比: " .. savedKey .. " vs " .. permKey)
-            if savedKey == permKey then
-                print("[自动登录] 密钥有效: " .. permKey)
-                return true
-            end
-        end
-        
-        print("[自动登录] 保存的密钥不在有效列表中")
-    else
-        print("[自动登录] 未找到保存的密钥")
-    end
-    
-    return false
-end
-
 -- 主界面创建函数
 function CreateMainUI()
-    print("[主界面] 创建主UI...")
-    
     -- 创建主窗口
     local MainWindow = Library:CreateWindow({
         Title = "Rodhub Premium",
         Center = true,
         AutoShow = true,
-        TabPadding = 12,
-        MenuFadeTime = 0.2
-    })
-
-    -- 创建标签页
-    local MainTab = MainWindow:AddTab("主面板")
-    local SettingsTab = MainWindow:AddTab("设置")
-    local FeaturesTab = MainWindow:AddTab("高级功能")
-
-    -- 设置主题样式
-    Library.ThemeManager.AccentColor = Color3.fromRGB(0, 150, 255)  -- 蓝色主题
-    Library.ThemeManager.ButtonStyle = {
-        Roundness = 8,
-        Size = UDim2.new(1, -20, 0, 48),
-        TextSize = 16,
-        CustomHover = true,
-        CustomHoverColor = Color3.fromRGB(60, 60, 60)
-    }
-
-    -- 主面板分组
-    local LeftPanel = MainTab:AddLeftGroupbox("核心功能")
-    local RightPanel = MainTab:AddRightGroupbox("工具")
-
-    -- 添加大尺寸功能按钮
-    LeftPanel:AddButton("执行功能 A", function()
-        Library:Notify("功能 A 已激活", 3)
-    end):SetSize(UDim2.new(1, -20, 0, 48))
-
-    LeftPanel:AddButton("执行功能 B", function()
-        Library:Notify("功能 B 已启动", 3)
-    end):SetSize(UDim2.new(1, -20, 0, 48))
-
-    LeftPanel:AddDivider()
-
-    LeftPanel:AddButton("高级设置", function()
-        FeaturesTab:Select()
-    end):SetSize(UDim2.new(1, -20, 0, 48))
-
-    -- 右侧面板带图标按钮
-    RightPanel:AddButton("资源加载器", function()
-        Library:Notify("资源加载器已启动", 3)
-    end):SetIcon("rbxassetid://10723385099"):SetSize(UDim2.new(1, -20, 0, 48))
-
-    RightPanel:AddButton("性能分析", function()
-        Library:Notify("性能分析运行中...", 3)
-    end):SetIcon("rbxassetid://10723403910"):SetSize(UDim2.new(1, -20, 0, 48))
-
-    RightPanel:AddDivider()
-
-    local ToggleBtn = RightPanel:AddToggle("AutoFarm", {
-        Text = "自动收集",
-        Default = false,
-        Tooltip = "启用自动收集功能"
-    })
-
-    ToggleBtn:AddKeyPicker("AutoFarmKey", {
-        Default = "NumPad7",
-        SyncToggleState = true,
-        Mode = "Toggle",
-        Text = "自动收集",
-        NoUI = false
-    })
-
-    -- 设置面板
-    local ThemeSettings = SettingsTab:AddLeftGroupbox("主题设置")
-    ThemeSettings:AddDropdown("ThemeList", {
-        Values = Library.ThemeManager.Themes,
-        Default = 1,
-        Multi = false,
-        Text = "预设主题",
-        Tooltip = "选择界面主题"
-    })
-
-    ThemeSettings:AddColorPicker("AccentColor", {
-        Title = "主题颜色",
-        Default = Library.ThemeManager.AccentColor
-    })
-
-    ThemeSettings:AddSlider("UIScale", {
-        Text = "界面缩放",
-        Default = 50,
-        Min = 30,
-        Max = 80,
-        Rounding = 1,
-        Compact = false
+        Size = UDim2.new(0, 600, 0, 500)
     })
     
-    -- 永久密钥管理
-    local PermanentKeyGroup = SettingsTab:AddRightGroupbox("永久密钥状态")
-    PermanentKeyGroup:AddLabel("设备专属密钥")
+    -- 添加主功能
+    local MainTab = MainWindow:AddTab("主功能")
+    local MainGroup = MainTab:AddLeftGroupbox("核心功能")
     
-    local KeyStatusLabel = PermanentKeyGroup:AddLabel("状态: 检测中...")
-    
-    -- 检查并显示永久密钥状态
-    local function UpdateKeyStatus()
-        if CheckPermanentKey() then
-            KeyStatusLabel:SetText("状态: 已激活 (永久)")
-            KeyStatusLabel.TextColor3 = Color3.fromRGB(0, 200, 0)
-        else
-            KeyStatusLabel:SetText("状态: 未激活")
-            KeyStatusLabel.TextColor3 = Color3.fromRGB(200, 0, 0)
-        end
-    end
-    
-    -- 初始化状态
-    UpdateKeyStatus()
-    
-    PermanentKeyGroup:AddButton("清除永久密钥", function()
-        SaveManager:SetLibrary(Library)
-        SaveManager:SetFolder("RodhubPermanent")
-        SaveManager:Delete("PERMANENT_KEY")
-        Library:Notify("永久密钥已清除", 3)
-        UpdateKeyStatus()
-    end):SetSize(UDim2.new(1, -20, 0, 36))
-
-    ThemeSettings:AddButton("保存设置", function()
-        SaveManager:Save()
-        Library:Notify("设置已保存!", 2)
-    end):SetSize(UDim2.new(1, -20, 0, 40))
-
-    -- 高级功能面板
-    local PremiumFeatures = FeaturesTab:AddLeftGroupbox("永久版专属功能")
-    PremiumFeatures:AddLabel("高级功能解锁")
-    PremiumFeatures:AddDivider()
-    
-    PremiumFeatures:AddButton("超级加速", function()
-        Library:Notify("超级加速已激活", 3)
+    -- 添加大尺寸按钮
+    MainGroup:AddButton("玩家ESP", function()
+        Library:Notify("ESP已激活", 3)
     end):SetSize(UDim2.new(1, -20, 0, 48))
     
-    PremiumFeatures:AddButton("隐身模式", function()
-        Library:Notify("隐身模式已启用", 3)
+    MainGroup:AddButton("速度加速", function()
+        Library:Notify("速度已提升", 3)
     end):SetSize(UDim2.new(1, -20, 0, 48))
     
-    PremiumFeatures:AddButton("资源解锁", function()
-        Library:Notify("所有资源已解锁", 3)
+    MainGroup:AddButton("资源收集", function()
+        Library:Notify("自动收集中...", 3)
     end):SetSize(UDim2.new(1, -20, 0, 48))
-
-    -- 应用主题设置
-    Library.ThemeManager:SetFolder("RodhubUI")
-    Library.SaveManager:SetFolder("RodhubUI/settings")
-    Library.SaveManager:IgnoreThemeSettings()
-    Library.SaveManager:SetIgnoreIndexes({ "ThemeList" })
-
-    -- 设置主题变化回调
-    ThemeSettings.Elements.ThemeList.Dropdown.OnChanged = function()
-        Library.ThemeManager:SetTheme(ThemeSettings.Elements.ThemeList.Dropdown.Value)
-    end
-
-    ThemeSettings.Elements.AccentColor.ColorPicker.OnChanged = function()
-        Library.ThemeManager.AccentColor = ThemeSettings.Elements.AccentColor.ColorPicker.Value
-    end
-
-    ThemeSettings.Elements.UIScale.Slider.OnChanged = function(value)
-        Library:ChangeScale(value / 50)
-    end
-
-    -- 初始化设置管理器
-    SaveManager:BuildConfigSection(SettingsTab)
+    
+    -- 设置水印
     Library:SetWatermarkVisibility(true)
-    Library:SetWatermark("Rodhub Premium | 永久版")
-
-    -- 加载设置
-    SaveManager:LoadAutoloadConfig()
-    
-    print("[主界面] UI创建完成")
+    Library:SetWatermark("Rodhub Premium | 已激活")
 end
-
--- 设置水印
-Library:SetWatermarkVisibility(true)
-Library:SetWatermark("Rodhub | 等待验证...")
 
 -- 添加回车键支持
 KeyInput:OnEnter(function()
     VerifyButton:Callback()
 end)
 
--- 启动时检查永久密钥并自动登录
-task.spawn(function()
-    print("[启动] 开始自动登录检查...")
-    
-    -- 等待库完全初始化
-    wait(1.5)
-    
-    if CheckPermanentKey() then
-        print("[自动登录] 永久密钥有效，跳过验证")
-        Library:Notify("检测到永久密钥，自动登录中...", 3)
-        IsVerified = true
-        KeyWindow:Hide()
-        CreateMainUI()
-    else
-        print("[自动登录] 未找到有效永久密钥")
-        Library:Notify("未检测到永久密钥，请手动输入", 4)
-    end
-end)
-
--- 添加详细调试输出
-print("[Rodhub] 初始化完成，等待用户输入")
+-- 提示信息
+Library:Notify("请输入密钥: RODHUB-PERMA-ADMIN-1234", 10)
