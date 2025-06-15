@@ -443,276 +443,6 @@ function CreateMainUI()
     -- 创建主窗口，标题为 "Rodhub"
     local window = Rodhub:CreateWindow("Rodhub Premium", "blue")
     
-    -- 创建视觉标签页（包含ESP和视觉设置）
-    local visionTab = window:CreateTab("视觉")
-    
-    -- 添加ESP功能到视觉标签页
-    local ESPEntities = visionTab:AddLeftGroupbox("实体")
-    ESPEntities:AddToggle("ESPE_Enabled", { Text = "启用", Default = false })
-    ESPEntities:AddDivider()
-    ESPEntities:AddToggle("ESPE_Name", { Text = "名称", Default = false })
-    ESPEntities:AddToggle("ESPE_Distance", { Text = "距离", Default = false })
-    ESPEntities:AddToggle("ESPE_Fill", { Text = "高亮填充", Default = false })
-    ESPEntities:AddToggle("ESPE_Outline", { Text = "高亮轮廓", Default = false })
-    
-    local ESPLXUSER = visionTab:AddLeftGroupbox("LX设置")
-    ESPLXUSER:AddToggle("LXPP_Enabled", { Text = "LX玩家ESP", Default = false })
-    ESPLXUSER:AddColorPicker("LXPLAYERFILLCOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "填充颜色" })
-    ESPLXUSER:AddColorPicker("LXPPLAYEROUTLINECOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "轮廓颜色" })
-    ESPLXUSER:AddDivider()
-    
-    local ESPPlayers = visionTab:AddLeftGroupbox("玩家")
-    ESPPlayers:AddToggle("ESPP_Enabled", { Text = "启用", Default = false })
-    ESPPlayers:AddColorPicker("ESPPLAYERFILLCOLOR", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPPlayers:AddColorPicker("ESPPLAYEROUTLINECOLOR", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    local ESPInteractables = visionTab:AddRightTabbox("可交互对象")
-    local ESPInteractables_Main = ESPInteractables:AddTab("主要")
-    ESPInteractables_Main:AddToggle("ESPI_M_Enabled", { Text = "启用", Default = false })
-    ESPInteractables_Main:AddDivider()
-    ESPInteractables_Main:AddToggle("ESPI_M_Name", { Text = "名称", Default = false })
-    ESPInteractables_Main:AddToggle("ESPI_M_Distance", { Text = "距离", Default = false })
-    ESPInteractables_Main:AddToggle("ESPI_M_Fill", { Text = "高亮填充", Default = false })
-    ESPInteractables_Main:AddToggle("ESPI_M_Outline", { Text = "高亮轮廓", Default = false })
-    
-    local ESPInteractables_Configurate = ESPInteractables:AddTab("配置")
-    ESPInteractables_Configurate:AddToggle("ESPI_C_Doors", { Text = "门", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Doors_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Doors_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_DoorKeys", { Text = "门钥匙", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_DoorKeys_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_DoorKeys_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_GoldPiles", { Text = "金堆", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GoldPiles_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GoldPiles_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_GeneratorFuses", { Text = "发电机保险丝", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GeneratorFuses_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GeneratorFuses_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_Generators", { Text = "发电机", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Generators_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Generators_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_GateLevers", { Text = "门闸杆", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GateLevers_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_GateLevers_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_LibraryBooks", { Text = "图书馆书籍", Default = false })
-    ESPInteractables_Configurat:AddColorPicker("ESPI_C_LibraryBooks_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_LibraryBooks_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_BreakerPoles", { Text = "断路器杆", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_BreakerPoles_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_BreakerPoles_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_Anchors", { Text = "锚点", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Anchors_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_Anchors_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_BackroomsLevers", { Text = "后台控制杆", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_BackroomsLevers_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_BackroomsLevers_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    ESPInteractables_Configurate:AddToggle("ESPI_C_MiscPickups", { Text = "其他物品", Default = false })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_MiscPickups_F", { Default = Color3.new(1, 1, 1), Title = "填充颜色" })
-    ESPInteractables_Configurate:AddColorPicker("ESPI_C_MiscPickups_O", { Default = Color3.new(1, 1, 1), Title = "轮廓颜色" })
-    
-    local ESPSettings = visionTab:AddRightGroupbox("ESP设置")
-    ESPSettings:AddDropdown("ESPS_Font", { 
-        Values = { "Arial", "SourceSans", "Highway", "Fantasy", "Gotham", "DenkOne", "JosefinSans", "Nunito", "Oswald", "RobotoMono", "Sarpanch", "Ubuntu" }, 
-        Default = 9, 
-        Multi = false, 
-        Text = "文本字体" 
-    })
-    
-    ESPSettings:AddSlider("ESPS_FontSize", { 
-        Text = "字体大小", 
-        Default = 20, 
-        Min = 10, 
-        Max = 32, 
-        Rounding = 0, 
-        Compact = true 
-    })
-    
-    ESPSettings:AddDivider()
-    
-    ESPSettings:AddSlider("ESPS_FillTransparency", { 
-        Text = "填充透明度", 
-        Default = 0.7, 
-        Min = 0, 
-        Max = 1, 
-        Rounding = 2, 
-        Compact = true 
-    })
-    
-    ESPSettings:AddSlider("ESPS_OutlineTransparency", { 
-        Text = "轮廓透明度", 
-        Default = 0.2, 
-        Min = 0, 
-        Max = 1, 
-        Rounding = 2, 
-        Compact = true 
-    })
-    
-    ESPSettings:AddDivider()
-    
-    ESPSettings:AddSlider("ESPS_FadeTime", { 
-        Text = "淡入/淡出时间", 
-        Default = 1, 
-        Min = 0, 
-        Max = 2, 
-        Rounding = 2, 
-        Compact = true, 
-        Suffix = "秒" 
-    })
-    
-    -- 添加视觉视图设置
-    local VisualsView = visionTab:AddLeftGroupbox("视图")
-    VisualsView:AddSlider("VV_FieldOfView", { 
-        Text = "视野", 
-        Default = 0, 
-        Min = 0, 
-        Max = 120, 
-        Rounding = 0, 
-        Compact = true, 
-        Tooltip = "更改相机视野。" 
-    })
-    
-    VisualsView:AddToggle("VV_NoCamShake", { 
-        Text = "无相机抖动", 
-        Default = false, 
-        Tooltip = "移除由实体或其他原因引起的相机抖动。" 
-    })
-    
-    VisualsView:AddToggle("VV_NoLookBob", { 
-        Text = "无视角晃动", 
-        Default = false, 
-        Tooltip = "移除行走时发生的视角晃动。" 
-    })
-    
-    VisualsView:AddDivider()
-    
-    local thirdPersonToggle = VisualsView:AddToggle("VV_Thirdperson", { 
-        Text = "第三人称", 
-        Default = false, 
-        Tooltip = "将相机可见性更改为从第三人称视角查看本地角色。" 
-    })
-    
-    thirdPersonToggle:AddKeyPicker("VV_Thirdperson_K", { 
-        Default = "V", 
-        SyncToggleState = false, 
-        Mode = "Toggle", 
-        Text = "第三人称", 
-        NoUI = false 
-    })
-    
-    VisualsView:AddToggle("VV_ThirdpersonCamCollision", { 
-        Text = "墙壁检测", 
-        Default = false, 
-        Tooltip = "如果有墙壁，将相机位置放置在检测到的墙壁上，以提高可见性。" 
-    })
-    
-    VisualsView:AddSlider("VV_ThirdpersonDistance", { 
-        Text = "距离", 
-        Default = 10, 
-        Min = 5, 
-        Max = 30, 
-        Rounding = 0, 
-        Compact = true, 
-        Tooltip = "第三人称相机距离。" 
-    })
-    
-    VisualsView:AddSlider("VV_ThirdpersonOffset", { 
-        Text = "偏移", 
-        Default = 0, 
-        Min = -5, 
-        Max = 5, 
-        Rounding = 1, 
-        Compact = true, 
-        Tooltip = "第三人称相机的左右偏移。" 
-    })
-    
-    VisualsView:AddSlider("VV_ThirdpersonOffsetUp", { 
-        Text = "垂直偏移", 
-        Default = 0, 
-        Min = -5, 
-        Max = 5, 
-        Rounding = 1, 
-        Compact = true, 
-        Tooltip = "第三人称相机的上下偏移。" 
-    })
-    
-    VisualsView:AddDivider()
-    
-    VisualsView:AddToggle("VV_ViewmodelOffset", { 
-        Text = "视图模型偏移", 
-        Default = false, 
-        Tooltip = "修改持有工具时的角色视图模型。" 
-    })
-    
-    VisualsView:AddSlider("VV_ViewmodelOffset_X", { 
-        Text = "X轴", 
-        Default = 0, 
-        Min = -5, 
-        Max = 5, 
-        Rounding = 1, 
-        Compact = true 
-    })
-    
-    VisualsView:AddSlider("VV_ViewmodelOffset_Y", { 
-        Text = "Y轴", 
-        Default = 0, 
-        Min = -5, 
-        Max = 5, 
-        Rounding = 1, 
-        Compact = true 
-    })
-    
-    VisualsView:AddSlider("VV_ViewmodelOffset_Z", { 
-        Text = "Z轴", 
-        Default = 0, 
-        Min = -5, 
-        Max = 5, 
-        Rounding = 1, 
-        Compact = true 
-    })
-    
-    -- 创建杀手标签页
-    local killerTab = window:CreateTab("杀手")
-    killerTab:CreateToggle("自动收集", false, function(state)
-        print("自动收集状态：", state)
-    end)
-    killerTab:CreateToggle("优先收集高级资源", false, function(state)
-        print("优先收集高级资源：", state)
-    end)
-    killerTab:CreateButton("立即扫描资源", function()
-        print("开始扫描资源...")
-    end)
-    killerTab:CreateToggle("自动战斗", false, function(state)
-        print("自动战斗状态：", state)
-    end)
-    
-    -- 创建传送标签页
-    local teleportTab = window:CreateTab("传送")
-    teleportTab:CreateButton("一楼大厅", function()
-        print("传送至一楼大厅")
-    end)
-    teleportTab:CreateButton("二楼走廊", function()
-        print("传送至二楼走廊")
-    end)
-    teleportTab:CreateButton("三楼天台", function()
-        print("传送至三楼天台")
-    end)
-    teleportTab:CreateButton("地下室", function()
-        print("传送至地下室")
-    end)
-    teleportTab:CreateButton("屋顶", function()
-        print("传送至屋顶")
-    end)
-    
     -- 创建设置标签页
     local settingsTab = window:CreateTab("设置")
     settingsTab:CreateToggle("显示调试信息", false, function(state)
@@ -731,62 +461,8 @@ function CreateMainUI()
         print("重置设置...")
     end)
     
-    -- 添加卡密信息标签页
-    local keyTab = window:CreateTab("卡密信息")
-    
-    -- 加载卡密数据
-    local keyData = LoadKeyData()
-    if keyData then
-        local typeDisplay = ""
-        if keyData.type == "day" then
-            typeDisplay = "天卡"
-        elseif keyData.type == "week" then
-            typeDisplay = "周卡"
-        elseif keyData.type == "month" then
-            typeDisplay = "月卡"
-        elseif keyData.type == "year" then
-            typeDisplay = "年卡"
-        elseif keyData.type == "permanent" then
-            typeDisplay = "永久卡"
-        end
-        
-        keyTab:CreateLabel("当前卡密类型: "..typeDisplay, {
-            TextSize = 18,
-            TextColor = Color3.fromRGB(100, 200, 255)
-        })
-        
-        if keyData.type ~= "permanent" then
-            local expirationTime = os.date("%Y-%m-%d %H:%M", keyData.expiration)
-            keyTab:CreateLabel("有效期至: "..expirationTime, {
-                TextSize = 18,
-                TextColor = Color3.fromRGB(100, 200, 255)
-            })
-            
-            -- 计算剩余时间
-            local currentTime = os.time()
-            local remaining = keyData.expiration - currentTime
-            local days = math.floor(remaining / 86400)
-            local hours = math.floor((remaining % 86400) / 3600)
-            
-            keyTab:CreateLabel("剩余时间: "..days.."天 "..hours.."小时", {
-                TextSize = 18,
-                TextColor = Color3.fromRGB(100, 255, 150)
-            })
-        else
-            keyTab:CreateLabel("有效期: 永久", {
-                TextSize = 18,
-                TextColor = Color3.fromRGB(100, 255, 150)
-            })
-        end
-    else
-        keyTab:CreateLabel("未检测到有效卡密", {
-            TextSize = 18,
-            TextColor = Color3.fromRGB(255, 100, 100)
-        })
-    end
-    
     -- 添加开发者标签页
-    local devTab = window:CreateTab("开发者")
+    local devTab = window:CreateTab("开发人员")
     devTab:CreateLabel("Rodhub 开发团队", {
         TextSize = 18,
         TextColor = Color3.fromRGB(100, 200, 255)
@@ -850,6 +526,100 @@ function CreateMainUI()
         print("请联系小枫获取支持")
     end)
     
+    -- ======== 添加利用标签页 ========
+    local exploitTab = window:CreateTab("利用")
+    
+    -- 捣乱分组框
+    local exploitTroll = exploitTab:AddLeftGroupbox("捣乱")
+    
+    -- 骚扰工具开关
+    local spamToggle = exploitTroll:AddToggle("骚扰工具", false, function(state)
+        print("骚扰工具状态:", state)
+    end)
+    spamToggle:AddKeyPicker("骚扰工具按键", {
+        Default = "G",
+        Mode = "Hold",
+        Text = "骚扰他人工具",
+        NoUI = false
+    })
+    
+    -- 白名单输入
+    exploitTroll:AddInput("白名单玩家", {
+        Default = "",
+        Numeric = false,
+        Finished = true,
+        ClearTextOnFocus = true,
+        Text = "骚扰工具白名单",
+        Callback = function(value)
+            print("白名单设置:", value)
+        end
+    })
+    
+    -- 绕过分组框
+    local exploitBypass = exploitTab:AddRightGroupbox("绕过")
+    
+    -- 蹲伏欺骗开关
+    exploitBypass:AddToggle("蹲伏欺骗", false, function(state)
+        print("蹲伏欺骗状态:", state)
+    end)
+    
+    -- 速度绕过开关
+    exploitBypass:AddToggle("速度绕过", false, function(state)
+        print("速度绕过状态:", state)
+    end)
+    
+    -- 反作弊操纵开关
+    local acToggle = exploitBypass:AddToggle("反作弊操纵", false, function(state)
+        print("反作弊操纵状态:", state)
+    end)
+    acToggle:AddKeyPicker("反作弊操纵按键", {
+        Default = "T",
+        Mode = "Hold",
+        Text = "反作弊操纵",
+        NoUI = false
+    })
+    
+    -- 移除分组框
+    local exploitRemovals = exploitTab:AddRightGroupbox("移除")
+    
+    -- 移除Seek开关
+    exploitRemovals:AddToggle("移除Seek", false, function(state)
+        print("移除Seek状态:", state)
+    end)
+    
+    -- 无Screech开关
+    exploitRemovals:AddToggle("无Screech", false, function(state)
+        print("无Screech状态:", state)
+    end)
+    
+    -- 无A-90开关
+    exploitRemovals:AddToggle("无A-90", false, function(state)
+        print("无A-90状态:", state)
+    end)
+    
+    -- 无Halt开关
+    exploitRemovals:AddToggle("无Halt", false, function(state)
+        print("无Halt状态:", state)
+    end)
+    
+    -- 添加分隔线
+    exploitRemovals:AddDivider()
+    
+    -- 无A-90伤害开关
+    exploitRemovals:AddToggle("无A-90伤害", false, function(state)
+        print("无A-90伤害状态:", state)
+    end)
+    
+    -- 无Screech伤害开关
+    exploitRemovals:AddToggle("无Screech伤害", false, function(state)
+        print("无Screech伤害状态:", state)
+    end)
+    
+    -- 无Halt伤害开关
+    exploitRemovals:AddToggle("无Halt伤害", false, function(state)
+        print("无Halt伤害状态:", state)
+    end)
+    
     -- 设置水印
     local watermark = Instance.new("TextLabel")
     watermark.Text = "Rodhub Premium | 高级版 | v3.0"
@@ -879,7 +649,7 @@ function CreateMainUI()
         corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = notify
         
-        wait(3
+        wait(3)
         notify:Destroy()
     end)
     
@@ -908,6 +678,11 @@ local function CheckKeyStatus()
         -- 没有卡密记录，显示验证界面
         CreateAuthUI()
     end
+end
+
+-- 启动卡密检查
+CheckKeyStatus()
+ end
 end
 
 -- 启动卡密检查
