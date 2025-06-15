@@ -1,689 +1,93 @@
--- 设置脚本名称
-script.Name = "Rodhub Premium"
+-- 由 https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua 提供的示例脚本，由 deivid 修改
+-- 您可以通过拉取请求等方式提出修改建议
 
--- 卡密数据库
-local KEY_DATABASE = {
-    -- 天卡 (有效期1天)
-    ["RODHUB-DAY-ABCD-EFGH"] = {type = "day", duration = 86400, used = false},
-    ["RODHUB-DAY-IJKL-MNOP"] = {type = "day", duration = 86400, used = false},
-    
-    -- 周卡 (有效期7天)
-    ["RODHUB-WEEK-QRST-UVWX"] = {type = "week", duration = 604800, used = false},
-    ["RODHUB-WEEK-YZAB-CDEF"] = {type = "week", duration = 604800, used = false},
-    
-    -- 月卡 (有效期30天)
-    ["RODHUB-MONTH-GHIJ-KLMN"] = {type = "month", duration = 2592000, used = false},
-    ["RODHUB-MONTH-OPQR-STUV"] = {type = "month", duration = 2592000, used = false},
-    
-    -- 年卡 (有效期365天)
-    ["RODHUB-YEAR-WXYZ-ABCD"] = {type = "year", duration = 31536000, used = false},
-    ["RODHUB-YEAR-EFGH-IJKL"] = {type = "year", duration = 31536000, used = false},
-    
-    -- 永久卡
-    ["RODHUB-PERMA-MASTER-123"] = {type = "permanent", duration = 0, used = false},
-    ["RODHUB-PERMA-ADMIN-456"] = {type = "permanent", duration = 0, used = false}
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ForceCheckbox = false -- 强制将 AddToggle 转换为复选框
+Library.ShowToggleFrameInKeybinds = true -- 在按键绑定界面中显示切换框（默认开启）
+
+local Window = Library:CreateWindow({
+	-- 设置 Center=true 使菜单居中
+	-- 设置 AutoShow=true 创建时自动显示菜单
+	-- 设置 Resizable=true 启用游戏内窗口大小调整
+	-- 设置 MobileButtonsSide="Left" 或 "Right" 控制移动端按钮位置
+	-- 设置 ShowCustomCursor=false 禁用自定义光标
+
+	Title = "Rodhub", 
+	Footer = "版本: 2.0",
+	Icon = 95816097006870,
+	NotifySide = "Right",
+	ShowCustomCursor = true,
+})
+
+-- 标签页配置
+local Tabs = {
+	Basic = Window:AddTab("基本功能", "user"), -- 修改为基本功能标签页
+	Esp = Window:AddTab("Esp", "radar"), -- 修改为Esp标签页
+	Floor = Window:AddTab("楼层功能", "stairs"), -- 新增楼层功能标签页
+	["UI 设置"] = Window:AddTab("界面设置", "settings"),
 }
 
--- 创建专业卡密验证系统
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
+-- 基本功能标签页 - 保持空白
+-- 可以在此处添加功能
 
--- 全局变量用于跟踪UI状态
-local authUI = {
-    screenGui = nil,
-    blurEffect = nil
-}
+-- Esp标签页 - 保持空白
+-- 可以在此处添加功能
 
--- 卡密存储系统
-local function SaveKeyData(key, keyType, expiration)
-    local player = Players.LocalPlayer
-    local data = {
-        key = key,
-        type = keyType,
-        expiration = expiration
-    }
-    
-    local jsonData = HttpService:JSONEncode(data)
-    pcall(function()
-        writefile("RodhubKey_"..player.UserId..".json", jsonData)
-    end)
-end
+-- 楼层功能标签页 - 保持空白
+-- 可以在此处添加功能
 
-local function LoadKeyData()
-    local player = Players.LocalPlayer
-    local success, data = pcall(function()
-        return readfile("RodhubKey_"..player.UserId..".json")
-    end)
-    
-    if success and data then
-        return HttpService:JSONDecode(data)
-    end
-    return nil
-end
+-- 界面设置保持不变
+local MenuGroup = Tabs["UI 设置"]:AddLeftGroupbox("界面配置", "wrench")
 
-local function CheckKeyExpired(expiration)
-    if expiration == 0 then -- 永久卡
-        return false
-    end
-    
-    local currentTime = os.time()
-    return currentTime > expiration
-end
+MenuGroup:AddToggle("KeybindMenuOpen", {
+	Text = "显示快捷键面板",
+	Callback = function(value)
+		Library.KeybindFrame.Visible = value
+	end,
+})
 
--- 创建验证界面函数
-local function CreateAuthUI()
-    -- 清除任何现有的UI
-    if authUI.screenGui then
-        authUI.screenGui:Destroy()
-        authUI.screenGui = nil
-    end
-    
-    if authUI.blurEffect then
-        authUI.blurEffect:Destroy()
-        authUI.blurEffect = nil
-    end
-    
-    -- 创建新的UI
-    authUI.screenGui = Instance.new("ScreenGui")
-    authUI.screenGui.Name = "RodhubAuth"
-    authUI.screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    authUI.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    authUI.screenGui.ResetOnSpawn = false
+MenuGroup:AddToggle("ShowCustomCursor", {
+	Text = "使用自定义光标",
+	Default = true,
+	Callback = function(Value)
+		Library.ShowCustomCursor = Value
+	end,
+})
 
-    -- 创建背景模糊效果
-    authUI.blurEffect = Instance.new("BlurEffect")
-    authUI.blurEffect.Size = 15
-    authUI.blurEffect.Name = "RodhubBlur"
-    authUI.blurEffect.Parent = game:GetService("Lighting")
+MenuGroup:AddDropdown("NotificationSide", {
+	Values = { "左侧", "右侧" },
+	Default = "右侧",
+	Text = "通知位置",
+})
 
-    -- 主容器
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 500, 0, 450) -- 增加高度
-    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 30)
-    mainFrame.BackgroundTransparency = 0.2
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = authUI.screenGui
+MenuGroup:AddButton("卸载界面", function()
+	Library:Unload()
+end)
 
-    -- 圆角
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 16)
-    corner.Parent = mainFrame
+-- 主题管理器
+MenuGroup:AddLabel("主题管理"):AddButton("保存主题", function() 
+	ThemeManager:SaveTheme("默认")
+end)
 
-    -- 边框效果
-    local border = Instance.new("Frame")
-    border.Size = UDim2.new(1, 0, 1, 0)
-    border.BackgroundTransparency = 1
-    border.BorderColor3 = Color3.fromRGB(0, 150, 255)
-    border.BorderSizePixel = 2
-    border.Parent = mainFrame
-    
-    local borderCorner = Instance.new("UICorner")
-    borderCorner.CornerRadius = UDim.new(0, 16)
-    borderCorner.Parent = border
+-- 配置管理器
+MenuGroup:AddLabel("配置管理"):AddButton("创建备份", function() 
+	SaveManager:Save("备份配置")
+end)
 
-    -- 顶部标题区域
-    local header = Instance.new("Frame")
-    header.Size = UDim2.new(1, 0, 0, 80)
-    header.Position = UDim2.new(0, 0, 0, 0)
-    header.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
-    header.BackgroundTransparency = 0.3
-    header.BorderSizePixel = 0
-    header.Parent = mainFrame
-    
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 16)
-    headerCorner.Parent = header
+-- 主题和配置管理器集成
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
 
-    -- 标题文本
-    local title = Instance.new("TextLabel")
-    title.Text = "RODHUB PREMIUM"
-    title.Size = UDim2.new(1, 0, 0.6, 0)
-    title.Position = UDim2.new(0, 0, 0.1, 0)
-    title.BackgroundTransparency = 1
-    title.TextColor3 = Color3.fromRGB(100, 200, 255)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 28
-    title.TextStrokeTransparency = 0.8
-    title.Parent = header
-
-    -- 副标题
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Text = "高级功能验证"
-    subtitle.Size = UDim2.new(1, 0, 0.4, 0)
-    subtitle.Position = UDim2.new(0, 0, 0.6, 0)
-    subtitle.BackgroundTransparency = 1
-    subtitle.TextColor3 = Color3.fromRGB(150, 220, 255)
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextSize = 16
-    subtitle.TextTransparency = 0.2
-    subtitle.Parent = header
-
-    -- 装饰线条
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(0.8, 0, 0, 2)
-    line.Position = UDim2.new(0.1, 0, 1, 0)
-    line.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-    line.BackgroundTransparency = 0.5
-    line.BorderSizePixel = 0
-    line.Parent = header
-
-    -- 内容区域
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, 0, 0, 330) -- 增加高度
-    content.Position = UDim2.new(0, 0, 0, 80)
-    content.BackgroundTransparency = 1
-    content.Parent = mainFrame
-
-    -- 密钥说明
-    local keyInfo = Instance.new("TextLabel")
-    keyInfo.Text = "请输入您的卡密密钥"
-    keyInfo.Size = UDim2.new(0.8, 0, 0, 30)
-    keyInfo.Position = UDim2.new(0.1, 0, 0.1, 0)
-    keyInfo.BackgroundTransparency = 1
-    keyInfo.TextColor3 = Color3.fromRGB(180, 230, 255)
-    keyInfo.Font = Enum.Font.Gotham
-    keyInfo.TextSize = 16
-    keyInfo.TextXAlignment = Enum.TextXAlignment.Left
-    keyInfo.Parent = content
-
-    -- 密钥输入框
-    local inputBox = Instance.new("TextBox")
-    inputBox.Size = UDim2.new(0.8, 0, 0, 50)
-    inputBox.Position = UDim2.new(0.1, 0, 0.2, 0)
-    inputBox.BackgroundColor3 = Color3.fromRGB(20, 40, 70)
-    inputBox.BackgroundTransparency = 0.3
-    inputBox.TextColor3 = Color3.fromRGB(220, 240, 255)
-    inputBox.PlaceholderText = "输入您的卡密密钥"
-    inputBox.Text = ""
-    inputBox.Font = Enum.Font.Gotham
-    inputBox.TextSize = 18
-    inputBox.Parent = content
-
-    -- 输入框圆角
-    local inputCorner = Instance.new("UICorner")
-    inputCorner.CornerRadius = UDim.new(0, 10)
-    inputCorner.Parent = inputBox
-
-    -- 输入框内边距
-    local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 15)
-    padding.PaddingRight = UDim.new(0, 15)
-    padding.Parent = inputBox
-
-    -- 输入框边框
-    local inputBorder = Instance.new("Frame")
-    inputBorder.Size = UDim2.new(1, 2, 1, 2)
-    inputBorder.Position = UDim2.new(0, -1, 0, -1)
-    inputBorder.BackgroundTransparency = 1
-    inputBorder.BorderColor3 = Color3.fromRGB(0, 180, 255)
-    inputBorder.BorderSizePixel = 1
-    inputBorder.ZIndex = 0
-    inputBorder.Parent = inputBox
-    
-    local inputBorderCorner = Instance.new("UICorner")
-    inputBorderCorner.CornerRadius = UDim.new(0, 10)
-    inputBorderCorner.Parent = inputBorder
-
-    -- 卡密类型信息
-    local keyTypeInfo = Instance.new("TextLabel")
-    keyTypeInfo.Text = "卡密类型: 未验证"
-    keyTypeInfo.Size = UDim2.new(0.8, 0, 0, 30)
-    keyTypeInfo.Position = UDim2.new(0.1, 0, 0.35, 0)
-    keyTypeInfo.BackgroundTransparency = 1
-    keyTypeInfo.TextColor3 = Color3.fromRGB(180, 230, 255)
-    keyTypeInfo.Font = Enum.Font.Gotham
-    keyTypeInfo.TextSize = 16
-    keyTypeInfo.TextXAlignment = Enum.TextXAlignment.Left
-    keyTypeInfo.Parent = content
-
-    -- 有效期信息
-    local validityInfo = Instance.new("TextLabel")
-    validityInfo.Text = "有效期: -"
-    validityInfo.Size = UDim2.new(0.8, 0, 0, 30)
-    validityInfo.Position = UDim2.new(0.1, 0, 0.42, 0)
-    validityInfo.BackgroundTransparency = 1
-    validityInfo.TextColor3 = Color3.fromRGB(180, 230, 255)
-    validityInfo.Font = Enum.Font.Gotham
-    validityInfo.TextSize = 16
-    validityInfo.TextXAlignment = Enum.TextXAlignment.Left
-    validityInfo.Parent = content
-
-    -- 验证按钮
-    local verifyButton = Instance.new("TextButton")
-    verifyButton.Size = UDim2.new(0.6, 0, 0, 50)
-    verifyButton.Position = UDim2.new(0.2, 0, 0.55, 0)
-    verifyButton.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
-    verifyButton.BackgroundTransparency = 0.2
-    verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    verifyButton.Text = "验证密钥"
-    verifyButton.Font = Enum.Font.GothamBold
-    verifyButton.TextSize = 18
-    verifyButton.AutoButtonColor = false
-    verifyButton.Parent = content
-
-    -- 按钮圆角
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 10)
-    buttonCorner.Parent = verifyButton
-
-    -- 状态标签
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0.8, 0, 0, 30)
-    statusLabel.Position = UDim2.new(0.1, 0, 0.65, 0)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.TextColor3 = Color3.fromRGB(200, 230, 255)
-    statusLabel.Text = "等待验证..."
-    statusLabel.Font = Enum.Font.Gotham
-    statusLabel.TextSize = 14
-    statusLabel.Parent = content
-
-    -- 购买信息
-    local purchaseInfo = Instance.new("TextLabel")
-    purchaseInfo.Text = "获取卡密请访问: www.rodhub.com/shop"
-    purchaseInfo.Size = UDim2.new(0.8, 0, 0, 20)
-    purchaseInfo.Position = UDim2.new(0.1, 0, 0.75, 0)
-    purchaseInfo.BackgroundTransparency = 1
-    purchaseInfo.TextColor3 = Color3.fromRGB(100, 180, 230)
-    purchaseInfo.Font = Enum.Font.Gotham
-    purchaseInfo.TextSize = 14
-    purchaseInfo.TextTransparency = 0.4
-    purchaseInfo.Parent = content
-
-    -- 底部信息
-    local footer = Instance.new("TextLabel")
-    footer.Text = "Rodhub Premium v3.0 | © 2024 Rodhub Team"
-    footer.Size = UDim2.new(1, 0, 0, 20)
-    footer.Position = UDim2.new(0, 0, 0.9, 0)
-    footer.BackgroundTransparency = 1
-    footer.TextColor3 = Color3.fromRGB(100, 180, 230)
-    footer.Font = Enum.Font.Gotham
-    footer.TextSize = 12
-    footer.TextTransparency = 0.4
-    footer.Parent = content
-
-    -- 添加拖拽功能
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
-            startPos.X.Scale, 
-            startPos.X.Offset + delta.X, 
-            startPos.Y.Scale, 
-            startPos.Y.Offset + delta.Y
-        )
-    end
-
-    header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = mainFrame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    header.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
-
-    -- 验证按钮功能
-    verifyButton.MouseButton1Click:Connect(function()
-        local inputKey = string.upper(inputBox.Text)
-        
-        if inputKey == "" then
-            statusLabel.Text = "错误：请输入密钥"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-            return
-        end
-        
-        -- 检查卡密是否在数据库中
-        local keyData = KEY_DATABASE[inputKey]
-        if not keyData then
-            statusLabel.Text = "错误：无效的卡密"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-            keyTypeInfo.Text = "卡密类型: 无效"
-            validityInfo.Text = "有效期: -"
-            return
-        end
-        
-        -- 检查卡密是否已被使用
-        if keyData.used then
-            statusLabel.Text = "错误：卡密已被使用"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-            keyTypeInfo.Text = "卡密类型: 已使用"
-            validityInfo.Text = "有效期: -"
-            return
-        end
-        
-        -- 验证成功
-        statusLabel.Text = "验证成功！"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
-        verifyButton.Text = "验证成功 ✓"
-        
-        -- 更新卡密类型显示
-        local typeDisplay = ""
-        if keyData.type == "day" then
-            typeDisplay = "天卡 (24小时)"
-        elseif keyData.type == "week" then
-            typeDisplay = "周卡 (7天)"
-        elseif keyData.type == "month" then
-            typeDisplay = "月卡 (30天)"
-        elseif keyData.type == "year" then
-            typeDisplay = "年卡 (365天)"
-        elseif keyData.type == "permanent" then
-            typeDisplay = "永久卡"
-        end
-        keyTypeInfo.Text = "卡密类型: "..typeDisplay
-        
-        -- 计算并显示有效期
-        local currentTime = os.time()
-        local expiration = currentTime + keyData.duration
-        validityInfo.Text = "有效期: "..os.date("%Y-%m-%d %H:%M", expiration)
-        
-        -- 标记卡密为已使用
-        KEY_DATABASE[inputKey].used = true
-        
-        -- 保存卡密数据
-        SaveKeyData(inputKey, keyData.type, expiration)
-        
-        -- 销毁验证界面
-        task.delay(1.5, function()
-            if authUI.screenGui then
-                authUI.screenGui:Destroy()
-                authUI.screenGui = nil
-            end
-            
-            if authUI.blurEffect then
-                authUI.blurEffect:Destroy()
-                authUI.blurEffect = nil
-            end
-            
-            -- 确保UI已销毁后创建主界面
-            CreateMainUI()
-        end)
-    end)
-
-    -- 按Enter键验证
-    inputBox.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            verifyButton:Activate()
-        end
-    end)
-
-    -- 初始提示
-    statusLabel.Text = "请输入卡密进行验证"
-    statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
-end
-
--- 创建主界面函数（使用Rodhub UI库）
-function CreateMainUI()
-    -- 加载 Rodhub UI 库
-    local Rodhub = loadstring(game:HttpGet("https://raw.githubusercontent.com/iopjklbnmsss/SansHublib/main/lib1"))()
-    
-    -- 创建主窗口，标题为 "Rodhub"
-    local window = Rodhub:CreateWindow("Rodhub Premium", "blue")
-    
-    -- 创建设置标签页
-    local settingsTab = window:CreateTab("设置")
-    settingsTab:CreateToggle("显示调试信息", false, function(state)
-        print("显示调试信息：", state)
-    end)
-    settingsTab:CreateDropdown("主题选择", {"蓝色", "暗黑", "亮白"}, 1, function(option)
-        print("主题设置为：", option)
-    end)
-    settingsTab:CreateButton("保存设置", function()
-        print("保存设置...")
-    end)
-    settingsTab:CreateButton("加载设置", function()
-        print("加载设置...")
-    end)
-    settingsTab:CreateButton("重置设置", function()
-        print("重置设置...")
-    end)
-    
-    -- 添加开发者标签页
-    local devTab = window:CreateTab("开发人员")
-    devTab:CreateLabel("Rodhub 开发团队", {
-        TextSize = 18,
-        TextColor = Color3.fromRGB(100, 200, 255)
-    })
-    
-    -- 开发者信息卡片
-    devTab:CreateLabel("主要开发者", {
-        TextSize = 16,
-        TextColor = Color3.fromRGB(150, 220, 255)
-    })
-    devTab:CreateLabel("小枫", {
-        TextSize = 20,
-        TextColor = Color3.fromRGB(0, 180, 255)
-    })
-    
-    devTab:CreateLabel("卡密系统设计", {
-        TextSize = 16,
-        TextColor = Color3.fromRGB(150, 220, 255)
-    })
-    devTab:CreateLabel("小枫", {
-        TextSize = 20,
-        TextColor = Color3.fromRGB(0, 180, 255)
-    })
-    
-    -- 添加分隔线
-    devTab:CreateLabel("-----------------------", {
-        TextSize = 16,
-        TextColor = Color3.fromRGB(100, 150, 200)
-    })
-    
-    -- 开发团队信息
-    devTab:CreateLabel("开发团队", {
-        TextSize = 16,
-        TextColor = Color3.fromRGB(150, 220, 255)
-    })
-    devTab:CreateLabel("小枫 - 首席开发者", {
-        TextSize = 14,
-        TextColor = Color3.fromRGB(200, 230, 255)
-    })
-    devTab:CreateLabel("Rodhub团队 - UI设计", {
-        TextSize = 14,
-        TextColor = Color3.fromRGB(200, 230, 255)
-    })
-    
-    -- 添加项目信息
-    devTab:CreateLabel("项目信息", {
-        TextSize = 16,
-        TextColor = Color3.fromRGB(150, 220, 255)
-    })
-    devTab:CreateLabel("版本: 3.0", {
-        TextSize = 14,
-        TextColor = Color3.fromRGB(200, 230, 255)
-    })
-    devTab:CreateLabel("发布日期: 2024-01-15", {
-        TextSize = 14,
-        TextColor = Color3.fromRGB(200, 230, 255)
-    })
-    
-    -- 添加特殊按钮
-    devTab:CreateButton("联系开发者", function()
-        print("请联系小枫获取支持")
-    end)
-    
-    -- ======== 添加利用标签页 ========
-    local exploitTab = window:CreateTab("利用")
-    
-    -- 捣乱分组框
-    local exploitTroll = exploitTab:AddLeftGroupbox("捣乱")
-    
-    -- 骚扰工具开关
-    local spamToggle = exploitTroll:AddToggle("骚扰工具", false, function(state)
-        print("骚扰工具状态:", state)
-    end)
-    spamToggle:AddKeyPicker("骚扰工具按键", {
-        Default = "G",
-        Mode = "Hold",
-        Text = "骚扰他人工具",
-        NoUI = false
-    })
-    
-    -- 白名单输入
-    exploitTroll:AddInput("白名单玩家", {
-        Default = "",
-        Numeric = false,
-        Finished = true,
-        ClearTextOnFocus = true,
-        Text = "骚扰工具白名单",
-        Callback = function(value)
-            print("白名单设置:", value)
-        end
-    })
-    
-    -- 绕过分组框
-    local exploitBypass = exploitTab:AddRightGroupbox("绕过")
-    
-    -- 蹲伏欺骗开关
-    exploitBypass:AddToggle("蹲伏欺骗", false, function(state)
-        print("蹲伏欺骗状态:", state)
-    end)
-    
-    -- 速度绕过开关
-    exploitBypass:AddToggle("速度绕过", false, function(state)
-        print("速度绕过状态:", state)
-    end)
-    
-    -- 反作弊操纵开关
-    local acToggle = exploitBypass:AddToggle("反作弊操纵", false, function(state)
-        print("反作弊操纵状态:", state)
-    end)
-    acToggle:AddKeyPicker("反作弊操纵按键", {
-        Default = "T",
-        Mode = "Hold",
-        Text = "反作弊操纵",
-        NoUI = false
-    })
-    
-    -- 移除分组框
-    local exploitRemovals = exploitTab:AddRightGroupbox("移除")
-    
-    -- 移除Seek开关
-    exploitRemovals:AddToggle("移除Seek", false, function(state)
-        print("移除Seek状态:", state)
-    end)
-    
-    -- 无Screech开关
-    exploitRemovals:AddToggle("无Screech", false, function(state)
-        print("无Screech状态:", state)
-    end)
-    
-    -- 无A-90开关
-    exploitRemovals:AddToggle("无A-90", false, function(state)
-        print("无A-90状态:", state)
-    end)
-    
-    -- 无Halt开关
-    exploitRemovals:AddToggle("无Halt", false, function(state)
-        print("无Halt状态:", state)
-    end)
-    
-    -- 添加分隔线
-    exploitRemovals:AddDivider()
-    
-    -- 无A-90伤害开关
-    exploitRemovals:AddToggle("无A-90伤害", false, function(state)
-        print("无A-90伤害状态:", state)
-    end)
-    
-    -- 无Screech伤害开关
-    exploitRemovals:AddToggle("无Screech伤害", false, function(state)
-        print("无Screech伤害状态:", state)
-    end)
-    
-    -- 无Halt伤害开关
-    exploitRemovals:AddToggle("无Halt伤害", false, function(state)
-        print("无Halt伤害状态:", state)
-    end)
-    
-    -- 设置水印
-    local watermark = Instance.new("TextLabel")
-    watermark.Text = "Rodhub Premium | 高级版 | v3.0"
-    watermark.Size = UDim2.new(0, 220, 0, 20)
-    watermark.Position = UDim2.new(0.5, -110, 0, 10)
-    watermark.BackgroundTransparency = 1
-    watermark.TextColor3 = Color3.fromRGB(100, 200, 255)
-    watermark.Font = Enum.Font.GothamMedium
-    watermark.TextSize = 14
-    watermark.Parent = window.MainFrame
-    
-    -- 显示成功消息
-    task.spawn(function()
-        wait(0.5)
-        local notify = Instance.new("TextLabel")
-        notify.Text = "欢迎使用 Rodhub 高级功能"
-        notify.Size = UDim2.new(0, 300, 0, 40)
-        notify.Position = UDim2.new(0.5, -150, 0.5, -20)
-        notify.BackgroundColor3 = Color3.fromRGB(20, 40, 70)
-        notify.BackgroundTransparency = 0.3
-        notify.TextColor3 = Color3.fromRGB(220, 240, 255)
-        notify.Font = Enum.Font.GothamBold
-        notify.TextSize = 18
-        notify.Parent = window.MainFrame
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = notify
-        
-        wait(3)
-        notify:Destroy()
-    end)
-    
-    -- 打印成功信息
-    print("Rodhub主界面已成功创建")
-end
-
--- 启动时检查卡密状态
-local function CheckKeyStatus()
-    local keyData = LoadKeyData()
-    
-    if keyData then
-        if CheckKeyExpired(keyData.expiration) then
-            -- 卡密已过期，显示验证界面
-            CreateAuthUI()
-        else
-            -- 卡密有效，直接进入主界面
-            if keyData.type ~= "permanent" then
-                print("检测到有效卡密，有效期至: "..os.date("%Y-%m-%d %H:%M", keyData.expiration))
-            else
-                print("检测到永久卡密")
-            end
-            CreateMainUI()
-        end
-    else
-        -- 没有卡密记录，显示验证界面
-        CreateAuthUI()
-    end
-end
-
--- 启动卡密检查
-CheckKeyStatus()
- end
-end
-
--- 启动卡密检查
-CheckKeyStatus()
+-- 构建配置界面
+SaveManager:BuildConfigSection(Tabs["UI 设置"])
+ThemeManager:ApplyToTab(Tabs["UI 设置"])
+SaveManager:LoadAutoloadConfig()
