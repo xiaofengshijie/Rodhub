@@ -1,5 +1,5 @@
 -- 设置脚本名称
- script.Name = "Rodhub Premium"
+script.Name = "Rodhub Premium"
 -- 卡密数据库
 local KEY_DATABASE = {
     -- 天卡 (有效期1天)
