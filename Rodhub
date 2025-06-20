@@ -1,93 +1,896 @@
--- 由 https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua 提供的示例脚本，由 deivid 修改
--- 您可以通过拉取请求等方式提出修改建议
+-- New example script written by wally
+-- You can suggest changes with a pull request or something
 
-local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+local repo = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
 
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 local Options = Library.Options
 local Toggles = Library.Toggles
 
-Library.ForceCheckbox = false -- 强制将 AddToggle 转换为复选框
-Library.ShowToggleFrameInKeybinds = true -- 在按键绑定界面中显示切换框（默认开启）
+-- 设置所有弹窗在右侧显示
+Library.NotifySide = "Right" -- 全局通知位置改为右边
+Library.ShowToggleFrameInKeybinds = true
+Library.ShowCustomCursor = true
+
+-- 弹窗音效ID
+local NOTIFICATION_SOUND_ID = 4590657391
 
 local Window = Library:CreateWindow({
-	-- 设置 Center=true 使菜单居中
-	-- 设置 AutoShow=true 创建时自动显示菜单
-	-- 设置 Resizable=true 启用游戏内窗口大小调整
-	-- 设置 MobileButtonsSide="Left" 或 "Right" 控制移动端按钮位置
-	-- 设置 ShowCustomCursor=false 禁用自定义光标
-
-	Title = "Rodhub", 
-	Footer = "版本: 2.0",
-	Icon = 95816097006870,
-	NotifySide = "Right",
-	ShowCustomCursor = true,
+    Title = 'Rodhub', -- 名称改为Rodhub
+    Center = true,
+    AutoShow = true,
+    Resizable = true,
+    ShowCustomCursor = true,
+    NotifySide = "Right", -- 窗口通知位置改为右边
+    TabPadding = 8,
+    MenuFadeTime = 0.2
 })
 
--- 标签页配置
+-- 添加标签页
 local Tabs = {
-	Basic = Window:AddTab("基本功能", "user"), -- 修改为基本功能标签页
-	Esp = Window:AddTab("Esp", "radar"), -- 修改为Esp标签页
-	Floor = Window:AddTab("楼层功能", "stairs"), -- 新增楼层功能标签页
-	["UI 设置"] = Window:AddTab("界面设置", "settings"),
+    Main = Window:AddTab('主菜单'),
+    ['UI Settings'] = Window:AddTab('界面设置'),
+    ['楼层'] = Window:AddTab('楼层'),
+    ['大厅功能'] = Window:AddTab('大厅功能')
 }
 
--- 基本功能标签页 - 保持空白
--- 可以在此处添加功能
+-- ====== 主菜单标签页 - 无功能 ======
+-- 这里保留标签页但不添加任何功能
 
--- Esp标签页 - 保持空白
--- 可以在此处添加功能
+-- ====== 楼层功能 ======
+local FloorTab = Tabs['楼层']
+local FloorGroupBox = FloorTab:AddLeftGroupbox('房间跳过功能')
 
--- 楼层功能标签页 - 保持空白
--- 可以在此处添加功能
+-- 添加功能开关（默认关闭）
+FloorGroupBox:AddToggle('AutoSkipToggle', {
+    Text = '启用房间跳过',
+    Default = false, -- 默认关闭
+    Tooltip = '启用后按下设定的键自动跳过房间',
+    Callback = function(Value)
+        CanAutoSkip = Value
+        Library:Notify("房间跳过已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+    end
+})
 
--- 界面设置保持不变
-local MenuGroup = Tabs["UI 设置"]:AddLeftGroupbox("界面配置", "wrench")
+-- 添加子功能开关（默认关闭）
+FloorGroupBox:AddToggle('SkipRoom50Toggle', {
+    Text = '跳过50号房间',
+    Default = false, -- 默认关闭
+    Tooltip = '在50号房间直接传送到下一房间',
+    Callback = function(Value)
+        CanSkipRoom_50 = Value
+    end
+})
 
-MenuGroup:AddToggle("KeybindMenuOpen", {
-	Text = "显示快捷键面板",
-	Callback = function(value)
-		Library.KeybindFrame.Visible = value
-	end,
+FloorGroupBox:AddToggle('UnlockDoorsToggle', {
+    Text = '自动解锁门',
+    Default = false, -- 默认关闭
+    Tooltip = '自动寻找并解锁门',
+    Callback = function(Value)
+        CanAutoUnlockDoors = Value
+    end
+})
+
+FloorGroupBox:AddToggle('PullLeversToggle', {
+    Text = '自动拉杆',
+    Default = false, -- 默认关闭
+    Tooltip = '自动寻找并拉动杠杆',
+    Callback = function(Value)
+        CanPullTheLevers = Value
+    end
+})
+
+-- 添加快捷方式选项
+FloorGroupBox:AddDropdown('SkipMethod', {
+    Values = {'传送门', '直接传送', '两种方式'},
+    Default = 1,
+    Text = '跳过方式',
+    Tooltip = '选择房间跳过的方式',
+    Callback = function(Value)
+        SkipMethod = Value
+    end
+})
+
+-- 添加键位绑定
+FloorGroupBox:AddLabel('功能键位'):AddKeyPicker('AutoSkipKey', {
+    Default = 'H',
+    NoUI = false,
+    Text = '房间跳过键',
+    Tooltip = '按下此键执行房间跳过功能'
+})
+
+-- 添加传送速度滑块
+FloorGroupBox:AddSlider('TeleportSpeed', {
+    Text = '传送速度',
+    Default = 0.1,
+    Min = 0.05,
+    Max = 0.5,
+    Rounding = 2,
+    Suffix = '秒',
+    Tooltip = '设置传送之间的延迟',
+    Callback = function(Value)
+        TeleportDelay = Value
+    end
+})
+
+-- 初始化变量（默认全部关闭）
+local CanAutoSkip = false
+local CanSkipRoom_50 = false
+local CanAutoUnlockDoors = false
+local CanPullTheLevers = false
+local SkipMethod = "传送门" -- 默认使用传送门方式
+local TeleportDelay = 0.1 -- 默认传送延迟
+
+-- 房间跳过功能实现（无冷却时间）
+do
+    local UIS = game:GetService("UserInputService")
+    local CF = CFrame.new
+    local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
+    
+    -- 查找房间中的传送门
+    local function findPortal(room)
+        for _, object in ipairs(room:GetDescendants()) do
+            if object.Name == "Portal" then
+                return object
+            end
+        end
+        return nil
+    end
+    
+    -- 查找钥匙
+    local function findKey(room)
+        for _, object in ipairs(room:GetDescendants()) do
+            if object.Name == "KeyObtain" then
+                return object
+            end
+        end
+        return nil
+    end
+    
+    -- 查找杠杆
+    local function findLever(room)
+        for _, object in ipairs(room:GetDescendants()) do
+            if object.Name == "LeverForGate" then
+                return object
+            end
+        end
+        return nil
+    end
+    
+    UIS.InputBegan:Connect(function(input, typing)
+        if typing then return end
+        
+        -- 检查是否按下设置的键位
+        if input.KeyCode == Options.AutoSkipKey.Value then
+            if not CanAutoSkip then
+                Library:Notify("房间跳过功能未启用", nil, NOTIFICATION_SOUND_ID)
+                return 
+            end
+            
+            pcall(function()
+                local CurrentRoom = workspace.CurrentRooms[tostring(LatestRoom.Value)]
+                if not CurrentRoom then return end
+                
+                local CurrentDoor = CurrentRoom:WaitForChild("Door")
+                
+                -- 跳过50号房间
+                if LatestRoom.Value == 50 and CanSkipRoom_50 then
+                    local NextRoom = workspace.CurrentRooms[tostring(LatestRoom.Value + 1)]
+                    if NextRoom then
+                        local NextDoor = NextRoom:WaitForChild("Door")
+                        game.Players.LocalPlayer.Character:PivotTo(CF(NextDoor.Door.Position))
+                        Library:Notify("已跳过50号房间", nil, NOTIFICATION_SOUND_ID)
+                        return
+                    end
+                end
+                
+                -- 查找钥匙
+                local key = findKey(CurrentRoom)
+                
+                -- 查找杠杆
+                local lever = findLever(CurrentRoom)
+                
+                -- 查找传送门（如果选择使用传送门）
+                local portal
+                if SkipMethod ~= "直接传送" then
+                    portal = findPortal(CurrentRoom)
+                end
+                
+                -- 自动解锁门
+                if key and CanAutoUnlockDoors then
+                    game.Players.LocalPlayer.Character:PivotTo(CF(key.Hitbox.Position))
+                    fireproximityprompt(key.ModulePrompt)
+                    task.wait(TeleportDelay)
+                end
+                
+                -- 自动拉杆
+                if lever and CanPullTheLevers then
+                    game.Players.LocalPlayer.Character:PivotTo(CF(lever.Main.Position))
+                    fireproximityprompt(lever.ActivateEventPrompt)
+                    task.wait(TeleportDelay)
+                end
+                
+                -- 直接传送到门的位置
+                game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
+                task.wait(TeleportDelay)
+                
+                -- 使用传送门（如果存在且选择了这种方式）
+                if portal and SkipMethod ~= "直接传送" then
+                    fireproximityprompt(portal.Enter)
+                    Library:Notify("使用传送门跳过房间", nil, NOTIFICATION_SOUND_ID)
+                else
+                    -- 直接开门
+                    CurrentDoor.ClientOpen:FireServer()
+                    Library:Notify("直接打开房门", nil, NOTIFICATION_SOUND_ID)
+                end
+            end)
+        end
+    end)
+end
+
+-- ====== Vynixu 实体生成器功能 ======
+local EntitySpawnerGroup = FloorTab:AddRightGroupbox('实体生成器')
+
+-- 添加实体生成器开关
+EntitySpawnerGroup:AddToggle('EntitySpawnerToggle', {
+    Text = '启用实体生成器',
+    Default = false,
+    Tooltip = '启用Vynixu实体生成器V2功能',
+    Callback = function(Value)
+        EnableEntitySpawner = Value
+        Library:Notify("实体生成器已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+    end
+})
+
+-- 添加实体选择下拉菜单
+EntitySpawnerGroup:AddDropdown('EntityType', {
+    Values = {'Rush', 'Ambush', 'Screech', 'Eyes', 'Glitch', 'Halt', 'Timothy'},
+    Default = 1,
+    Text = '实体类型',
+    Tooltip = '选择要生成的实体类型',
+    Callback = function(Value)
+        SelectedEntityType = Value
+    end
+})
+
+-- 添加生成按钮
+EntitySpawnerGroup:AddButton('生成实体', function()
+    if not EnableEntitySpawner then
+        Library:Notify("请先启用实体生成器", nil, NOTIFICATION_SOUND_ID)
+        return
+    end
+    
+    -- 加载Vynixu实体生成器
+    local success, spawner = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
+    end)
+    
+    if success and spawner then
+        -- 创建实体配置
+        local entityConfig = {
+            Entity = {
+                Name = SelectedEntityType,
+                Asset = GetEntityAsset(SelectedEntityType)
+            },
+            Movement = {
+                Speed = 100,
+                Delay = 2,
+                Reversed = false
+            },
+            Damage = {
+                Enabled = true,
+                Range = 40,
+                Amount = 125
+            },
+            Rebounding = {
+                Enabled = true,
+                Type = "Ambush",
+                Min = 2,
+                Max = 4,
+                Delay = 2
+            },
+            Lights = {
+                Flicker = {
+                    Enabled = true,
+                    Duration = 1
+                },
+                Shatter = true,
+                Repair = false
+            },
+            Earthquake = {
+                Enabled = true
+            },
+            CameraShake = {
+                Enabled = true,
+                Values = {1.5, 20, 0.1, 1},
+                Range = 100
+            },
+            Crucifixion = {
+                Type = "Curious",
+                Enabled = true,
+                Range = 40,
+                Resist = false,
+                Break = true
+            },
+            Death = {
+                Type = "Guiding",
+                Hints = {"小心!", "它来了!", "快跑!"},
+                Cause = SelectedEntityType
+            }
+        }
+        
+        -- 创建并运行实体
+        local entityTable = spawner.Create(entityConfig)
+        if entityTable then
+            entityTable:Run()
+            Library:Notify(SelectedEntityType.."实体已生成!", nil, NOTIFICATION_SOUND_ID)
+        else
+            Library:Notify("实体创建失败", nil, NOTIFICATION_SOUND_ID)
+        end
+    else
+        Library:Notify("实体生成器加载失败", nil, NOTIFICATION_SOUND_ID)
+    end
+end)
+
+-- 添加自定义按钮
+EntitySpawnerGroup:AddButton('自定义实体', function()
+    if not EnableEntitySpawner then
+        Library:Notify("请先启用实体生成器", nil, NOTIFICATION_SOUND_ID)
+        return
+    end
+    
+    -- 打开自定义实体配置窗口
+    Library:Notify("自定义实体功能开发中...", nil, NOTIFICATION_SOUND_ID)
+end)
+
+-- 添加实体控制选项
+EntitySpawnerGroup:AddSlider('EntitySpeed', {
+    Text = '实体速度',
+    Default = 100,
+    Min = 50,
+    Max = 200,
+    Rounding = 0,
+    Suffix = '%',
+    Tooltip = '设置实体的移动速度',
+    Callback = function(Value)
+        EntitySpeed = Value
+    end
+})
+
+EntitySpawnerGroup:AddToggle('EnableDamage', {
+    Text = '实体伤害',
+    Default = true,
+    Tooltip = '启用/禁用实体的伤害能力',
+    Callback = function(Value)
+        EnableEntityDamage = Value
+    end
+})
+
+-- 初始化变量
+local EnableEntitySpawner = false
+local SelectedEntityType = "Rush"
+local EntitySpeed = 100
+local EnableEntityDamage = true
+
+-- 获取实体资产URL
+function GetEntityAsset(entityType)
+    local assets = {
+        Rush = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Rush.rbxm?raw=true",
+        Ambush = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Ambush.rbxm?raw=true",
+        Screech = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Screech.rbxm?raw=true",
+        Eyes = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Eyes.rbxm?raw=true",
+        Glitch = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Glitch.rbxm?raw=true",
+        Halt = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Halt.rbxm?raw=true",
+        Timothy = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Timothy.rbxm?raw=true"
+    }
+    return assets[entityType] or assets.Rush
+end
+
+-- ====== 大厅功能 ======
+local LobbyTab = Tabs['大厅功能']
+local LobbyGroup = LobbyTab:AddLeftGroupbox('大厅作弊功能')
+
+-- 飞行模式
+LobbyGroup:AddToggle('FlightMode', {
+    Text = '飞行模式',
+    Default = false,
+    Tooltip = '启用后可以使用飞行功能',
+    Callback = function(Value)
+        FlightModeEnabled = Value
+        Library:Notify("飞行模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+    end
+})
+
+-- 穿墙模式
+LobbyGroup:AddToggle('NoclipMode', {
+    Text = '穿墙模式',
+    Default = false,
+    Tooltip = '启用后可以穿过墙壁',
+    Callback = function(Value)
+        NoclipEnabled = Value
+        Library:Notify("穿墙模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+    end
+})
+
+-- 上帝模式
+LobbyGroup:AddToggle('GodMode', {
+    Text = '上帝模式',
+    Default = false,
+    Tooltip = '启用后不会受到任何伤害',
+    Callback = function(Value)
+        GodModeEnabled = Value
+        Library:Notify("上帝模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+    end
+})
+
+-- 实体ESP
+LobbyGroup:AddToggle('EntityESP', {
+    Text = '实体ESP',
+    Default = false,
+    Tooltip = '显示所有实体的位置',
+    Callback = function(Value)
+        ESPEnabled = Value
+        Library:Notify("实体ESP已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
+        if Value then
+            CreateESP()
+        else
+            RemoveESP()
+        end
+    end
+})
+
+-- 移动速度滑块
+LobbyGroup:AddSlider('WalkSpeed', {
+    Text = '移动速度',
+    Default = 16,
+    Min = 16,
+    Max = 100,
+    Rounding = 0,
+    Suffix = '单位',
+    Tooltip = '设置玩家的移动速度',
+    Callback = function(Value)
+        WalkSpeed = Value
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+-- 跳跃力量滑块
+LobbyGroup:AddSlider('JumpPower', {
+    Text = '跳跃力量',
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Rounding = 0,
+    Suffix = '单位',
+    Tooltip = '设置玩家的跳跃力量',
+    Callback = function(Value)
+        JumpPower = Value
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.JumpPower = Value
+        end
+    end
+})
+
+-- 飞行速度滑块
+LobbyGroup:AddSlider('FlySpeed', {
+    Text = '飞行速度',
+    Default = 50,
+    Min = 25,
+    Max = 150,
+    Rounding = 0,
+    Suffix = '单位',
+    Tooltip = '设置飞行模式的速度',
+    Callback = function(Value)
+        FlySpeed = Value
+    end
+})
+
+-- 功能按钮组
+local LobbyButtons = LobbyTab:AddRightGroupbox('功能按钮')
+
+-- 传送到大厅
+LobbyButtons:AddButton('传送到大厅', function()
+    TeleportToLobby()
+end)
+
+-- 收集所有物品
+LobbyButtons:AddButton('收集所有物品', function()
+    CollectAllItems()
+end)
+
+-- 解锁所有门
+LobbyButtons:AddButton('解锁所有门', function()
+    UnlockAllDoors()
+end)
+
+-- 大厅功能实现
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- 初始化变量
+local FlightModeEnabled = false
+local NoclipEnabled = false
+local GodModeEnabled = false
+local ESPEnabled = false
+local WalkSpeed = 16
+local JumpPower = 50
+local FlySpeed = 50
+local ESPParts = {}
+
+-- 检查游戏
+local function IsDoorsGame()
+    local placeId = game.PlaceId
+    return placeId == 6516141723 or placeId == 6839171747
+end
+
+-- 传送到大厅
+local function TeleportToLobby()
+    if not IsDoorsGame() then
+        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
+        return
+    end
+    
+    -- 尝试找到大厅位置
+    local lobby = Workspace:FindFirstChild("Lobby") or Workspace:FindFirstChild("SpawnLocation")
+    if lobby then
+        Character:PivotTo(lobby.CFrame)
+        Library:Notify("已传送到大厅", nil, NOTIFICATION_SOUND_ID)
+    else
+        Library:Notify("找不到大厅位置", nil, NOTIFICATION_SOUND_ID)
+    end
+end
+
+-- 收集所有物品
+local function CollectAllItems()
+    if not IsDoorsGame() then
+        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
+        return
+    end
+    
+    -- 尝试收集所有物品
+    local items = Workspace:GetDescendants()
+    local collected = 0
+    
+    for _, item in ipairs(items) do
+        if item:IsA("BasePart") and item.Name:match("Key") then
+            firetouchinterest(HumanoidRootPart, item, 0)
+            firetouchinterest(HumanoidRootPart, item, 1)
+            collected = collected + 1
+        end
+    end
+    
+    Library:Notify("已收集 "..collected.." 个物品", nil, NOTIFICATION_SOUND_ID)
+end
+
+-- 解锁所有门
+local function UnlockAllDoors()
+    if not IsDoorsGame() then
+        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
+        return
+    end
+    
+    -- 尝试解锁所有门
+    local doors = Workspace:GetDescendants()
+    local unlocked = 0
+    
+    for _, door in ipairs(doors) do
+        if door.Name == "Door" and door:FindFirstChild("Lock") then
+            door.Lock.UnlockPrompt.HoldDuration = 0
+            unlocked = unlocked + 1
+        end
+    end
+    
+    Library:Notify("已解锁 "..unlocked.." 扇门", nil, NOTIFICATION_SOUND_ID)
+end
+
+-- 创建ESP
+local function CreateESP()
+    RemoveESP() -- 先清除现有的ESP
+    
+    -- 为所有实体创建ESP
+    local entities = Workspace:GetDescendants()
+    
+    for _, entity in ipairs(entities) do
+        if entity:IsA("Model") and entity.Name:match("Rush|Ambush|Screech|Eyes|Glitch|Halt|Timothy") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "RodhubESP"
+            highlight.Adornee = entity
+            highlight.FillColor = Color3.new(1, 0, 0)
+            highlight.OutlineColor = Color3.new(1, 1, 1)
+            highlight.Parent = entity
+            table.insert(ESPParts, highlight)
+        end
+    end
+    
+    -- 添加新实体检测
+    Workspace.DescendantAdded:Connect(function(descendant)
+        if ESPEnabled and descendant:IsA("Model") and descendant.Name:match("Rush|Ambush|Screech|Eyes|Glitch|Halt|Timothy") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "RodhubESP"
+            highlight.Adornee = descendant
+            highlight.FillColor = Color3.new(1, 0, 0)
+            highlight.OutlineColor = Color3.new(1, 1, 1)
+            highlight.Parent = descendant
+            table.insert(ESPParts, highlight)
+        end
+    end)
+end
+
+-- 移除ESP
+local function RemoveESP()
+    for _, esp in ipairs(ESPParts) do
+        if esp and esp.Parent then
+            esp:Destroy()
+        end
+    end
+    ESPParts = {}
+end
+
+-- 飞行模式实现
+local Flying = false
+local FlyConnection
+
+local function StartFlying()
+    if Flying then return end
+    Flying = true
+    
+    local BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.P = 10000
+    BodyGyro.D = 1000
+    BodyGyro.MaxTorque = Vector3.new(0, 0, 0)
+    BodyGyro.CFrame = HumanoidRootPart.CFrame
+    BodyGyro.Parent = HumanoidRootPart
+    
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.MaxForce = Vector3.new(0, 0, 0)
+    BodyVelocity.Parent = HumanoidRootPart
+    
+    FlyConnection = RunService.Stepped:Connect(function()
+        if not Flying then return end
+        
+        -- 控制飞行
+        local Camera = Workspace.CurrentCamera
+        local LookVector = Camera.CFrame.LookVector
+        local RightVector = Camera.CFrame.RightVector
+        
+        BodyGyro.CFrame = Camera.CFrame
+        
+        local Velocity = Vector3.new(0, 0, 0)
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            Velocity = Velocity + LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            Velocity = Velocity - LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            Velocity = Velocity - RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            Velocity = Velocity + RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            Velocity = Velocity + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            Velocity = Velocity - Vector3.new(0, 1, 0)
+        end
+        
+        BodyVelocity.Velocity = Velocity * FlySpeed
+    end)
+end
+
+local function StopFlying()
+    if not Flying then return end
+    Flying = false
+    
+    if FlyConnection then
+        FlyConnection:Disconnect()
+        FlyConnection = nil
+    end
+    
+    if HumanoidRootPart:FindFirstChild("BodyGyro") then
+        HumanoidRootPart.BodyGyro:Destroy()
+    end
+    
+    if HumanoidRootPart:FindFirstChild("BodyVelocity") then
+        HumanoidRootPart.BodyVelocity:Destroy()
+    end
+end
+
+-- 穿墙模式实现
+local NoclipConnection
+
+local function StartNoclip()
+    if NoclipConnection then return end
+    
+    NoclipConnection = RunService.Stepped:Connect(function()
+        if not NoclipEnabled then return end
+        
+        if Character then
+            for _, part in ipairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+local function StopNoclip()
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+    
+    if Character then
+        for _, part in ipairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- 上帝模式实现
+local function SetupGodMode()
+    if Character then
+        -- 防止死亡
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+        
+        -- 防止伤害
+        if Humanoid:FindFirstChild("Health") then
+            Humanoid.Health:GetPropertyChangedSignal("Value"):Connect(function()
+                if GodModeEnabled and Humanoid.Health < 100 then
+                    Humanoid.Health = 100
+                end
+            end)
+        end
+    end
+end
+
+-- 连接功能
+Toggles.FlightMode:OnChanged(function()
+    if FlightModeEnabled then
+        StartFlying()
+    else
+        StopFlying()
+    end
+end)
+
+Toggles.NoclipMode:OnChanged(function()
+    if NoclipEnabled then
+        StartNoclip()
+    else
+        StopNoclip()
+    end
+end)
+
+Toggles.GodMode:OnChanged(function()
+    if GodModeEnabled then
+        SetupGodMode()
+    end
+end)
+
+-- 角色变化处理
+Player.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
+    
+    -- 重新应用设置
+    if FlightModeEnabled then
+        StartFlying()
+    end
+    
+    if NoclipEnabled then
+        StartNoclip()
+    end
+    
+    if GodModeEnabled then
+        SetupGodMode()
+    end
+    
+    -- 应用速度设置
+    Humanoid.WalkSpeed = WalkSpeed
+    Humanoid.JumpPower = JumpPower
+end)
+
+-- 应用初始速度设置
+if Humanoid then
+    Humanoid.WalkSpeed = WalkSpeed
+    Humanoid.JumpPower = JumpPower
+end
+
+-- 初始化通知
+if IsDoorsGame() then
+    Library:Notify("Doors大厅功能已加载!", nil, NOTIFICATION_SOUND_ID)
+else
+    Library:Notify("大厅功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
+end
+
+Library:SetWatermarkVisibility(true)
+
+local FrameTimer = tick()
+local FrameCounter = 0;
+local FPS = 60;
+
+local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
+    FrameCounter += 1;
+    if (tick() - FrameTimer) >= 1 then
+        FPS = FrameCounter;
+        FrameTimer = tick();
+        FrameCounter = 0;
+    end;
+    Library:SetWatermark(('Rodhub | %s FPS | %s ms'):format(
+        math.floor(FPS),
+        math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
+    ));
+end);
+
+Library:OnUnload(function()
+    WatermarkConnection:Disconnect()
+    print('已卸载!')
+    -- 卸载时添加带音效的弹窗
+    Library:Notify("Rodhub已卸载", nil, NOTIFICATION_SOUND_ID)
+    Library.Unloaded = true
+    
+    -- 清理大厅功能
+    StopFlying()
+    StopNoclip()
+    RemoveESP()
+end)
+
+-- 界面设置
+local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('菜单设置')
+
+MenuGroup:AddToggle("KeybindMenuOpen", { 
+    Default = Library.KeybindFrame.Visible, 
+    Text = "打开键位菜单",
+    Callback = function(value) 
+        Library.KeybindFrame.Visible = value 
+        Library:Notify("键位菜单已"..(value and "打开" or "关闭"), nil, NOTIFICATION_SOUND_ID)
+    end
 })
 
 MenuGroup:AddToggle("ShowCustomCursor", {
-	Text = "使用自定义光标",
-	Default = true,
-	Callback = function(Value)
-		Library.ShowCustomCursor = Value
-	end,
+    Text = "自定义光标",
+    Default = true, 
+    Callback = function(Value) 
+        Library.ShowCustomCursor = Value 
+    end
 })
 
-MenuGroup:AddDropdown("NotificationSide", {
-	Values = { "左侧", "右侧" },
-	Default = "右侧",
-	Text = "通知位置",
-})
-
-MenuGroup:AddButton("卸载界面", function()
-	Library:Unload()
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("菜单键位"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "菜单键位" })
+MenuGroup:AddButton("卸载菜单", function() 
+    Library:Unload() 
+    Library:Notify("正在卸载Rodhub...", nil, NOTIFICATION_SOUND_ID)
 end)
 
--- 主题管理器
-MenuGroup:AddLabel("主题管理"):AddButton("保存主题", function() 
-	ThemeManager:SaveTheme("默认")
-end)
+Library.ToggleKeybind = Options.MenuKeybind
 
--- 配置管理器
-MenuGroup:AddLabel("配置管理"):AddButton("创建备份", function() 
-	SaveManager:Save("备份配置")
-end)
-
--- 主题和配置管理器集成
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('Rodhub') -- 改为Rodhub
+SaveManager:SetFolder('Rodhub/settings')
+SaveManager:SetSubFolder('current-place')
 
--- 构建配置界面
-SaveManager:BuildConfigSection(Tabs["UI 设置"])
-ThemeManager:ApplyToTab(Tabs["UI 设置"])
+SaveManager:BuildConfigSection(Tabs['UI Settings'])
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
 SaveManager:LoadAutoloadConfig()
+
+-- 初始化弹窗
+Library:Notify("Rodhub已加载!", nil, NOTIFICATION_SOUND_ID)
