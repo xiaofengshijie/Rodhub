@@ -1,896 +1,458 @@
--- New example script written by wally
--- You can suggest changes with a pull request or something
+local Loadtime = tick()
+local Repository = "https://raw.githubusercontent.com/RectangularObject/LinoriaLib/main/"
 
-local repo = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
+local Library = loadstring(game:HttpGet(Repository .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(Repository .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(Repository .. "addons/SaveManager.lua"))()
 
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
-local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
-local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
-local Options = Library.Options
-local Toggles = Library.Toggles
+local ErrorMessageOut
+ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Message, Type)
 
--- 设置所有弹窗在右侧显示
-Library.NotifySide = "Right" -- 全局通知位置改为右边
-Library.ShowToggleFrameInKeybinds = true
-Library.ShowCustomCursor = true
+    if Type == Enum.MessageType.MessageError and not string.find(Message, "attempt to index nil with 'Value'") then
+        ErrorMessageOut:Disconnect()
 
--- 弹窗音效ID
-local NOTIFICATION_SOUND_ID = 4590657391
+        setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
+        Library:Notify(" Lolhax has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the LX discord server! ", 4.5)
 
-local Window = Library:CreateWindow({
-    Title = 'Rodhub', -- 名称改为Rodhub
-    Center = true,
-    AutoShow = true,
-    Resizable = true,
-    ShowCustomCursor = true,
-    NotifySide = "Right", -- 窗口通知位置改为右边
-    TabPadding = 8,
-    MenuFadeTime = 0.2
-})
+        task.delay(5, function()
+            Library:Unload()
+        end)
+    end
 
--- 添加标签页
-local Tabs = {
-    Main = Window:AddTab('主菜单'),
-    ['UI Settings'] = Window:AddTab('界面设置'),
-    ['楼层'] = Window:AddTab('楼层'),
-    ['大厅功能'] = Window:AddTab('大厅功能')
+end)
+local friends = {}
+local LocalPlayer = game.Players.LocalPlayer
+local epiklistofpeople = {}
+local LXUser = {}
+local SendChat = game:GetService("TextChatService"):WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+-- detection thingy
+SendChat:SendAsync("", "Ineedtheepikrespond")
+local Detection = game:GetService("TextChatService").MessageReceived:Connect(function(yeah)
+    if yeah.Metadata == "usinglolhax" then
+        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+        end
+    elseif yeah.Metadata == "Ineedtheepikrespond" then
+        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
+            SendChat:SendAsync("", "usinglolhax")
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+        end
+    end
+end)
+-- UI vvv
+
+local Window = Library:CreateWindow({ Title = " LOLHAX ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Tabs = { General = Window:AddTab("General"), Exploit = Window:AddTab("Exploits"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("Visuals"), Misc = Window:AddTab("Miscellaneous"), Config = Window:AddTab("Config") }
+
+local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
+GeneralAutomation:AddToggle("GA_AutoInteract", { Text = "Automatic Interact", Default = false, }):AddKeyPicker("GA_AutoInteract_K", { Default = "R", SyncToggleState = false, Mode = "Hold", Text = "Auto Interact", NoUI = false, Tooltip = "Will activate any nearby interactables when key is active." })
+GeneralAutomation:AddDropdown("GA_AutoInteract_Options", { Values = { "Use Lockpick ( Doors )", "Use Lockpick ( Other )", "Ignore Light Sources", "Ignore Can-Die" }, Default = 0, Multi = true, Text = "Automatic Interact Options" })
+GeneralAutomation:AddSlider("GA_AutoInteract_Range", { Text = "Range Multiplier", Default = 1, Min = 1, Max = 2, Rounding = 1, Compact = false })
+GeneralAutomation:AddDivider()
+GeneralAutomation:AddToggle("GA_EatCandies", { Text = "Automatic Candy Use", Default = false, }):AddKeyPicker("GA_EatCandies_K", { Default = "V", SyncToggleState = false, Mode = "Hold", Text = "Auto Use Candy", NoUI = false, Tooltip = "Will eat all candy in the player inventory when key is active." })
+GeneralAutomation:AddToggle("GA_AutoHide", { Text = "Automatic Hide", Default = false, Tooltip = "Will automatically predict entities and hide in the nearest available spot when enabled." })
+GeneralAutomation:AddToggle("GA_AutoHide_VisCheck", { Text = "Prediction Visible Check", Default = false, })
+GeneralAutomation:AddSlider("GA_AutoHide_PredictionTime", { Text = "Prediction Time", Default = 0.5, Min = 0.1, Max = 1.5, Rounding = 2, Compact = true, Suffix = "s" })
+GeneralAutomation:AddSlider("GA_AutoHide_PredictionDistanceMultiplier", { Text = "Distance Multiplier", Default = 1, Min = 0.8, Max = 1.5, Rounding = 1, Compact = true, Suffix = "x" })
+GeneralAutomation:AddDivider()
+GeneralAutomation:AddToggle("GA_MinecartInteract", { Text = "Minecart Interact Spam", Default = false, Tooltip = "Automatically spam interact with nearby minecarts when key is active." }):AddKeyPicker("GA_MinecartInteract_K", { Default = "H", SyncToggleState = false, Mode = "Hold", Text = "Minecart Interact Spam", NoUI = false, })
+GeneralAutomation:AddToggle("GA_AnchorAutoSolve", { Text = "Anchor Automatic Solve", Default = false, Tooltip = "Automatically solves any anchor when close enough, if it's the designated one." })
+GeneralAutomation:AddDivider()
+GeneralAutomation:AddToggle("GA_AutoPadlockSolve", { Text = "Automatic Library Padlock", Default = false, Tooltip = "Automatically unlocks padlock with the code when near enough to the set distance." })
+GeneralAutomation:AddSlider("GA_AutoPadlockSolve_Distance", { Text = "Automatic Padlock Distance", Default = 25, Min = 10, Max = 50, Rounding = 0, Compact = false, Tooltip = "Minimum distance for auto padlock solver to input the correct code."})
+
+local GeneralNotifying = Tabs.General:AddRightGroupbox("Notifying")
+GeneralNotifying:AddToggle("GN_Enabled", { Text = "Enabled", Default = false, Tooltip = "Master switch for notifications." })
+GeneralNotifying:AddToggle("GN_NotificationSound", { Text = "Play Sound", Default = false, Tooltip = "Plays sound to draw better attention when notifying." })
+GeneralNotifying:AddSlider("GN_NotificationSound_Volume", { Text = "Sound Volume", Default = 2, Min = 1, Max = 10, Rounding = 1, Compact = false })
+GeneralNotifying:AddDivider()
+GeneralNotifying:AddToggle("GN_AnchorCode", { Text = "Anchor Code", Default = false, Tooltip = "Will notify upon any anchor code being confirmed." })
+GeneralNotifying:AddToggle("GN_PadlockCode", { Text = "Library Padlock Code", Default = false, Tooltip = "Will notify upon padlock code being confirmed." })
+GeneralNotifying:AddToggle("GN_Entities", { Text = "Entity Notifying", Default = false, Tooltip = "Will notify upon a selected entity spawning." })
+GeneralNotifying:AddDropdown("GN_Entities_Options", { Values = { "Rush", "Blitz", "Ambush", "Eyes", "Lookman", "Halt", "Screech", "Gloombat Swarm", "Dread", "A-60", "A-120" }, Default = 0, Multi = true, Text = "Entity List", Tooltip = "Entity whitelist to notify for." })
+GeneralNotifying:AddDivider()
+GeneralNotifying:AddDropdown("GN_NotificationAlignment", { Values = { "Left", "Center", "Right" }, Default = 2, Multi = false, Text = "Horizontal Alignment" })
+GeneralNotifying:AddSlider("GN_NotificationOffset_X", { Text = "X Offset", Default = 0, Min = -1, Max = 1, Rounding = 2, Compact = true })
+GeneralNotifying:AddSlider("GN_NotificationOffset_Y", { Text = "Y Offset", Default = 0, Min = -1, Max = 1, Rounding = 2, Compact = true })
+GeneralNotifying:AddSlider("GN_NotificationDPISize", { Text = "Size Multiplier", Default = 1, Min = 0.8, Max = 3, Rounding = 1, Compact = true })
+GeneralNotifying:AddButton("Test Notify", function()
+    Notify("This is a test notification.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 2.5, true)
+end)
+
+local ExploitSelf = Tabs.Exploit:AddLeftGroupbox("Self")
+ExploitSelf:AddToggle("ES_AlwaysJump", { Text = "Always Enable Jumping", Default = false, Tooltip = "Enables jumping at all times." })
+ExploitSelf:AddDivider()
+ExploitSelf:AddToggle("ES_AntiGloombat", { Text = "Anti-Gloombat Egg", Default = false, Tooltip = "Disallows touching on any Gloombat egg hitbox." })
+ExploitSelf:AddToggle("ES_AntiGiggle", { Text = "Anti-Giggle", Default = false, Tooltip = "Disallows touching on the entity 'Giggle' hitbox." })
+ExploitSelf:AddToggle("ES_AntiSnare", { Text = "Anti-Snare", Default = false, Tooltip = "Disallows touching on the entity 'Snare'." })
+ExploitSelf:AddToggle("ES_AntiDupe", { Text = "Anti-Dupe", Default = false, Tooltip = "Disallows touching on any entity 'Dupe' fake doors." })
+ExploitSelf:AddToggle("ES_AntiEyes", { Text = "Anti-Eyes", Default = false, Tooltip = "Forces character to look down from the entity 'Eyes'." })
+ExploitSelf:AddToggle("ES_AntiLookman", { Text = "Anti-Lookman", Default = false, Tooltip = "Forces character to look down from the entity 'Lookman'." })
+ExploitSelf:AddToggle("ES_AntiChanedlier", { Text = "Anti-Chandelier", Default = false, Tooltip = "Disallows touching on any fallen chandeliers during the seek chase." })
+ExploitSelf:AddToggle("ES_AntiSeekArms", { Text = "Anti-Seek Arms", Default = false, Tooltip = "Disallows touching on any seek arms during the seek chase." })
+
+
+local ExploitTroll = Tabs.Exploit:AddLeftGroupbox("Trolling")
+ExploitTroll:AddToggle("Spamtoolz", { Text = "Spam others Tools", Default = false, Tooltip = "Will basically use up the other person tools by spamming!" }):AddKeyPicker("Spamtoolz_X", { Default = "G", SyncToggleState = false, Mode = "Hold", Text = "Spam others Tools", NoUI = false, })
+ExploitTroll:AddInput("WhitelistKoolpeople",{Default = "", Numeric = false, Finished = true, ClearTextOnFocus = true, Text = "Whitelist for spamtools", Callback = function() 
+task.spawn(function()   
+    for _,Player in pairs(game.Players:GetPlayers()) do
+        if Value == Player.Name and not plr == LocalPlayer.Name then
+            table.insert(friends, Player.Name)
+            Notify("Whitelistfromspamtools", "Whitelisted!")
+        elseif Value == LocalPlayer.Name then
+            Notify("Whitelistfromspamtools", "failed you tried whitelisting localplayer")
+        else
+            print("sdf")
+            Notify("Whitelistfromspamtools", "Player Not exist!")
+        end
+    end
+end) end, })
+
+local ExploitBypass = Tabs.Exploit:AddRightGroupbox("Bypass")
+ExploitBypass:AddToggle("EB_CrouchSpoof", { Text = "Crouch Spoof", Default = false, Tooltip = "Spoofs crouching, or in other words the game will think you're crouching. Useful for figure rooms." })
+ExploitBypass:AddToggle("EB_SpeedBypass", { Text = "Speed Bypass", Default = false, Tooltip = "Attempts to mitigate the speed anticheat." })
+ExploitBypass:AddToggle("EB_ACManipulate", { Text = "Anti-Cheat Manipulation", Default = false, Tooltip = "Will teleport to the opposite direction the camera is facing to manipulate the anticheat into rubberbanding you the opposite way." }):AddKeyPicker("EB_ACManipulate_K", { Default = "T", SyncToggleState = false, Mode = "Hold", Text = "Anti-Cheat Manipulate", NoUI = false, })
+
+local ExploitRemovals = Tabs.Exploit:AddRightGroupbox("Removals")
+ExploitRemovals:AddToggle("ER_RemoveSeek", { Text = "Remove Seek Chase", Default = false, Tooltip = "Completely disables the entity 'Seek'." })
+ExploitRemovals:AddToggle("ER_NoScreech", { Text = "No Screech", Default = false, Tooltip = "Completely disables the entity 'Screech'." })
+ExploitRemovals:AddToggle("ER_NoA90", { Text = "No A-90", Default = false, Tooltip = "Completely disables the entity 'A-90'." })
+ExploitRemovals:AddToggle("ER_NoShade", { Text = "No Halt", Default = false, Tooltip = "Completely disables the entity 'Halt'." })
+ExploitRemovals:AddDivider()
+ExploitRemovals:AddToggle("ER_NoA90Damage", { Text = "No A-90 Damage", Default = false, Tooltip = "Completely disables entity 'A-90' damaging you." })
+ExploitRemovals:AddToggle("ER_NoScreechDamage", { Text = "No Screech Damage", Default = false, Tooltip = "Completely disables entity 'Screech' damaging you." })
+ExploitRemovals:AddToggle("ER_NoShadeDamage", { Text = "No Halt Damage", Default = false, Tooltip = "Completely disables entity 'Halt' damaging you." })
+
+--[[local ESPEntities = Tabs.ESP:AddLeftGroupbox("Entities")
+ESPEntities:AddToggle("ESPE_Enabled", { Text = "Enabled", Default = false })
+ESPEntities:AddDivider()
+ESPEntities:AddToggle("ESPE_Name", { Text = "Name", Default = false })
+ESPEntities:AddToggle("ESPE_Distance", { Text = "Distance", Default = false })
+ESPEntities:AddToggle("ESPE_Fill", { Text = "Highlight Fill", Default = false })
+ESPEntities:AddToggle("ESPE_Enabled", { Text = "Highlight Outline", Default = false })]]
+
+-- we have notify entity which uhh gives entity esps! so like very useless!!!!!!!!!!!!!!!!!!!
+local ESPLXUSER = Tabs.ESP:AddLeftGroupbox("LXStuff")
+ESPLXUSER:AddToggle("LXPP_Enabled", { Text = "ESP LXUSER", Default = false })
+:AddColorPicker("LXPLAYERFILLCOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "Fill Color" })
+:AddColorPicker("LXPPLAYEROUTLINECOLOR", { Default = Color3.new(0.141176, 0.792156, 0.282352), Title = "Outline Color" })
+ESPLXUSER:AddDivider()
+
+
+local ESPPlayers = Tabs.ESP:AddLeftGroupbox("Players")
+ESPPlayers:AddToggle("ESPP_Enabled", { Text = "Enabled", Default = false })
+:AddColorPicker("ESPPLAYERFILLCOLOR", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPPLAYEROUTLINECOLOR", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+
+local ESPInteractables = Tabs.ESP:AddRightTabbox("Interactables")
+
+local ESPInteractables_Main = ESPInteractables:AddTab("Main")
+ESPInteractables_Main:AddToggle("ESPI_M_Enabled", { Text = "Enabled", Default = false })
+ESPInteractables_Main:AddDivider()
+ESPInteractables_Main:AddToggle("ESPI_M_Name", { Text = "Name", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Distance", { Text = "Distance", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Fill", { Text = "Highlight Fill", Default = false })
+ESPInteractables_Main:AddToggle("ESPI_M_Enabled", { Text = "Highlight Outline", Default = false })
+
+-- BRO IM SO SORRY LINORIA MADE ME DO IT THIS WAY PLEASE LORD FORGIVE ME
+local ESPInteractables_Configurate = ESPInteractables:AddTab("Configurate")
+ESPInteractables_Configurate:AddToggle("ESPI_C_Doors", { Text = "Door", Default = false })
+:AddColorPicker("ESPI_C_Doors_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_Doors_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_DoorKeys", { Text = "Door Key", Default = false })
+:AddColorPicker("ESPI_C_DoorKeys_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_DoorKeys_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_GoldPiles", { Text = "Door", Default = false })
+:AddColorPicker("ESPI_C_GoldPiles_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_GoldPiles_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_GeneratorFuses", { Text = "Generator Fuse", Default = false })
+:AddColorPicker("ESPI_C_GeneratorFuses_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_GeneratorFuses_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_Generators", { Text = "Generator", Default = false })
+:AddColorPicker("ESPI_C_Generators_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_Generators_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_GateLevers", { Text = "Gate Lever", Default = false })
+:AddColorPicker("ESPI_C_GateLevers_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_GateLevers_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_LibraryBooks", { Text = "Library Book", Default = false })
+:AddColorPicker("ESPI_C_LibraryBooks_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_LibraryBooks_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_BreakerPoles", { Text = "Breaker Pole", Default = false })
+:AddColorPicker("ESPI_C_BreakerPoles_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_BreakerPoles_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_Anchors", { Text = "Anchor", Default = false })
+:AddColorPicker("ESPI_C_Anchors_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_Anchors_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_BackroomsLevers", { Text = "Timer Lever", Default = false })
+:AddColorPicker("ESPI_C_BackroomsLevers_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_BackroomsLevers_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+ESPInteractables_Configurate:AddToggle("ESPI_C_MiscPickups", { Text = "Misc Items", Default = false })
+:AddColorPicker("ESPI_C_MiscPickups_F", { Default = Color3.new(1, 1, 1), Title = "Fill Color" })
+:AddColorPicker("ESPI_C_MiscPickups_O", { Default = Color3.new(1, 1, 1), Title = "Outline Color" })
+
+local ESPSettings = Tabs.ESP:AddRightGroupbox("ESP Settings")
+ESPSettings:AddDropdown("ESPS_Font", { Values = { "Arial", "SourceSans", "Highway", "Fantasy", "Gotham", "DenkOne", "JosefinSans", "Nunito", "Oswald", "RobotoMono", "Sarpanch", "Ubuntu" }, Default = 9, Multi = false, Text = "Text Font" })
+ESPSettings:AddSlider("ESPS_FontSize", { Text = "Font Size", Default = 20, Min = 10, Max = 32, Rounding = 0, Compact = true })
+ESPSettings:AddDivider()
+ESPSettings:AddSlider("ESPS_FillTransparency", { Text = "Fill Transparency", Default = 0.7, Min = 0, Max = 1, Rounding = 2, Compact = true })
+ESPSettings:AddSlider("ESPS_OutlineTransparency", { Text = "Outline Transparency", Default = 0.2, Min = 0, Max = 1, Rounding = 2, Compact = true })
+ESPSettings:AddDivider()
+ESPSettings:AddSlider("ESPS_FadeTime", { Text = "Fade In / Out Time", Default = 1, Min = 0, Max = 2, Rounding = 2, Compact = true, Suffix = "s" })
+
+local VisualsView = Tabs.Visuals:AddLeftGroupbox("View")
+VisualsView:AddSlider("VV_FieldOfView", { Text = "Field of View", Default = 0, Min = 0, Max = 120, Rounding = 0, Compact = true, Tooltip = "Changes camera field of view." })
+VisualsView:AddToggle("VV_NoCamShake", { Text = "No Camera Shake", Default = false, Tooltip = "Removes any camera shaking that will occur from entities or other things." })
+VisualsView:AddToggle("VV_NoLookBob", { Text = "No Look Bobbing", Default = false, Tooltip = "Removes any look bobbing that will occur when walking." })
+VisualsView:AddDivider()
+VisualsView:AddToggle("VV_Thirdperson", { Text = "Thirdperson", Default = false, Tooltip = "Changes camera visibility to view local character from the third person." }):AddKeyPicker("VV_Thirdperson_K", { Default = "V", SyncToggleState = false, Mode = "Toggle", Text = "Thirdperson", NoUI = false })
+VisualsView:AddToggle("VV_ThirdpersonCamCollision", { Text = "Wall Detect", Default = false, Tooltip = "Makes the camera position on a detected wall if there are any, for the sake of visibility." })
+VisualsView:AddSlider("VV_ThirdpersonDistance", { Text = "Distance", Default = 10, Min = 5, Max = 30, Rounding = 0, Compact = true, Tooltip = "Camera distance for thirdperson." })
+VisualsView:AddSlider("VV_ThirdpersonOffset", { Text = "Offset", Default = 0, Min = -5, Max = 5, Rounding = 1, Compact = true, Tooltip = "Camera left/right offset for thirdperson." })
+VisualsView:AddSlider("VV_ThirdpersonOffsetUp", { Text = "Vertical Offset", Default = 0, Min = -5, Max = 5, Rounding = 1, Compact = true, Tooltip = "Camera up/down offset for thirdperson." })
+VisualsView:AddDivider()
+VisualsView:AddToggle("VV_ViewmodelOffset", { Text = "Viewmodel Offset", Default = false, Tooltip = "Modifier for character viewmodel when holding tools." })
+VisualsView:AddSlider("VV_ViewmodelOffset_X", { Text = "X", Default = 0, Min = -5, Max = 5, Rounding = 1, Compact = true, })
+VisualsView:AddSlider("VV_ViewmodelOffset_Y", { Text = "Y", Default = 0, Min = -5, Max = 5, Rounding = 1, Compact = true, })
+VisualsView:AddSlider("VV_ViewmodelOffset_Z", { Text = "Z", Default = 0, Min = -5, Max = 5, Rounding = 1, Compact = true, })
+
+local VisualsWorld = Tabs.Visuals:AddRightGroupbox("World")
+VisualsWorld:AddToggle("VW_Ambience", { Text = "Ambience", Default = false, Tooltip = "Changes color of the map." }):AddColorPicker("VW_Ambience_C", { Default = Color3.new(1, 1, 1), Title = "Ambience Color" })
+VisualsWorld:AddToggle("VW_NoFog", { Text = "Remove Fog", Default = false, Tooltip = "Removes map fog if available." })
+VisualsWorld:AddDivider()
+VisualsWorld:AddToggle("VW_RushNodes", {Text = "Show Rush Nodes", Tooltip = "Shows the path Rush and Ambush will take when moving."})
+
+local VisualsRemovals = Tabs.Visuals:AddRightGroupbox("Removals")
+VisualsRemovals:AddToggle("VR_NoHasteEffect", { Text = "No Haste Effects", Default = false, Tooltip = "Removes vignette and red color correction effect when haste spawns." })
+VisualsRemovals:AddToggle("VR_NoHidingVignette", { Text = "No Hiding Vignette", Default = false, Tooltip = "Removes screen vignette when hiding." })
+VisualsRemovals:AddToggle("VR_NoHaltEffect", { Text = "No Halt Effects", Default = false, Tooltip = "Removes flashing effects during halt room." })
+VisualsRemovals:AddToggle("VR_NoReviveCutscene", { Text = "No Revive Cutscene", Default = false, Tooltip = "Removes the heart cutscene when reviving." })
+VisualsRemovals:AddDivider()
+VisualsRemovals:AddToggle("VR_TimothyJumpscare", { Text = "Remove Timothy Jumpscare", Default = false, Tooltip = "Removes the jumpscare upon timothy spawning." })
+VisualsRemovals:AddToggle("VR_NoGlitchJumpscare", { Text = "Remove Glitch Jumpscare", Default = false, Tooltip = "Removes the client sided glitch jumpscare." })
+VisualsRemovals:AddToggle("VR_NoVoidEffect", { Text = "Remove Void Jumpscare", Default = false, Tooltip = "Removes the client sided void effect." })
+VisualsRemovals:AddToggle("VR_NoSeekEffects", { Text = "Remove Seek Room Effects", Default = false, Tooltip = "Removes the client sided seek eyes and texture effects during the teasing and chase." })
+
+local MiscMovement = Tabs.Misc:AddLeftGroupbox("Movement")
+MiscMovement:AddToggle("MM_Walkspeed", { Text = "Enable Speed Modifier", Default = false, Tooltip = "Sets player speed according to value set." })
+MiscMovement:AddSlider("MM_Walkspeed_S", { Text = "Walkspeed Amount", Default = 20, Min = 10, Max = 100, Rounding = 0, Compact = true, Tooltip = "Controls the player walkspeed amount." })
+MiscMovement:AddSlider("MM_Walkspeed_Boost", { Text = "Ladder Speed Boost", Default = 0, Min = 0, Max = 50, Rounding = 0, Compact = true, Tooltip = "Speed boost for climbing up ladders. High values may become unstable." })
+MiscMovement:AddDivider()
+MiscMovement:AddToggle("MM_NoAcceleration", { Text = "No Acceleration", Default = false, Tooltip = "Removes acceleration while moving or switching direction." })
+
+local MiscAudio = Tabs.Misc:AddRightGroupbox("Audio")
+MiscAudio:AddToggle("MA_SilentJammin", { Text = "Silent Jammin Modifier", Default = false, Tooltip = "Removes the jeffs shop jammin modifier music." })
+MiscAudio:AddDivider()
+MiscAudio:AddToggle("MA_NoHasteSound", { Text = "No Haste Sounds", Default = false, Tooltip = "Mutes the extremely obnoxious ambience when haste spawns." })
+MiscAudio:AddToggle("MA_SilentInteracting", { Text = "No Interacting Sound", Default = false, Tooltip = "Mutes sound when interacting with a prompt." })
+MiscAudio:AddToggle("MA_NoRandomAmbience", { Text = "No Random Ambience", Default = false, Tooltip = "Removes any random noise ambience that may occur." })
+MiscAudio:AddToggle("MA_SilentGloombat", { Text = "Silent Gloombats", Default = false, Tooltip = "Makes any gloombat flying and roaring silent, due to it potentially triggering or heavily bothering some people." })
+--MiscAudio:AddToggle("MA_NoFigureFootsteps", { Text = "Silent Figure Steps", Default = false, Tooltip = "Removes figure footsteps." })
+
+local MiscellaneousOther = Tabs.Misc:AddLeftGroupbox("Other")
+MiscellaneousOther:AddToggle("MO_antirobloxvoid", { Text = "No Roblox Void", Default = false, Tooltip = "Removes the ROBLOX fallen parts destroy height." })
+MiscellaneousOther:AddDivider()
+MiscellaneousOther:AddButton("Play Again", function()
+    game.ReplicatedStorage.RemotesFolder.PlayAgain:FireServer()
+end)
+MiscellaneousOther:AddButton("Lobby", function()
+    game.ReplicatedStorage.RemotesFolder.Lobby:FireServer()
+end)
+MiscellaneousOther:AddButton("Revive", function()
+    game.ReplicatedStorage.RemotesFolder.Revive:FireServer()
+end)
+
+-- Variables vvv
+
+local A90Hook
+local ScreechHook
+local TimothyHook
+
+LocalPlayer.Character:SetAttribute("CanJump", LocalPlayer.Character:GetAttribute("CanJump") or false) 
+local CanJump = LocalPlayer.Character:GetAttribute("CanJump")
+
+LocalPlayer.Character:SetAttribute("SpeedBoost", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostBehind", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostExtra", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+
+local OldAccel = LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties
+
+local PadlockCode
+local PadlockCode_N
+local OldFog
+local Atmosphere = game.Lighting:FindFirstChildWhichIsA("Atmosphere")
+if Atmosphere then
+    OldFog = Atmosphere.Density
+end
+
+local OldFogEnd = game.Lighting.FogEnd
+
+-- Require Variables vvv
+
+local Main_Game = require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+local ShadeModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Shade)
+local GlitchModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Glitch)
+local VoidModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Void)
+local SeekModule = require(game.ReplicatedStorage.ClientModules.EntityModules.Seek)
+
+local ShadeFunction = ShadeModule.stuff
+local GlitchFunction = GlitchModule.stuff
+local VoidFunction = VoidModule.stuff
+local SeekFunction = SeekModule.tease
+
+-- Instance Variables vvv
+
+local Rooms = workspace.CurrentRooms
+
+local ThirdpersonParts = Instance.new("Folder", workspace)
+ThirdpersonParts.Name = "_ThirdpersonParts"
+
+local LXNotifications = Instance.new("ScreenGui", game.CoreGui)
+LXNotifications.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+LXNotifications.ScreenInsets = Enum.ScreenInsets.None
+LXNotifications.Name = "_LXNotifications"
+
+local NotificationHolder = Instance.new("Frame", LXNotifications)
+NotificationHolder.Size = UDim2.fromScale(1, 1)
+NotificationHolder.Transparency = 1
+
+local ClonedCollision = LocalPlayer.Character.Collision:Clone()
+ClonedCollision.Name = "_CollisionClone"
+ClonedCollision.Massless = true
+ClonedCollision.Parent = LocalPlayer.Character
+ClonedCollision.CanCollide = false
+ClonedCollision.CanQuery = false
+ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 1, 1)
+if ClonedCollision:FindFirstChild("CollisionCrouch") then
+    ClonedCollision.CollisionCrouch:Destroy()
+end
+
+-- Table Variables vvv
+
+local AnchorIdentify = {
+    ["A"] = 1,
+    ["B"] = 2,
+    ["C"] = 3,
+    ["D"] = 4,
+    ["E"] = 5,
+    ["F"] = 6
+}
+local EntityDistances = {
+    ["RushMoving"] = 50,
+    ["BackdoorRush"] = 50,
+    ["AmbushMoving"] = 100,
+    ["A60"] = 100,
+    ["A120"] = 35
+}
+local LightSources = {
+    "Flashlight",
+    "Candle",
+    "Straplight",
+    "Lighter",
+    "LaserPointer",
+    "Bulklight",
+    "Glowsticks"
 }
 
--- ====== 主菜单标签页 - 无功能 ======
--- 这里保留标签页但不添加任何功能
+local MiscPickups = {
+    ["Glowsticks"] = "Glowstick",
+    ["StarJug"] = "Barrel of Starlight",
+    ["Lockpick"] = "Lock-Pick",
+    ["Bandage"] = "Bandage",
+    ["StarVial"] = "Vial of Starlight",
+    ["SkeletonKey"] = "Skeleton Key",
+    ["Crucifix"] = "Crucifix",
+    ["CrucifixWall"] = "Crucifix",
+    ["Flashlight"] = "Flashlight",
+    ["Candle"] = "Candle",
+    ["Straplight"] = "Straplight",
+    ["Vitamins"] = "Vitamins",
+    ["Lighter"] = "Lighter",
+    ["Shears"] = "Shears",
+    ["BatteryPack"] = "Battery Pack",
+    ["BandagePack"] = "Bandage Pack",
+    ["LaserPointer"] = "Laser Pointer",
+    ["Bulklight"] = "Bulk Light",
+    ["Battery"] = "Battery",
+    ["Candy"] = "Candy"
+}
+local EspTable = {
+    Interactables = {
+        GoldPiles = {},
+        Doors = {},
+        DoorKeys = {},
+        GeneratorFuses = {},
+        Generators = {},
+        GateLevers = {},
+        BackroomsLevers = {},
+        LibraryBooks = {},
+        BreakerPoles = {},
+        Anchors = {},
 
--- ====== 楼层功能 ======
-local FloorTab = Tabs['楼层']
-local FloorGroupBox = FloorTab:AddLeftGroupbox('房间跳过功能')
+        MiscPickups = {}
+    },
 
--- 添加功能开关（默认关闭）
-FloorGroupBox:AddToggle('AutoSkipToggle', {
-    Text = '启用房间跳过',
-    Default = false, -- 默认关闭
-    Tooltip = '启用后按下设定的键自动跳过房间',
-    Callback = function(Value)
-        CanAutoSkip = Value
-        Library:Notify("房间跳过已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
+    Entities = {},
+    Players = {}
+}
 
--- 添加子功能开关（默认关闭）
-FloorGroupBox:AddToggle('SkipRoom50Toggle', {
-    Text = '跳过50号房间',
-    Default = false, -- 默认关闭
-    Tooltip = '在50号房间直接传送到下一房间',
-    Callback = function(Value)
-        CanSkipRoom_50 = Value
-    end
-})
+task.spawn(function()
+        while task.wait() and not Library.Unloaded do
+        if Toggles.DS_Debug and Toggles.DS_Debug.Value then
+            for _, Table in EspTable.Interactables do
 
-FloorGroupBox:AddToggle('UnlockDoorsToggle', {
-    Text = '自动解锁门',
-    Default = false, -- 默认关闭
-    Tooltip = '自动寻找并解锁门',
-    Callback = function(Value)
-        CanAutoUnlockDoors = Value
-    end
-})
+                for i, v in Table do
+                    print(i, unpack(v))
+                end
 
-FloorGroupBox:AddToggle('PullLeversToggle', {
-    Text = '自动拉杆',
-    Default = false, -- 默认关闭
-    Tooltip = '自动寻找并拉动杠杆',
-    Callback = function(Value)
-        CanPullTheLevers = Value
-    end
-})
+            end
+            for i, v in EspTable.Entities do
 
--- 添加快捷方式选项
-FloorGroupBox:AddDropdown('SkipMethod', {
-    Values = {'传送门', '直接传送', '两种方式'},
-    Default = 1,
-    Text = '跳过方式',
-    Tooltip = '选择房间跳过的方式',
-    Callback = function(Value)
-        SkipMethod = Value
-    end
-})
+                print(i, unpack(v))
 
--- 添加键位绑定
-FloorGroupBox:AddLabel('功能键位'):AddKeyPicker('AutoSkipKey', {
-    Default = 'H',
-    NoUI = false,
-    Text = '房间跳过键',
-    Tooltip = '按下此键执行房间跳过功能'
-})
-
--- 添加传送速度滑块
-FloorGroupBox:AddSlider('TeleportSpeed', {
-    Text = '传送速度',
-    Default = 0.1,
-    Min = 0.05,
-    Max = 0.5,
-    Rounding = 2,
-    Suffix = '秒',
-    Tooltip = '设置传送之间的延迟',
-    Callback = function(Value)
-        TeleportDelay = Value
-    end
-})
-
--- 初始化变量（默认全部关闭）
-local CanAutoSkip = false
-local CanSkipRoom_50 = false
-local CanAutoUnlockDoors = false
-local CanPullTheLevers = false
-local SkipMethod = "传送门" -- 默认使用传送门方式
-local TeleportDelay = 0.1 -- 默认传送延迟
-
--- 房间跳过功能实现（无冷却时间）
-do
-    local UIS = game:GetService("UserInputService")
-    local CF = CFrame.new
-    local LatestRoom = game:GetService("ReplicatedStorage").GameData.LatestRoom
-    
-    -- 查找房间中的传送门
-    local function findPortal(room)
-        for _, object in ipairs(room:GetDescendants()) do
-            if object.Name == "Portal" then
-                return object
             end
         end
-        return nil
-    end
-    
-    -- 查找钥匙
-    local function findKey(room)
-        for _, object in ipairs(room:GetDescendants()) do
-            if object.Name == "KeyObtain" then
-                return object
+        end
+end)
+
+-- Functions vvv
+
+function lawl(Parent, Text)
+    if Toggles.ESPP_Enabled.Value then
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.ESPPLAYERFILLCOLOR.Value, Options.ESPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.ESPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(epiklistofpeople) do          
+                RemoveEspSmoothNoanim(Player.Character)  
             end
-        end
-        return nil
-    end
-    
-    -- 查找杠杆
-    local function findLever(room)
-        for _, object in ipairs(room:GetDescendants()) do
-            if object.Name == "LeverForGate" then
-                return object
-            end
-        end
-        return nil
-    end
-    
-    UIS.InputBegan:Connect(function(input, typing)
-        if typing then return end
-        
-        -- 检查是否按下设置的键位
-        if input.KeyCode == Options.AutoSkipKey.Value then
-            if not CanAutoSkip then
-                Library:Notify("房间跳过功能未启用", nil, NOTIFICATION_SOUND_ID)
-                return 
-            end
-            
-            pcall(function()
-                local CurrentRoom = workspace.CurrentRooms[tostring(LatestRoom.Value)]
-                if not CurrentRoom then return end
-                
-                local CurrentDoor = CurrentRoom:WaitForChild("Door")
-                
-                -- 跳过50号房间
-                if LatestRoom.Value == 50 and CanSkipRoom_50 then
-                    local NextRoom = workspace.CurrentRooms[tostring(LatestRoom.Value + 1)]
-                    if NextRoom then
-                        local NextDoor = NextRoom:WaitForChild("Door")
-                        game.Players.LocalPlayer.Character:PivotTo(CF(NextDoor.Door.Position))
-                        Library:Notify("已跳过50号房间", nil, NOTIFICATION_SOUND_ID)
-                        return
-                    end
-                end
-                
-                -- 查找钥匙
-                local key = findKey(CurrentRoom)
-                
-                -- 查找杠杆
-                local lever = findLever(CurrentRoom)
-                
-                -- 查找传送门（如果选择使用传送门）
-                local portal
-                if SkipMethod ~= "直接传送" then
-                    portal = findPortal(CurrentRoom)
-                end
-                
-                -- 自动解锁门
-                if key and CanAutoUnlockDoors then
-                    game.Players.LocalPlayer.Character:PivotTo(CF(key.Hitbox.Position))
-                    fireproximityprompt(key.ModulePrompt)
-                    task.wait(TeleportDelay)
-                end
-                
-                -- 自动拉杆
-                if lever and CanPullTheLevers then
-                    game.Players.LocalPlayer.Character:PivotTo(CF(lever.Main.Position))
-                    fireproximityprompt(lever.ActivateEventPrompt)
-                    task.wait(TeleportDelay)
-                end
-                
-                -- 直接传送到门的位置
-                game.Players.LocalPlayer.Character:PivotTo(CF(CurrentDoor.Door.Position))
-                task.wait(TeleportDelay)
-                
-                -- 使用传送门（如果存在且选择了这种方式）
-                if portal and SkipMethod ~= "直接传送" then
-                    fireproximityprompt(portal.Enter)
-                    Library:Notify("使用传送门跳过房间", nil, NOTIFICATION_SOUND_ID)
-                else
-                    -- 直接开门
-                    CurrentDoor.ClientOpen:FireServer()
-                    Library:Notify("直接打开房门", nil, NOTIFICATION_SOUND_ID)
-                end
-            end)
-        end
-    end)
-end
-
--- ====== Vynixu 实体生成器功能 ======
-local EntitySpawnerGroup = FloorTab:AddRightGroupbox('实体生成器')
-
--- 添加实体生成器开关
-EntitySpawnerGroup:AddToggle('EntitySpawnerToggle', {
-    Text = '启用实体生成器',
-    Default = false,
-    Tooltip = '启用Vynixu实体生成器V2功能',
-    Callback = function(Value)
-        EnableEntitySpawner = Value
-        Library:Notify("实体生成器已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
-
--- 添加实体选择下拉菜单
-EntitySpawnerGroup:AddDropdown('EntityType', {
-    Values = {'Rush', 'Ambush', 'Screech', 'Eyes', 'Glitch', 'Halt', 'Timothy'},
-    Default = 1,
-    Text = '实体类型',
-    Tooltip = '选择要生成的实体类型',
-    Callback = function(Value)
-        SelectedEntityType = Value
-    end
-})
-
--- 添加生成按钮
-EntitySpawnerGroup:AddButton('生成实体', function()
-    if not EnableEntitySpawner then
-        Library:Notify("请先启用实体生成器", nil, NOTIFICATION_SOUND_ID)
-        return
-    end
-    
-    -- 加载Vynixu实体生成器
-    local success, spawner = pcall(function()
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Entity%20Spawner/V2/Source.lua"))()
-    end)
-    
-    if success and spawner then
-        -- 创建实体配置
-        local entityConfig = {
-            Entity = {
-                Name = SelectedEntityType,
-                Asset = GetEntityAsset(SelectedEntityType)
-            },
-            Movement = {
-                Speed = 100,
-                Delay = 2,
-                Reversed = false
-            },
-            Damage = {
-                Enabled = true,
-                Range = 40,
-                Amount = 125
-            },
-            Rebounding = {
-                Enabled = true,
-                Type = "Ambush",
-                Min = 2,
-                Max = 4,
-                Delay = 2
-            },
-            Lights = {
-                Flicker = {
-                    Enabled = true,
-                    Duration = 1
-                },
-                Shatter = true,
-                Repair = false
-            },
-            Earthquake = {
-                Enabled = true
-            },
-            CameraShake = {
-                Enabled = true,
-                Values = {1.5, 20, 0.1, 1},
-                Range = 100
-            },
-            Crucifixion = {
-                Type = "Curious",
-                Enabled = true,
-                Range = 40,
-                Resist = false,
-                Break = true
-            },
-            Death = {
-                Type = "Guiding",
-                Hints = {"小心!", "它来了!", "快跑!"},
-                Cause = SelectedEntityType
-            }
-        }
-        
-        -- 创建并运行实体
-        local entityTable = spawner.Create(entityConfig)
-        if entityTable then
-            entityTable:Run()
-            Library:Notify(SelectedEntityType.."实体已生成!", nil, NOTIFICATION_SOUND_ID)
-        else
-            Library:Notify("实体创建失败", nil, NOTIFICATION_SOUND_ID)
-        end
-    else
-        Library:Notify("实体生成器加载失败", nil, NOTIFICATION_SOUND_ID)
-    end
-end)
-
--- 添加自定义按钮
-EntitySpawnerGroup:AddButton('自定义实体', function()
-    if not EnableEntitySpawner then
-        Library:Notify("请先启用实体生成器", nil, NOTIFICATION_SOUND_ID)
-        return
-    end
-    
-    -- 打开自定义实体配置窗口
-    Library:Notify("自定义实体功能开发中...", nil, NOTIFICATION_SOUND_ID)
-end)
-
--- 添加实体控制选项
-EntitySpawnerGroup:AddSlider('EntitySpeed', {
-    Text = '实体速度',
-    Default = 100,
-    Min = 50,
-    Max = 200,
-    Rounding = 0,
-    Suffix = '%',
-    Tooltip = '设置实体的移动速度',
-    Callback = function(Value)
-        EntitySpeed = Value
-    end
-})
-
-EntitySpawnerGroup:AddToggle('EnableDamage', {
-    Text = '实体伤害',
-    Default = true,
-    Tooltip = '启用/禁用实体的伤害能力',
-    Callback = function(Value)
-        EnableEntityDamage = Value
-    end
-})
-
--- 初始化变量
-local EnableEntitySpawner = false
-local SelectedEntityType = "Rush"
-local EntitySpeed = 100
-local EnableEntityDamage = true
-
--- 获取实体资产URL
-function GetEntityAsset(entityType)
-    local assets = {
-        Rush = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Rush.rbxm?raw=true",
-        Ambush = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Ambush.rbxm?raw=true",
-        Screech = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Screech.rbxm?raw=true",
-        Eyes = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Eyes.rbxm?raw=true",
-        Glitch = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Glitch.rbxm?raw=true",
-        Halt = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Halt.rbxm?raw=true",
-        Timothy = "https://github.com/RegularVynixu/Utilities/blob/main/Doors%20Entity%20Spawner/Models/Timothy.rbxm?raw=true"
-    }
-    return assets[entityType] or assets.Rush
-end
-
--- ====== 大厅功能 ======
-local LobbyTab = Tabs['大厅功能']
-local LobbyGroup = LobbyTab:AddLeftGroupbox('大厅作弊功能')
-
--- 飞行模式
-LobbyGroup:AddToggle('FlightMode', {
-    Text = '飞行模式',
-    Default = false,
-    Tooltip = '启用后可以使用飞行功能',
-    Callback = function(Value)
-        FlightModeEnabled = Value
-        Library:Notify("飞行模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
-
--- 穿墙模式
-LobbyGroup:AddToggle('NoclipMode', {
-    Text = '穿墙模式',
-    Default = false,
-    Tooltip = '启用后可以穿过墙壁',
-    Callback = function(Value)
-        NoclipEnabled = Value
-        Library:Notify("穿墙模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
-
--- 上帝模式
-LobbyGroup:AddToggle('GodMode', {
-    Text = '上帝模式',
-    Default = false,
-    Tooltip = '启用后不会受到任何伤害',
-    Callback = function(Value)
-        GodModeEnabled = Value
-        Library:Notify("上帝模式已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
-
--- 实体ESP
-LobbyGroup:AddToggle('EntityESP', {
-    Text = '实体ESP',
-    Default = false,
-    Tooltip = '显示所有实体的位置',
-    Callback = function(Value)
-        ESPEnabled = Value
-        Library:Notify("实体ESP已"..(Value and "启用" or "禁用"), nil, NOTIFICATION_SOUND_ID)
-        if Value then
-            CreateESP()
-        else
-            RemoveESP()
-        end
-    end
-})
-
--- 移动速度滑块
-LobbyGroup:AddSlider('WalkSpeed', {
-    Text = '移动速度',
-    Default = 16,
-    Min = 16,
-    Max = 100,
-    Rounding = 0,
-    Suffix = '单位',
-    Tooltip = '设置玩家的移动速度',
-    Callback = function(Value)
-        WalkSpeed = Value
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-            Player.Character.Humanoid.WalkSpeed = Value
-        end
-    end
-})
-
--- 跳跃力量滑块
-LobbyGroup:AddSlider('JumpPower', {
-    Text = '跳跃力量',
-    Default = 50,
-    Min = 50,
-    Max = 200,
-    Rounding = 0,
-    Suffix = '单位',
-    Tooltip = '设置玩家的跳跃力量',
-    Callback = function(Value)
-        JumpPower = Value
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-            Player.Character.Humanoid.JumpPower = Value
-        end
-    end
-})
-
--- 飞行速度滑块
-LobbyGroup:AddSlider('FlySpeed', {
-    Text = '飞行速度',
-    Default = 50,
-    Min = 25,
-    Max = 150,
-    Rounding = 0,
-    Suffix = '单位',
-    Tooltip = '设置飞行模式的速度',
-    Callback = function(Value)
-        FlySpeed = Value
-    end
-})
-
--- 功能按钮组
-local LobbyButtons = LobbyTab:AddRightGroupbox('功能按钮')
-
--- 传送到大厅
-LobbyButtons:AddButton('传送到大厅', function()
-    TeleportToLobby()
-end)
-
--- 收集所有物品
-LobbyButtons:AddButton('收集所有物品', function()
-    CollectAllItems()
-end)
-
--- 解锁所有门
-LobbyButtons:AddButton('解锁所有门', function()
-    UnlockAllDoors()
-end)
-
--- 大厅功能实现
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-
--- 初始化变量
-local FlightModeEnabled = false
-local NoclipEnabled = false
-local GodModeEnabled = false
-local ESPEnabled = false
-local WalkSpeed = 16
-local JumpPower = 50
-local FlySpeed = 50
-local ESPParts = {}
-
--- 检查游戏
-local function IsDoorsGame()
-    local placeId = game.PlaceId
-    return placeId == 6516141723 or placeId == 6839171747
-end
-
--- 传送到大厅
-local function TeleportToLobby()
-    if not IsDoorsGame() then
-        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
-        return
-    end
-    
-    -- 尝试找到大厅位置
-    local lobby = Workspace:FindFirstChild("Lobby") or Workspace:FindFirstChild("SpawnLocation")
-    if lobby then
-        Character:PivotTo(lobby.CFrame)
-        Library:Notify("已传送到大厅", nil, NOTIFICATION_SOUND_ID)
-    else
-        Library:Notify("找不到大厅位置", nil, NOTIFICATION_SOUND_ID)
+            task.wait(0.1)
+            epiklistofpeople = {}
+        end)
     end
 end
 
--- 收集所有物品
-local function CollectAllItems()
-    if not IsDoorsGame() then
-        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
-        return
-    end
-    
-    -- 尝试收集所有物品
-    local items = Workspace:GetDescendants()
-    local collected = 0
-    
-    for _, item in ipairs(items) do
-        if item:IsA("BasePart") and item.Name:match("Key") then
-            firetouchinterest(HumanoidRootPart, item, 0)
-            firetouchinterest(HumanoidRootPart, item, 1)
-            collected = collected + 1
-        end
-    end
-    
-    Library:Notify("已收集 "..collected.." 个物品", nil, NOTIFICATION_SOUND_ID)
-end
-
--- 解锁所有门
-local function UnlockAllDoors()
-    if not IsDoorsGame() then
-        Library:Notify("此功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
-        return
-    end
-    
-    -- 尝试解锁所有门
-    local doors = Workspace:GetDescendants()
-    local unlocked = 0
-    
-    for _, door in ipairs(doors) do
-        if door.Name == "Door" and door:FindFirstChild("Lock") then
-            door.Lock.UnlockPrompt.HoldDuration = 0
-            unlocked = unlocked + 1
-        end
-    end
-    
-    Library:Notify("已解锁 "..unlocked.." 扇门", nil, NOTIFICATION_SOUND_ID)
-end
-
--- 创建ESP
-local function CreateESP()
-    RemoveESP() -- 先清除现有的ESP
-    
-    -- 为所有实体创建ESP
-    local entities = Workspace:GetDescendants()
-    
-    for _, entity in ipairs(entities) do
-        if entity:IsA("Model") and entity.Name:match("Rush|Ambush|Screech|Eyes|Glitch|Halt|Timothy") then
-            local highlight = Instance.new("Highlight")
-            highlight.Name = "RodhubESP"
-            highlight.Adornee = entity
-            highlight.FillColor = Color3.new(1, 0, 0)
-            highlight.OutlineColor = Color3.new(1, 1, 1)
-            highlight.Parent = entity
-            table.insert(ESPParts, highlight)
-        end
-    end
-    
-    -- 添加新实体检测
-    Workspace.DescendantAdded:Connect(function(descendant)
-        if ESPEnabled and descendant:IsA("Model") and descendant.Name:match("Rush|Ambush|Screech|Eyes|Glitch|Halt|Timothy") then
-            local highlight = Instance.new("Highlight")
-            highlight.Name = "RodhubESP"
-            highlight.Adornee = descendant
-            highlight.FillColor = Color3.new(1, 0, 0)
-            highlight.OutlineColor = Color3.new(1, 1, 1)
-            highlight.Parent = descendant
-            table.insert(ESPParts, highlight)
-        end
-    end)
-end
-
--- 移除ESP
-local function RemoveESP()
-    for _, esp in ipairs(ESPParts) do
-        if esp and esp.Parent then
-            esp:Destroy()
-        end
-    end
-    ESPParts = {}
-end
-
--- 飞行模式实现
-local Flying = false
-local FlyConnection
-
-local function StartFlying()
-    if Flying then return end
-    Flying = true
-    
-    local BodyGyro = Instance.new("BodyGyro")
-    BodyGyro.P = 10000
-    BodyGyro.D = 1000
-    BodyGyro.MaxTorque = Vector3.new(0, 0, 0)
-    BodyGyro.CFrame = HumanoidRootPart.CFrame
-    BodyGyro.Parent = HumanoidRootPart
-    
-    local BodyVelocity = Instance.new("BodyVelocity")
-    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    BodyVelocity.MaxForce = Vector3.new(0, 0, 0)
-    BodyVelocity.Parent = HumanoidRootPart
-    
-    FlyConnection = RunService.Stepped:Connect(function()
-        if not Flying then return end
-        
-        -- 控制飞行
-        local Camera = Workspace.CurrentCamera
-        local LookVector = Camera.CFrame.LookVector
-        local RightVector = Camera.CFrame.RightVector
-        
-        BodyGyro.CFrame = Camera.CFrame
-        
-        local Velocity = Vector3.new(0, 0, 0)
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            Velocity = Velocity + LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            Velocity = Velocity - LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            Velocity = Velocity - RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            Velocity = Velocity + RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            Velocity = Velocity + Vector3.new(0, 1, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            Velocity = Velocity - Vector3.new(0, 1, 0)
-        end
-        
-        BodyVelocity.Velocity = Velocity * FlySpeed
-    end)
-end
-
-local function StopFlying()
-    if not Flying then return end
-    Flying = false
-    
-    if FlyConnection then
-        FlyConnection:Disconnect()
-        FlyConnection = nil
-    end
-    
-    if HumanoidRootPart:FindFirstChild("BodyGyro") then
-        HumanoidRootPart.BodyGyro:Destroy()
-    end
-    
-    if HumanoidRootPart:FindFirstChild("BodyVelocity") then
-        HumanoidRootPart.BodyVelocity:Destroy()
-    end
-end
-
--- 穿墙模式实现
-local NoclipConnection
-
-local function StartNoclip()
-    if NoclipConnection then return end
-    
-    NoclipConnection = RunService.Stepped:Connect(function()
-        if not NoclipEnabled then return end
-        
-        if Character then
-            for _, part in ipairs(Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
-end
-
-local function StopNoclip()
-    if NoclipConnection then
-        NoclipConnection:Disconnect()
-        NoclipConnection = nil
-    end
-    
-    if Character then
-        for _, part in ipairs(Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
-end
-
--- 上帝模式实现
-local function SetupGodMode()
-    if Character then
-        -- 防止死亡
-        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-        
-        -- 防止伤害
-        if Humanoid:FindFirstChild("Health") then
-            Humanoid.Health:GetPropertyChangedSignal("Value"):Connect(function()
-                if GodModeEnabled and Humanoid.Health < 100 then
-                    Humanoid.Health = 100
-                end
-            end)
-        end
-    end
-end
-
--- 连接功能
-Toggles.FlightMode:OnChanged(function()
-    if FlightModeEnabled then
-        StartFlying()
-    else
-        StopFlying()
-    end
-end)
-
-Toggles.NoclipMode:OnChanged(function()
-    if NoclipEnabled then
-        StartNoclip()
-    else
-        StopNoclip()
-    end
-end)
-
-Toggles.GodMode:OnChanged(function()
-    if GodModeEnabled then
-        SetupGodMode()
-    end
-end)
-
--- 角色变化处理
-Player.CharacterAdded:Connect(function(char)
-    Character = char
-    Humanoid = char:WaitForChild("Humanoid")
-    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
-    
-    -- 重新应用设置
-    if FlightModeEnabled then
-        StartFlying()
-    end
-    
-    if NoclipEnabled then
-        StartNoclip()
-    end
-    
-    if GodModeEnabled then
-        SetupGodMode()
-    end
-    
-    -- 应用速度设置
-    Humanoid.WalkSpeed = WalkSpeed
-    Humanoid.JumpPower = JumpPower
-end)
-
--- 应用初始速度设置
-if Humanoid then
-    Humanoid.WalkSpeed = WalkSpeed
-    Humanoid.JumpPower = JumpPower
-end
-
--- 初始化通知
-if IsDoorsGame() then
-    Library:Notify("Doors大厅功能已加载!", nil, NOTIFICATION_SOUND_ID)
-else
-    Library:Notify("大厅功能仅适用于Doors游戏", nil, NOTIFICATION_SOUND_ID)
-end
-
-Library:SetWatermarkVisibility(true)
-
-local FrameTimer = tick()
-local FrameCounter = 0;
-local FPS = 60;
-
-local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
-    FrameCounter += 1;
-    if (tick() - FrameTimer) >= 1 then
-        FPS = FrameCounter;
-        FrameTimer = tick();
-        FrameCounter = 0;
-    end;
-    Library:SetWatermark(('Rodhub | %s FPS | %s ms'):format(
-        math.floor(FPS),
-        math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
-    ));
-end);
-
-Library:OnUnload(function()
-    WatermarkConnection:Disconnect()
-    print('已卸载!')
-    -- 卸载时添加带音效的弹窗
-    Library:Notify("Rodhub已卸载", nil, NOTIFICATION_SOUND_ID)
-    Library.Unloaded = true
-    
-    -- 清理大厅功能
-    StopFlying()
-    StopNoclip()
-    RemoveESP()
-end)
-
--- 界面设置
-local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('菜单设置')
-
-MenuGroup:AddToggle("KeybindMenuOpen", { 
-    Default = Library.KeybindFrame.Visible, 
-    Text = "打开键位菜单",
-    Callback = function(value) 
-        Library.KeybindFrame.Visible = value 
-        Library:Notify("键位菜单已"..(value and "打开" or "关闭"), nil, NOTIFICATION_SOUND_ID)
-    end
-})
-
-MenuGroup:AddToggle("ShowCustomCursor", {
-    Text = "自定义光标",
-    Default = true, 
-    Callback = function(Value) 
-        Library.ShowCustomCursor = Value 
-    end
-})
-
-MenuGroup:AddDivider()
-MenuGroup:AddLabel("菜单键位"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "菜单键位" })
-MenuGroup:AddButton("卸载菜单", function() 
-    Library:Unload() 
-    Library:Notify("正在卸载Rodhub...", nil, NOTIFICATION_SOUND_ID)
-end)
-
-Library.ToggleKeybind = Options.MenuKeybind
-
-ThemeManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
-ThemeManager:SetFolder('Rodhub') -- 改为Rodhub
-SaveManager:SetFolder('Rodhub/settings')
-SaveManager:SetSubFolder('current-place')
-
-SaveManager:BuildConfigSection(Tabs['UI Settings'])
-ThemeManager:ApplyToTab(Tabs['UI Settings'])
-SaveManager:LoadAutoloadConfig()
-
--- 初始化弹窗
-Library:Notify("Rodhub已加载!", nil, NOTIFICATION_SOUND_ID)
+function LXSmth(Parent, Text)
+    if Toggles.LXPP_Enabled.Value then
+        RemoveEspSmoothNoanim(Parent)  
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.LXPLAYERFILLCOLOR.Value, Options.LXPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.LXPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(LXUser) do         
+                RemoveEspSmoothNoanim(Player.Character)  
+                task.wait()   
+                table.insert(epiklistofpeople, Player.Character)
+           
