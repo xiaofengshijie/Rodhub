@@ -85,8 +85,8 @@ local Detection = game:GetService("TextChatService").MessageReceived:Connect(fun
 end)
 -- UI vvv
 
-local Window = Library:CreateWindow({ Title = " Rodhub ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
-local Tabs = { General = Window:AddTab("General"), Exploit = Window:AddTab("Exploits"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("Visuals"), Misc = Window:AddTab("Miscellaneous"), Config = Window:AddTab("Config") }
+local Window = Library:CreateWindow({ Title = " RodHub ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Tabs = { 主要功能 = Window:AddTab("主功能"), Exploit = Window:AddTab("作弊"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("其它"), Config = Window:AddTab("设置") }
 
 local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
 GeneralAutomation:AddToggle("GA_AutoInteract", { Text = "Automatic Interact", Default = false, }):AddKeyPicker("GA_AutoInteract_K", { Default = "R", SyncToggleState = false, Mode = "Hold", Text = "Auto Interact", NoUI = false, Tooltip = "Will activate any nearby interactables when key is active." })
