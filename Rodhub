@@ -24,7 +24,7 @@ local LocalPlayer = game.Players.LocalPlayer
 
 -- UI vvv
 
-local Window = Library:CreateWindow({ Title = " RodHub |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Window = Library:CreateWindow({ Title = " RODHUB |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
 local Tabs = { General = Window:AddTab("主要功能"), Exploit = Window:AddTab("防怪"), ESP = Window:AddTab("透视"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("杂项"), Config = Window:AddTab("配置") }
 
 local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
