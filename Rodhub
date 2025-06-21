@@ -12,7 +12,7 @@ ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Mess
         ErrorMessageOut:Disconnect()
 
         setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
-        Library:Notify(" Rodhub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
+        Library:Notify(" RodHub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
 
         task.delay(5, function()
             Library:Unload()
@@ -24,7 +24,7 @@ local LocalPlayer = game.Players.LocalPlayer
 
 -- UI vvv
 
-local Window = Library:CreateWindow({ Title = " Rodhub |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Window = Library:CreateWindow({ Title = " RodHub |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
 local Tabs = { General = Window:AddTab("主要功能"), Exploit = Window:AddTab("防怪"), ESP = Window:AddTab("透视"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("杂项"), Config = Window:AddTab("配置") }
 
 local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
