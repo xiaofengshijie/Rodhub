@@ -12,7 +12,7 @@ ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Mess
         ErrorMessageOut:Disconnect()
 
         setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
-        Library:Notify(" Rodhub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
+        Library:Notify(" RodHub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
 
         task.delay(5, function()
             Library:Unload()
@@ -42,9 +42,9 @@ end)
 -- UI vvv
 
 local Window = Library:CreateWindow({ Title = " RodHub ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
-local Tabs = { 主要功能 = Window:AddTab("主功能"), Exploit = Window:AddTab("作弊"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("其它"), Config = Window:AddTab("设置") }
+local Tabs = { 主功能 = Window:AddTab("主功能"), Exploit = Window:AddTab("作弊"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("其它"), Config = Window:AddTab("设置") }
 
-local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
+local 其它 = Tabs.General:AddLeftGroupbox("Automation")
 GeneralAutomation:AddToggle("GA_AutoInteract", { Text = "Automatic Interact", Default = false, }):AddKeyPicker("GA_AutoInteract_K", { Default = "R", SyncToggleState = false, Mode = "Hold", Text = "Auto Interact", NoUI = false, Tooltip = "Will activate any nearby interactables when key is active." })
 GeneralAutomation:AddDropdown("GA_AutoInteract_Options", { Values = { "Use Lockpick ( Doors )", "Use Lockpick ( Other )", "Ignore Light Sources", "Ignore Can-Die" }, Default = 0, Multi = true, Text = "Automatic Interact Options" })
 GeneralAutomation:AddSlider("GA_AutoInteract_Range", { Text = "Range Multiplier", Default = 1, Min = 1, Max = 2, Rounding = 1, Compact = false })
@@ -79,7 +79,7 @@ GeneralNotifying:AddButton("Test Notify", function()
     Notify("This is a test notification.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", 2.5, true)
 end)
 
-local ExploitSelf = Tabs.Exploit:AddLeftGroupbox("Self")
+local 主功能 = Tabs.Exploit:AddLeftGroupbox("Self")
 ExploitSelf:AddToggle("ES_AlwaysJump", { Text = "Always Enable Jumping", Default = false, Tooltip = "Enables jumping at all times." })
 ExploitSelf:AddDivider()
 ExploitSelf:AddToggle("ES_AntiGloombat", { Text = "Anti-Gloombat Egg", Default = false, Tooltip = "Disallows touching on any Gloombat egg hitbox." })
@@ -92,7 +92,7 @@ ExploitSelf:AddToggle("ES_AntiChanedlier", { Text = "Anti-Chandelier", Default =
 ExploitSelf:AddToggle("ES_AntiSeekArms", { Text = "Anti-Seek Arms", Default = false, Tooltip = "Disallows touching on any seek arms during the seek chase." })
 
 
-local ExploitTroll = Tabs.Exploit:AddLeftGroupbox("Trolling")
+local 主功能 = Tabs.Exploit:AddLeftGroupbox("Trolling")
 ExploitTroll:AddToggle("Spamtoolz", { Text = "Spam others Tools", Default = false, Tooltip = "Will basically use up the other person tools by spamming!" }):AddKeyPicker("Spamtoolz_X", { Default = "G", SyncToggleState = false, Mode = "Hold", Text = "Spam others Tools", NoUI = false, })
 ExploitTroll:AddInput("WhitelistKoolpeople",{Default = "", Numeric = false, Finished = true, ClearTextOnFocus = true, Text = "Whitelist for spamtools", Callback = function() 
 task.spawn(function()   
@@ -109,12 +109,12 @@ task.spawn(function()
     end
 end) end, })
 
-local ExploitBypass = Tabs.Exploit:AddRightGroupbox("Bypass")
+local 主功能绕过 = Tabs.Exploit:AddRightGroupbox("Bypass")
 ExploitBypass:AddToggle("EB_CrouchSpoof", { Text = "Crouch Spoof", Default = false, Tooltip = "Spoofs crouching, or in other words the game will think you're crouching. Useful for figure rooms." })
 ExploitBypass:AddToggle("EB_SpeedBypass", { Text = "Speed Bypass", Default = false, Tooltip = "Attempts to mitigate the speed anticheat." })
 ExploitBypass:AddToggle("EB_ACManipulate", { Text = "Anti-Cheat Manipulation", Default = false, Tooltip = "Will teleport to the opposite direction the camera is facing to manipulate the anticheat into rubberbanding you the opposite way." }):AddKeyPicker("EB_ACManipulate_K", { Default = "T", SyncToggleState = false, Mode = "Hold", Text = "Anti-Cheat Manipulate", NoUI = false, })
 
-local ExploitRemovals = Tabs.Exploit:AddRightGroupbox("Removals")
+local 主功能部分无效 = Tabs.Exploit:AddRightGroupbox("Removals")
 ExploitRemovals:AddToggle("ER_RemoveSeek", { Text = "Remove Seek Chase", Default = false, Tooltip = "Completely disables the entity 'Seek'." })
 ExploitRemovals:AddToggle("ER_NoScreech", { Text = "No Screech", Default = false, Tooltip = "Completely disables the entity 'Screech'." })
 ExploitRemovals:AddToggle("ER_NoA90", { Text = "No A-90", Default = false, Tooltip = "Completely disables the entity 'A-90'." })
