@@ -12,7 +12,7 @@ ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Mess
         ErrorMessageOut:Disconnect()
 
         setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
-        Library:Notify(" Lolhax has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the LX discord server! ", 4.5)
+        Library:Notify(" Rodhub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
 
         task.delay(5, function()
             Library:Unload()
@@ -24,7 +24,7 @@ local LocalPlayer = game.Players.LocalPlayer
 
 -- UI vvv
 
-local Window = Library:CreateWindow({ Title = " LOLHAX |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Window = Library:CreateWindow({ Title = " Rodhub |".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
 local Tabs = { General = Window:AddTab("主要功能"), Exploit = Window:AddTab("防怪"), ESP = Window:AddTab("透视"), Visuals = Window:AddTab("视觉效果"), Misc = Window:AddTab("杂项"), Config = Window:AddTab("配置") }
 
 local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
@@ -204,7 +204,7 @@ VisualsRemovals:AddToggle("VR_NoVoidEffect", { Text = "移除Void跳脸", Defaul
 VisualsRemovals:AddToggle("VR_NoSeekEffects", { Text = "移除Seek房间效果", Default = false, Tooltip = "1 1 4 5 1 4" })
 
 local MiscMovement = Tabs.Misc:AddLeftGroupbox("Movement")
-MiscMovement:AddToggle("MM_Walkspeed", { Text = "启用速度修饰符", Default = false, Tooltip = "根据值集设置玩家速度" })
+MiscMovement:AddToggle("MM_Walkspeed", { Text = "启用速度修饰服", Default = false, Tooltip = "根据值集设置玩家速度" })
 MiscMovement:AddSlider("MM_Walkspeed_S", { Text = "步行速度", Default = 20, Min = 10, Max = 50, Rounding = 0, Compact = true, Tooltip = "控制玩家的步行速度" })
 MiscMovement:AddSlider("MM_Walkspeed_Boost", { Text = "梯子速度提升", Default = 0, Min = 0, Max = 50, Rounding = 0, Compact = true, Tooltip = "爬梯子的速度提升太高值可能会变得不稳定" })
 MiscMovement:AddDivider()
@@ -278,12 +278,12 @@ local Rooms = workspace.CurrentRooms
 local ThirdpersonParts = Instance.new("Folder", workspace)
 ThirdpersonParts.Name = "_ThirdpersonParts"
 
-local LXNotifications = Instance.new("ScreenGui", game.CoreGui)
-LXNotifications.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-LXNotifications.ScreenInsets = Enum.ScreenInsets.None
-LXNotifications.Name = "_LXNotifications"
+local RHNotifications = Instance.new("ScreenGui", game.CoreGui)
+RHNotifications.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+RHNotifications.ScreenInsets = Enum.ScreenInsets.None
+RHNotifications.Name = "_RHNotifications"
 
-local NotificationHolder = Instance.new("Frame", LXNotifications)
+local NotificationHolder = Instance.new("Frame", RHNotifications)
 NotificationHolder.Size = UDim2.fromScale(1, 1)
 NotificationHolder.Transparency = 1
 
@@ -420,20 +420,20 @@ function Notify(TitleText, SubText, Duration, Force)
     Line.Size = UDim2.fromScale(0, 0.03)
     Line.Transparency = 1
 
-    local LXLogo = Instance.new("ImageLabel", Main)
-    LXLogo.AnchorPoint = Vector2.new(0.5, 0.5)
-    LXLogo.Position = UDim2.fromScale(0.067, 0.5)
-    LXLogo.Size = UDim2.fromScale(0.121, 0.9)
-    LXLogo.Image = "rbxassetid://90305907167101"
-    LXLogo.ScaleType = Enum.ScaleType.Fit
-    LXLogo.Transparency = 1
+    local RHLogo = Instance.new("ImageLabel", Main)
+    RHLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+    RHLogo.Position = UDim2.fromScale(0.067, 0.5)
+    RHLogo.Size = UDim2.fromScale(0.121, 0.9)
+    RHLogo.Image = "rbxassetid://90305907167101"
+    RHLogo.ScaleType = Enum.ScaleType.Fit
+    RHLogo.Transparency = 1
 
     local Title = Instance.new("TextLabel", Main)
     Title.AnchorPoint = Vector2.new(0, 0.5)
     Title.Position = UDim2.fromScale(0.135, 0.35)
     Title.Size = UDim2.fromScale(100, 0.35)
     Title.Font = Enum.Font.SourceSans
-    Title.Text = "[LOLHAX] " .. TitleText
+    Title.Text = "[Rodhub] " .. TitleText
     Title.TextScaled = true
     Title.TextSize = 1
     Title.TextStrokeTransparency = 0.5
@@ -477,7 +477,7 @@ function Notify(TitleText, SubText, Duration, Force)
 
         Line.BackgroundColor3 = MainColor
 
-        LXLogo.ImageColor3 = MainColor
+        RHLogo.ImageColor3 = MainColor
 
         Title.TextColor3 = MainColor
         Title.TextStrokeColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.8)
