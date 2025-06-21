@@ -56,7 +56,7 @@ ErrorMessageOut = game:GetService("LogService").MessageOut:Connect(function(Mess
         ErrorMessageOut:Disconnect()
 
         setclipboard("Executor: " .. identifyexecutor() .. "\n\n" .. tostring(Message))
-        Library:Notify(" Lolhax has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the LX discord server! ", 4.5)
+        Library:Notify(" Rodhub has errored while loading and will now unload. The error has been copied to your clipboard, please report this on the RH discord server! ", 4.5)
 
         task.delay(5, function()
             Library:Unload()
@@ -67,25 +67,25 @@ end)
 local friends = {}
 local LocalPlayer = game.Players.LocalPlayer
 local epiklistofpeople = {}
-local LXUser = {}
+local RHUser = {}
 local SendChat = game:GetService("TextChatService"):WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
 -- detection thingy
 SendChat:SendAsync("", "Ineedtheepikrespond")
 local Detection = game:GetService("TextChatService").MessageReceived:Connect(function(yeah)
-    if yeah.Metadata == "usinglolhax" then
+    if yeah.Metadata == "usingrodhub" then
         if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
-            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGRODHUB", true)
         end
     elseif yeah.Metadata == "Ineedtheepikrespond" then
         if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
-            SendChat:SendAsync("", "usinglolhax")
-            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+            SendChat:SendAsync("", "usingRodhub")
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGRODHUB", true)
         end
     end
 end)
 -- UI vvv
 
-local Window = Library:CreateWindow({ Title = " LOLHAX ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
+local Window = Library:CreateWindow({ Title = " Rodhub ┃ ".. LocalPlayer.Name, Center = true, AutoShow = true, TabPadding = 3, MenuFadeTime = 0.15 })
 local Tabs = { General = Window:AddTab("General"), Exploit = Window:AddTab("Exploits"), ESP = Window:AddTab("ESP"), Visuals = Window:AddTab("Visuals"), Misc = Window:AddTab("Miscellaneous"), Config = Window:AddTab("Config") }
 
 local GeneralAutomation = Tabs.General:AddLeftGroupbox("Automation")
