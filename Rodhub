@@ -1,7 +1,7 @@
 if Library  then return end
 repo = 'https://raw.githubusercontent.com/bocaj111004/Linora/refs/heads/main/'
 Library      = loadstring(game:HttpGet(repo..'Library.lua'))()
-Library:Notify("Loading Prohax .. ",3)
+Library:Notify("Loading Rodhub .. ",3)
 ThemeManager = loadstring(game:HttpGet(repo..'addons/ThemeManager.lua'))()
 SaveManager  = loadstring(game:HttpGet(repo..'addons/SaveManager.lua'))()
 Options = Library.Options
@@ -10,7 +10,7 @@ Toggles = Library.Toggles
  
 ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/bocaj111004/ESPLibrary/refs/heads/main/main.lua"))() 
 ESPLibrary:SetFadeTime(0.8)
-Window = Library:CreateWindow({Title='ProHax V2',Center=true,AutoShow=true})
+Window = Library:CreateWindow({Title='Rodhub V2',Center=true,AutoShow=true})
 Tabs = {
 	Player     = Window:AddTab('Main'),
 	Anti       = Window:AddTab('Exploits'),
