@@ -1,4 +1,3 @@
-
 if Library  then return end
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
@@ -14,7 +13,7 @@ Library.ShowToggleFrameInKeybinds = true
  
 ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/bocaj111004/ESPLibrary/refs/heads/main/main.lua"))() 
 ESPLibrary:SetFadeTime(0.8)
-Window = Library:CreateWindow({Title='StarLight V3 ❤不吹晚风翻译❤',Center=true,AutoShow=true})
+Window = Library:CreateWindow({Title='StarLight V3',Center=true,AutoShow=true})
 Tabs = {
 	Player     = Window:AddTab('主菜单'),
 	Anti       = Window:AddTab('漏洞'),
