@@ -10,6 +10,169 @@ local Toggles = Library.Toggles
 Library.ForceCheckbox = false -- Forces AddToggle to AddCheckbox
 Library.ShowToggleFrameInKeybinds = true
 
+
+ local KeySystem = {
+    ActiveKey = nil,
+    KeyExpiration = nil,
+    ValidKeys = {
+        -- 示例卡密，格式: {key = "卡密", duration = 天数}
+        {key = "StarLight-bete25", duration = 0},  -- 永久卡密
+        {key = "StarLight-7DAY", duration = 7},
+        {key = "StarLight-30DAY", duration = 30},
+    },
+    IsActivated = false
+}
+
+-- 检查卡密是否有效
+function KeySystem:IsValidKey(inputKey)
+    for _, validKey in ipairs(self.ValidKeys) do
+        if validKey.key == inputKey then
+            return true, validKey.duration
+        end
+    end
+    return false, 0
+end
+
+-- 激活卡密
+function KeySystem:ActivateKey(inputKey)
+    local isValid, duration = self:IsValidKey(inputKey)
+    
+    if isValid then
+        self.ActiveKey = inputKey
+        self.IsActivated = true
+        
+        if duration > 0 then
+            self.KeyExpiration = os.time() + (duration * 24 * 60 * 60)
+            Library:Notify("卡密激活成功! 有效期: " .. duration .. "天", 5)
+        else
+            self.KeyExpiration = nil
+            Library:Notify("永久卡密激活成功!", 5)
+        end
+        
+        return true
+    else
+        Library:Notify("无效的卡密!", 3)
+        return false
+    end
+end
+
+-- 检查卡密是否过期
+function KeySystem:IsKeyActive()
+    if self.ActiveKey then
+        if self.KeyExpiration then
+            return os.time() < self.KeyExpiration
+        end
+        return true -- 永久卡密
+    end
+    return false
+end
+
+-- 创建卡密验证窗口
+local KeyWindow = Library:CreateWindow({
+    Title = "Rodhub - 卡密验证",
+    Center = true,
+    AutoShow = true,
+    Size = UDim2.new(0, 400, 0, 350),
+    Position = UDim2.new(0.5, -200, 0.5, -175)
+})
+
+-- 创建卡密验证标签页
+local KeyTab = KeyWindow:AddTab("卡密验证", "key")
+
+-- 添加卡密验证区域
+local KeyGroup = KeyTab:AddLeftGroupbox("卡密验证系统", "key")
+
+KeyGroup:AddLabel("请输入您的卡密:", true)
+local KeyInput = KeyGroup:AddInput("KeyInput", {
+    Default = "",
+    Numeric = false,
+    Finished = false,
+    Text = "卡密",
+    Placeholder = "在此输入卡密",
+    Callback = function(value) end,
+})
+
+KeyGroup:AddButton("激活卡密", function()
+    local inputKey = Options.KeyInput.Value
+    if inputKey ~= "" then
+        if KeySystem:ActivateKey(inputKey) then
+            -- 激活成功后关闭卡密窗口并打开主窗口
+            KeyWindow:Hide()
+            Window:Show()
+        end
+    else
+        Library:Notify("请输入卡密!", 3)
+    end
+end)
+
+-- 添加卡密信息区域
+local KeyInfoGroup = KeyTab:AddRightGroupbox("卡密信息", "info")
+
+KeyInfoGroup:AddLabel("有效卡密示例:", true)
+KeyInfoGroup:AddLabel("RODHUB-PERM - 永久卡密", true)
+KeyInfoGroup:AddLabel("RODHUB-7DAY - 7天有效期", true)
+KeyInfoGroup:AddLabel("RODHUB-30DAY - 30天有效期", true)
+
+KeyInfoGroup:AddDivider()
+KeyInfoGroup:AddLabel("剩余时间: 未激活", true, "TimeRemaining")
+
+-- 添加管理员区域（生成卡密）
+local AdminGroup = KeyTab:AddLeftGroupbox("管理员功能", "shield")
+AdminGroup:AddLabel("生成新卡密:", true)
+
+local DurationInput = AdminGroup:AddInput("DurationInput", {
+    Default = "7",
+    Numeric = true,
+    Finished = false,
+    Text = "天数",
+    Placeholder = "输入有效期天数 (0=永久)",
+})
+
+local NewKeyLabel = AdminGroup:AddLabel("新卡密将显示在这里", true)
+
+AdminGroup:AddButton("生成卡密", function()
+    local duration = tonumber(Options.DurationInput.Value) or 7
+    local prefix = "RODHUB"
+    local newKey = prefix .. "-" .. string.upper(string.sub(tostring(math.random(100000, 999999)), 1, 6))
+    
+    -- 添加到有效卡密列表
+    table.insert(KeySystem.ValidKeys, {
+        key = newKey,
+        duration = duration
+    })
+    
+    NewKeyLabel:SetText("新卡密: " .. newKey)
+    Library:Notify("已生成新卡密: " .. newKey, 5)
+end)
+
+-- 更新剩余时间显示
+local function updateTimeRemaining()
+    if KeySystem:IsKeyActive() then
+        if KeySystem.KeyExpiration then
+            local remaining = KeySystem.KeyExpiration - os.time()
+            if remaining > 0 then
+                local days = math.floor(remaining / 86400)
+                local hours = math.floor((remaining % 86400) / 3600)
+                Options.TimeRemaining:SetText("剩余时间: " .. days .. "天 " .. hours .. "小时")
+            else
+                Options.TimeRemaining:SetText("卡密已过期!")
+                KeySystem.ActiveKey = nil
+            end
+        else
+            Options.TimeRemaining:SetText("剩余时间: 永久")
+        end
+    else
+        Options.TimeRemaining:SetText("剩余时间: 未激活")
+    end
+end
+
+-- 定时更新剩余时间
+task.spawn(function()
+    while true do
+        updateTimeRemaining()
+        wait(60) -- 每分钟更新一次
+    end
+end)
  
 ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/bocaj111004/ESPLibrary/refs/heads/main/main.lua"))() 
 ESPLibrary:SetFadeTime(0.8)
@@ -177,7 +340,7 @@ currentSpeed = lastSpeed
 SpeedSlider = PlayerBox:AddSlider('WalkSpeed', {
 	Text = '人物速度',
 	Min = 15, Max = 21.4, Default = 15,
-	Rounding = 1,
+	Rounding = 0,
 	Callback = function(v)
 		lastSpeed = v
 
@@ -1150,7 +1313,7 @@ do
     end
 
     ESPSettings:AddToggle('FullBright', {
-        Text    = '高亮',
+        Text    = '充满光亮',
         Default = false,
         Callback = function(on)
             -- Disconnect previous listener
@@ -1410,7 +1573,7 @@ end
 Godmode = BypassBox:AddToggle("Godmode", {
 	Text = "无敌模式",
 	Default = false,
-	Tooltip = "让你免疫实体伤害",
+	Tooltip = "让你对实体无敌",
 	Callback = function(enabled)
 		if not char then return end
 		if not Toggles.AntiFigureHearing.Value then
@@ -1596,7 +1759,7 @@ end
 
 -- GUI toggle hookup (replace `BypassBox` with your actual UI container)
 BypassBox:AddToggle("NB", {
-	Text    = "反作弊操纵",
+	Text    = "穿墙绕过",
 	Default = false,
 	Callback = function(on)
 		bypassActive = on
@@ -1799,21 +1962,21 @@ end
 --------------------------------------------------------------------------------
 do
     local NotifyEntities = {
-        RushMoving = {"Rush", "找一个藏身之处"},
-        AmbushMoving = {"Ambush", "请重复隐藏多次!"},
-        A60 = {"A-60", "立即隐藏无敌模式有效"},
-        A120 = {"A-120", "找一个隐藏点无敌模式没有效果"},
-        JeffTheKiller = {"Jeff", "保持距离并避免他"},
-        SeekMoving = {"Seek", "跑以及躲避障碍物"},
-        SeekMovingNewClone = {"Seek", "快跑避免障碍物无敌模式没有效果"},
-        BackdoorRush = {"Blitz", "找一个唐僧之处，无敌模式有效"},
-        GlitchRush = {"GlitchRush", "找一个藏身之处无敌模式有效"},
-        GlitchAmbush = {"Glitch Ambush", "找一个藏身之处无敌模式有效"},
-        GiggleCeiling = {"Giggle", "请避开他"},
-        Eyes = {"Eyes", "别看他，反Eyes有效果"},
-        BackdoorLookman = {"Lookman", "别看他,反Lookman有效果"},
-        Screech = {"Screech", "请快速环顾四周"},
-        GlitchedScreech = {"Glitched Screech", "快速往四处观察别被攻击},
+        RushMoving = {"Rush", "Find a hiding spot."},
+        AmbushMoving = {"Ambush", "Hide multiple times!"},
+        A60 = {"A-60", "Hide immediately! Godmode Works"},
+        A120 = {"A-120", "Find A HidingSpot! Godmode Doesn't Work"},
+        JeffTheKiller = {"Jeff", "Keep distance and avoid."},
+        SeekMoving = {"Seek", "Run and dodge obstacles! Godmode doesn't work"},
+        SeekMovingNewClone = {"Seek", "Run and dodge obstacles! Godmode Doesn't Work"},
+        BackdoorRush = {"Blitz", "Find a hiding spot. Godmode Works"},
+        GlitchRush = {"GlitchRush", "Find a hiding spot. Godmode Works"},
+        GlitchAmbush = {"Glitch Ambush", "Find HidingSpot! Godmode Works"},
+        GiggleCeiling = {"Giggle", "Avoid it."},
+        Eyes = {"Eyes", "Don't look at it. Anti Eyes Works"},
+        BackdoorLookman = {"Lookman", "Don't look at it. Anti Lookman Works"},
+        Screech = {"Screech", "Look around quickly."},
+        GlitchedScreech = {"Glitched Screech", "Look around quickly."},
     }
 
     local function notifyESP(model)
@@ -2216,7 +2379,7 @@ makeRoomESP("发电机",
 
 makeRoomESP("保险丝",
     function(o)
-        if o.Name == "获得保险丝" then
+        if o.Name == "FuseObtain" then
             return o
         end
     end,
@@ -2224,13 +2387,13 @@ makeRoomESP("保险丝",
     Color3.fromRGB(0, 255, 0)
 )
 
-makeRoomESP("箱子",
+makeRoomESP("胸部",
     function(o)
-        if o.Name == "箱子" then
+        if o.Name == "ChestBox" then
             return o
         end
     end,
-    "胸箱子",
+    "胸部",
     Color3.fromRGB(0, 255, 0)
 )
 
@@ -2322,11 +2485,11 @@ do
     local trackedItems = {}
     local addedConn, removingConn, roomChangedConn
     local items = {
-        "手电筒", "撬锁器", "维生素", "绷带", "小星光瓶", "中星光瓶", "星光通",
-        "手摇", "带灯", "大型手电筒", "电池包", "蜡烛", "十字架", "十字架墙",
-        "荧光棒", "骷髅钥匙", "糖果", "屏蔽mini", "盾牌", "绷带包", "电池包",
-        "蓝光蜡烛", "激光笔", "圣光手雷", "剪刀", "冰沙", "奶酪", "面包",
-        "闹钟", "裂缝奶昔", "格温斯达", "故障方块"
+        "Flashlight", "Lockpick", "Vitamins", "Bandage", "StarVial", "StarBottle", "StarJug",
+        "Shakelight", "Straplight", "Bulklight", "Battery", "Candle", "Crucifix", "CrucifixWall",
+        "Glowsticks", "SkeletonKey", "Candy", "ShieldMini", "ShieldBig", "BandagePack", "BatteryPack",
+        "RiftCandle", "LaserPointer", "HolyGrenade", "Shears", "Smoothie", "Cheese", "Bread",
+        "AlarmClock", "RiftSmoothie", "GweenSoda", "GlitchCub"
     }
     local itemSet = {}
     for i = 1, #items do
@@ -2486,14 +2649,14 @@ ESPSettings:AddToggle('Rainbow ESP',{
 	end
 })
 ESPSettings:AddToggle('Traces ESP',{
-	Text = "线条追踪",
+	Text = "追踪者透视",
 	Default = false,
 	Callback = function(Value)
 		ESPLibrary:SetTracers(Value)
 	end
 })
 ESPSettings:AddToggle('Distance Meters ESP',{
-	Text = "距离显示",
+	Text = "测距仪",
 	Default = false,
 	Callback = function(Value)
 		ESPLibrary:SetShowDistance(Value)
@@ -2943,8 +3106,7 @@ BypassBox:AddToggle("DFF", {
 		or game:GetService("ReplicatedStorage").ClientModules.EntityModules:FindFirstChild("Shade")
 
 	AntiBox:AddToggle('AN',{
-		Text = "挂停
-		挂机",
+		Text = "防停机",
 		Default = false,
 		Callback = function(on)
 			if shade then
