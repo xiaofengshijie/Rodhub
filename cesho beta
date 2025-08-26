@@ -225,7 +225,7 @@ Options.SpeedValue = MainLeftGroup:AddSlider('SpeedValue', {
     Default = 18,
     Min = 1,
     Max = 85,
-    Rounding = 0.1,
+    Rounding = 0,
     Compact = false,
 })
 
