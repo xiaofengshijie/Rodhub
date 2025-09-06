@@ -1,0 +1,1136 @@
+-- StarLight 脚本
+local repo = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+local Options = Library.Options
+local Toggles = Library.Toggles
+Library.ShowToggleFrameInKeybinds = true
+Library.ShowCustomCursor = true
+Library.NotifySide = "Right"
+
+local Window = Library:CreateWindow({
+    Title = 'StarLight',
+    Center = true,
+    AutoShow = true,
+    Resizable = true,
+    ShowCustomCursor = true,
+    NotifySide = "Right",
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
+
+local Tabs = {
+    Main = Window:AddTab('主菜单'),
+    ESP = Window:AddTab('ESP'),
+    ['界面设置'] = Window:AddTab('界面设置'),
+}
+
+-- 主菜单内容
+local LeftGroupBox = Tabs.Main:AddLeftGroupbox('主要控制')
+LeftGroupBox:AddToggle('MyToggle', {
+    Text = '主开关',
+    Default = true,
+    Tooltip = '启用/禁用主要功能',
+    Callback = function(Value)
+        Library:Notify(Value and "系统已启用" or "系统已禁用")
+    end
+}):AddColorPicker('ColorPicker1', {
+    Default = Color3.new(1, 0, 0),
+    Title = '主颜色',
+    Transparency = 0,
+}):AddColorPicker('ColorPicker2', {
+    Default = Color3.new(0, 1, 0),
+    Title = '辅助颜色',
+    Transparency = 0,
+}):AddColorPicker('ColorPicker3', {
+    Default = Color3.new(0, 0, 1),
+    Title = '第三颜色',
+    Transparency = 0,
+})
+
+LeftGroupBox:AddSlider('MySlider', {
+    Text = '效果强度',
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 0,
+    Suffix = '%',
+    Callback = function(Value)
+        print('强度设置为:', Value)
+    end
+})
+
+LeftGroupBox:AddInput('MyTextbox', {
+    Default = '玩家名称',
+    Numeric = false,
+    Finished = false,
+    Text = '玩家名称',
+    Placeholder = '输入玩家名称',
+    Tooltip = '在此输入目标玩家名称',
+    Callback = function(Value)
+        print('玩家名称:', Value)
+    end
+})
+
+local MyButton = LeftGroupBox:AddButton({
+    Text = '操作',
+    Func = function()
+        Library:Notify("主操作已执行")
+    end,
+    Tooltip = '主操作按钮'
+})
+
+MyButton:AddButton({
+    Text = '子操作 1',
+    Func = function()
+        Library:Notify("子操作 1 已执行", nil, 4590657391)
+    end
+})
+
+MyButton:AddButton({
+    Text = '子操作 2',
+    Func = function()
+        Library:Notify("子操作 2 已执行")
+    end
+})
+
+local DropdownGroupBox = Tabs.Main:AddRightGroupbox('下拉菜单')
+DropdownGroupBox:AddDropdown('MyPlayerDropdown', {
+    SpecialType = 'Player',
+    ExcludeLocalPlayer = false,
+    Text = '选择玩家',
+    Tooltip = '从服务器中选择一个玩家',
+    Callback = function(Value)
+        Library:Notify("已选择: " .. tostring(Value))
+    end
+})
+
+DropdownGroupBox:AddDropdown('GameItems', {
+    Values = {'剑', '盾牌', '药水', '金币'},
+    Default = 1,
+    Text = '库存物品',
+    Searchable = true,
+    Callback = function(Value)
+        print("选择的物品:", Value)
+    end
+})
+
+DropdownGroupBox:AddLabel('控制'):AddKeyPicker('ActionKeybind', {
+    Default = 'F',
+    Text = '操作按键',
+    Callback = function(Value)
+        print('按键状态:', Value)
+    end
+})
+
+local TabBox = Tabs.Main:AddRightTabbox()
+local Tab1 = TabBox:AddTab('设置')
+local Tab2 = TabBox:AddTab('信息')
+
+Tab1:AddToggle('AdvancedMode', {
+    Text = '高级模式',
+    Default = false
+})
+
+Tab1:AddSlider('AdvancedSetting', {
+    Text = '高级设置',
+    Default = 25,
+    Min = 0,
+    Max = 50,
+    Rounding = 1
+})
+
+Tab2:AddLabel('版本: 1.0.0')
+Tab2:AddLabel('作者: 开发者')
+Tab2:AddLabel('描述: StarLight 脚本')
+
+-- ESP 模块
+local ESP = {
+    ITEM_SET = {
+        "Flashlight","Lockpick","Vitamins","Bandage","StarVial","StarBottle","StarJug",
+        "Shakelight","Straplight","Bulklight","Battery","Candle","Crucifix","CrucifixWall",
+        "Glowsticks","SkeletonKey","Candy","ShieldMini","ShieldBig","BandagePack","BatteryPack",
+        "RiftCandle","LaserPointer","HolyGrenade","Shears","Smoothie","Cheese","Bread",
+        "AlarmClock","RiftSmoothie","GweenSoda","GlitchCub","ElectricalKeyObtain"
+    },
+    ITEM_MAP = {},
+    HIDE_SPOTS = {
+        "Wardrobe","Rooms_Locker","Backdoor_Wardrobe","Toolshed","Locker_Large",
+        "Bed","CircularVent","Rooms_Locker_Fridge","RetroWardrobe","Dumpster","Double_Bed"
+    },
+    EXTRA_ITEMS = {
+        {"锚", "MinesAnchor", Color3.new(1, 0.843, 0)},
+        {"电钥匙", "ElectricalKeyObtain", Color3.new(0, 0.8, 0.8)},
+        {"水泵", "WaterPump", Color3.new(1, 0.8, 0)}
+    },
+    ENTITY_NAMES = {
+        ["FigureRig"] = "Figure",
+        ["SallyMoving"] = "Window",
+        ["RushMoving"] = "Rush",
+        ["Eyes"] = "Eyes",
+        ["Groundskeeper"] = "Skeeper",
+        ["BackdoorLookman"] = "Lookman",
+        ["BackdoorRush"] = "Blitz",
+        ["MandrakeLive"] = "Mandrake",
+        ["GloomPile"] = "Egg",
+        ["Snare"] = "Snare",
+        ["GrumbleRig"] = "Grumble",
+        ["GiggleCeiling"] = "Giggle",
+        ["AmbushMoving"] = "Ambush"
+    },
+    entityESPs = {},
+    chestESPs = {},
+    playerESPs = {},
+    enabled = {
+        Key = false,
+        Hide = false,
+        Book = false,
+        Lever = false,
+        Breaker = false,
+        Timer = false,
+        Gen = false,
+        Fuse = false,
+        Chest = false,
+        Gold = false,
+        Player = false,
+        Item = false,
+        Anchor = false,
+        EKey = false,
+        Pump = false,
+        ElectricalKey = false,
+        Entity = false,
+        Door = false,
+        ChestBox = false
+    },
+    colors = {
+        Key = Color3.new(0, 1, 0),
+        Hide = Color3.new(1, 1, 0),
+        Book = Color3.new(1, 0.4, 1),
+        Lever = Color3.new(1, 0.65, 0),
+        Breaker = Color3.new(1, 0, 0.8),
+        Timer = Color3.new(0, 1, 1),
+        Gen = Color3.new(1, 0.8, 0),
+        Fuse = Color3.new(1, 1, 0),
+        Chest = Color3.new(1, 0.843, 0),
+        Gold = Color3.new(1, 0.843, 0),
+        Player = Color3.new(0, 1, 1),
+        Item = Color3.new(0.8, 0.8, 0.8),
+        Anchor = Color3.new(1, 0.843, 0),
+        EKey = Color3.new(0, 1, 0),
+        Pump = Color3.new(1, 0.8, 0),
+        ElectricalKey = Color3.new(0, 0.8, 0.8),
+        Entity = Color3.new(1, 0.2, 0.2),
+        Door = Color3.fromRGB(0, 255, 255),  -- 青色
+        ChestBox = Color3.new(1, 0.5, 0)
+    }
+}
+
+-- 初始化 ITEM_MAP
+for _, v in ipairs(ESP.ITEM_SET) do ESP.ITEM_MAP[v] = true end
+
+-- 依赖服务
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+-- 判断对象是否在玩家手中
+function ESP.isInPlayerHand(obj)
+    if not obj then return false end
+    if obj:IsA("Tool") then
+        local parent = obj.Parent
+        if parent and (parent:IsA("Model") or parent:IsA("Backpack")) then
+            if parent:IsA("Model") and Players:GetPlayerFromCharacter(parent) then
+                return true
+            elseif parent:IsA("Backpack") then
+                return true
+            end
+        end
+    end
+    local current = obj
+    while current and current ~= Workspace do
+        if current:IsA("Model") and Players:GetPlayerFromCharacter(current) then
+            return true
+        end
+        current = current.Parent
+    end
+    return false
+end
+
+-- 添加 ESP（高亮 + 标签）
+function ESP.addESP(obj, text, color, espType)
+    if not obj or not obj.Parent then return end
+    if ESP.isInPlayerHand(obj) then return end
+    
+    -- 清除现有的ESP
+    if obj:FindFirstChild("PureESP") then 
+        obj.PureESP:Destroy() 
+    end
+    
+    -- 检查该类型的ESP是否启用
+    if not ESP.enabled[espType] then return end
+
+    -- 创建高亮
+    local hl = Instance.new("Highlight")
+    hl.Name = "PureESP"
+    hl.Adornee = obj
+    hl.FillColor = color
+    hl.OutlineColor = color
+    hl.FillTransparency = 0.5
+    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    hl.Parent = obj
+
+    -- 创建标签
+    local bg = Instance.new("BillboardGui")
+    bg.Name = "PureESP"
+    bg.Adornee = obj
+    bg.Size = UDim2.new(0, 120, 0, 40)
+    bg.AlwaysOnTop = true
+    bg.LightInfluence = 0
+    
+    -- 特殊处理床类物品
+    if obj.Name == "Bed" or obj.Name == "Double_Bed" then
+        bg.StudsOffset = Vector3.new(0, 2, 0)
+    end
+    bg.Parent = obj
+
+    local txt = Instance.new("TextLabel")
+    txt.Size = UDim2.new(1, 0, 1, 0)
+    txt.BackgroundTransparency = 1
+    txt.Font = Enum.Font.GothamBold
+    txt.TextSize = 18
+    txt.TextColor3 = color
+    txt.TextStrokeTransparency = 0.5
+    txt.TextStrokeColor3 = Color3.new(0, 0, 0)
+    txt.Text = text
+    txt.Parent = bg
+
+    return hl, bg
+end
+
+-- 检查并添加物品 ESP
+function ESP.checkAndAddESP(obj)
+    if ESP.isInPlayerHand(obj) then return end
+
+    if obj.Name == "KeyObtain" and ESP.enabled.Key then
+        ESP.addESP(obj, "Key", ESP.colors.Key, "Key")
+        return
+    end
+
+    if obj.Name == "ElectricalKeyObtain" and ESP.enabled.ElectricalKey then
+        ESP.addESP(obj, "Electrical Key", ESP.colors.ElectricalKey, "ElectricalKey")
+        return
+    end
+
+    for _, spot in ipairs(ESP.HIDE_SPOTS) do
+        if obj.Name == spot and ESP.enabled.Hide then
+            local displayText = (obj.Name == "Bed" or obj.Name == "Double_Bed") and "Bed" or "Container"
+            ESP.addESP(obj, displayText, ESP.colors.Hide, "Hide")
+            return
+        end
+    end
+
+    if obj:IsA("Model") and obj.Name == "LiveHintBook" and ESP.enabled.Book then
+        ESP.addESP(obj, "Book", ESP.colors.Book, "Book")
+        return
+    end
+
+    if obj:IsA("Model") and obj.Name == "LeverForGate" and ESP.enabled.Lever then
+        ESP.addESP(obj, "Lever", ESP.colors.Lever, "Lever")
+        return
+    end
+
+    if obj.Name == "LiveBreakerPolePickup" and ESP.enabled.Breaker then
+        ESP.addESP(obj, "Breaker", ESP.colors.Breaker, "Breaker")
+        return
+    end
+
+    if obj.Name == "TimerLever" and ESP.enabled.Timer then
+        ESP.addESP(obj, "Timer", ESP.colors.Timer, "Timer")
+        return
+    end
+
+    if obj.Name == "MinesGenerator" and ESP.enabled.Gen then
+        ESP.addESP(obj, "Generator", ESP.colors.Gen, "Gen")
+        return
+    end
+
+    if obj.Name == "FuseObtain" and ESP.enabled.Fuse then
+        ESP.addESP(obj, "Fuse", ESP.colors.Fuse, "Fuse")
+        return
+    end
+
+    if obj.Name == "ChestBox" and ESP.enabled.ChestBox then
+        ESP.addESP(obj, "Chest", ESP.colors.ChestBox, "ChestBox")
+        return
+    end
+
+    if obj.Name == "GoldPile" and ESP.enabled.Gold then
+        ESP.addESP(obj, "Gold " .. tostring(obj:GetAttribute("GoldValue") or "?"), ESP.colors.Gold, "Gold")
+        return
+    end
+
+    for _, row in ipairs(ESP.EXTRA_ITEMS) do
+        if obj.Name == row[2] then
+            if row[1] == "锚" and ESP.enabled.Anchor then
+                ESP.addESP(obj, row[1], ESP.colors.Anchor, "Anchor")
+            elseif row[1] == "电钥匙" and ESP.enabled.EKey then
+                ESP.addESP(obj, row[1], ESP.colors.EKey, "EKey")
+            elseif row[1] == "水泵" and ESP.enabled.Pump then
+                ESP.addESP(obj, row[1], ESP.colors.Pump, "Pump")
+            end
+            return
+        end
+    end
+
+    if ESP.ITEM_MAP[obj.Name] and ESP.enabled.Item then
+        ESP.addESP(obj, obj.Name, ESP.colors.Item, "Item")
+        return
+    end
+end
+
+-- 实体 ESP
+function ESP.createEntityESP(v)
+    if not ESP.enabled.Entity then return end
+    
+    -- 清除现有的ESP
+    if v:FindFirstChild("EntityESP") then 
+        v.EntityESP:Destroy() 
+    end
+    
+    local entityName = ESP.ENTITY_NAMES[v.Name] or v.Name
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "EntityESP"
+    highlight.Adornee = v
+    highlight.FillColor = ESP.colors.Entity
+    highlight.OutlineColor = ESP.colors.Entity
+    highlight.FillTransparency = 0.5
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = v
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "EntityESP"
+    billboard.Adornee = v
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    billboard.Parent = v
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 18
+    textLabel.TextColor3 = ESP.colors.Entity
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.Text = entityName
+    textLabel.Parent = billboard
+
+    ESP.entityESPs[v] = {
+        highlight = highlight,
+        billboard = billboard,
+        textLabel = textLabel
+    }
+end
+
+-- 清除所有 ESP
+function ESP.clearAllESP()
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if v:FindFirstChild("PureESP") then
+            v.PureESP:Destroy()
+        end
+        if v:FindFirstChild("EntityESP") then
+            v.EntityESP:Destroy()
+        end
+        if v:FindFirstChild("ChestESP") then
+            v.ChestESP:Destroy()
+        end
+        if v:FindFirstChild("PlayerESP") then
+            v.PlayerESP:Destroy()
+        end
+        if v:FindFirstChild("DoorESP") then
+            v.DoorESP:Destroy()
+        end
+    end
+    
+    ESP.entityESPs = {}
+    ESP.chestESPs = {}
+    ESP.playerESPs = {}
+end
+
+-- 更新所有 ESP 颜色
+function ESP.updateAllESPColors()
+    ESP.clearAllESP()
+    
+    -- 重新扫描并创建 ESP
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        ESP.checkAndAddESP(obj)
+    end
+    
+    -- 重新创建实体 ESP
+    for _, entity in pairs(Workspace:GetDescendants()) do
+        if ESP.ENTITY_NAMES[entity.Name] then
+            ESP.createEntityESP(entity)
+        end
+    end
+    
+    -- 重新创建玩家 ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        ESP.createPlayerESP(player)
+    end
+end
+
+-- 玩家 ESP
+function ESP.createPlayerESP(player)
+    if not ESP.enabled.Player then return end
+    if player == Players.LocalPlayer then return end
+    
+    local character = player.Character
+    if not character then return end
+    
+    -- 清除现有的ESP
+    if character:FindFirstChild("PlayerESP") then 
+        character.PlayerESP:Destroy() 
+    end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerESP"
+    highlight.Adornee = character
+    highlight.FillColor = ESP.colors.Player
+    highlight.OutlineColor = ESP.colors.Player
+    highlight.FillTransparency = 0.5
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = character
+
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "PlayerESP"
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    billboard.Parent = character
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 18
+    textLabel.TextColor3 = ESP.colors.Player
+    textLabel.TextStrokeTransparency = 0.5
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.Text = player.Name
+    textLabel.Parent = billboard
+
+    ESP.playerESPs[player] = {
+        highlight = highlight,
+        billboard = billboard,
+        textLabel = textLabel
+    }
+end
+
+-- 门ESP系统
+local doorESPs = {}
+local MAX_DOORS = 1000
+
+local function createDoorESP(door, roomId)
+    if door:FindFirstChild("DoorESP") then return end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "DoorHighlight"
+    highlight.Adornee = door
+    highlight.FillColor = ESP.colors.Door
+    highlight.OutlineColor = ESP.colors.Door
+    highlight.FillTransparency = 0.5
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "DoorLabel"
+    billboard.Adornee = door
+    billboard.Size = UDim2.new(0, 150, 0, 60)
+    billboard.AlwaysOnTop = true
+    billboard.LightInfluence = 0
+    
+    local label = Instance.new("TextLabel")
+    label.Name = "DoorText"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 18
+    label.TextColor3 = ESP.colors.Door
+    label.TextStrokeTransparency = 0.7
+    label.TextStrokeColor3 = Color3.new(0, 0.5, 0.5)
+    label.AnchorPoint = Vector2.new(0.5, 0.5)
+    label.Position = UDim2.new(0.5, 0, 0.5, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.Parent = billboard
+    
+    local espFolder = Instance.new("Folder")
+    espFolder.Name = "DoorESP"
+    espFolder.Parent = door
+    highlight.Parent = espFolder
+    billboard.Parent = espFolder
+    
+    doorESPs[roomId] = {
+        door = door,
+        label = label,
+        billboard = billboard,
+        highlight = highlight,
+        lastLockState = nil
+    }
+end
+
+local function updateDoorESP()
+    if not ESP.enabled.Door then return end
+    
+    local player = Players.LocalPlayer
+    if not player or not player.Character then return end
+    
+    local root = player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local playerPos = root.Position
+    
+    for roomId, data in pairs(doorESPs) do
+        local door = data.door
+        if door and door.Parent then
+            local doorPos = door.Position
+            local dist = (playerPos - doorPos).Magnitude
+            
+            -- 检查门是否锁定
+            local room = workspace.CurrentRooms:FindFirstChild(tostring(roomId))
+            local isLocked = false
+            
+            if room then
+                local doorFolder = room:FindFirstChild("Door")
+                if doorFolder then
+                    isLocked = doorFolder:FindFirstChild("Lock") ~= nil
+                end
+            end
+            
+            -- 只有当锁定状态确实改变时才更新文本
+            if data.lastLockState == nil or data.lastLockState ~= isLocked then
+                data.lastLockState = isLocked
+                
+                if isLocked then
+                    data.label.Text = string.format("门 %d\n%.1f米\n锁定", roomId + 1, dist)
+                else
+                    data.label.Text = string.format("门 %d\n%.1f米", roomId + 1, dist)
+                end
+            else
+                -- 只更新距离信息
+                if isLocked then
+                    data.label.Text = string.format("门 %d\n%.1f米\n锁定", roomId + 1, dist)
+                else
+                    data.label.Text = string.format("门 %d\n%.1f米", roomId + 1, dist)
+                end
+            end
+            
+            -- 更新颜色
+            data.highlight.FillColor = ESP.colors.Door
+            data.highlight.OutlineColor = ESP.colors.Door
+            data.label.TextColor3 = ESP.colors.Door
+        else
+            doorESPs[roomId] = nil
+        end
+    end
+end
+
+local function scanForDoors()
+    if not ESP.enabled.Door then return end
+    
+    for roomId = 0, MAX_DOORS do
+        local room = workspace.CurrentRooms:FindFirstChild(tostring(roomId))
+        if room then
+            local doorFolder = room:FindFirstChild("Door")
+            if doorFolder then
+                local door = doorFolder:FindFirstChild("Door")
+                if door and not doorESPs[roomId] then
+                    createDoorESP(door, roomId)
+                end
+            end
+        end
+    end
+end
+
+local function clearDoorESP()
+    for roomId, data in pairs(doorESPs) do
+        if data.door and data.door:FindFirstChild("DoorESP") then
+            data.door.DoorESP:Destroy()
+        end
+    end
+    doorESPs = {}
+end
+
+-- 在 ESP 标签页中添加控件
+local LeftGroupBoxESP = Tabs.ESP:AddLeftGroupbox('物品 ESP')
+LeftGroupBoxESP:AddToggle('KeyESP', {
+    Text = '钥匙',
+    Default = false,
+    Tooltip = '显示钥匙 ESP',
+    Callback = function(Value)
+        ESP.enabled.Key = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('KeyColor', {
+    Default = ESP.colors.Key,
+    Title = '钥匙颜色',
+    Callback = function(Value)
+        ESP.colors.Key = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('HideESP', {
+    Text = '隐藏点',
+    Default = false,
+    Tooltip = '显示隐藏点 ESP',
+    Callback = function(Value)
+        ESP.enabled.Hide = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('HideColor', {
+    Default = ESP.colors.Hide,
+    Title = '隐藏点颜色',
+    Callback = function(Value)
+        ESP.colors.Hide = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('BookESP', {
+    Text = '书籍',
+    Default = false,
+    Tooltip = '显示书籍 ESP',
+    Callback = function(Value)
+        ESP.enabled.Book = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('BookColor', {
+    Default = ESP.colors.Book,
+    Title = '书籍颜色',
+    Callback = function(Value)
+        ESP.colors.Book = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('LeverESP', {
+    Text = '杠杆',
+    Default = false,
+    Tooltip = '显示杠杆 ESP',
+    Callback = function(Value)
+        ESP.enabled.Lever = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('LeverColor', {
+    Default = ESP.colors.Lever,
+    Title = '杠杆颜色',
+    Callback = function(Value)
+        ESP.colors.Lever = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('BreakerESP', {
+    Text = '断路器',
+    Default = false,
+    Tooltip = '显示断路器 ESP',
+    Callback = function(Value)
+        ESP.enabled.Breaker = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('BreakerColor', {
+    Default = ESP.colors.Breaker,
+    Title = '断路器颜色',
+    Callback = function(Value)
+        ESP.colors.Breaker = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('TimerESP', {
+    Text = '计时器',
+    Default = false,
+    Tooltip = '显示计时器 ESP',
+    Callback = function(Value)
+        ESP.enabled.Timer = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('TimerColor', {
+    Default = ESP.colors.Timer,
+    Title = '计时器颜色',
+    Callback = function(Value)
+        ESP.colors.Timer = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('GenESP', {
+    Text = '发电机',
+    Default = false,
+    Tooltip = '显示发电机 ESP',
+    Callback = function(Value)
+        ESP.enabled.Gen = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('GenColor', {
+    Default = ESP.colors.Gen,
+    Title = '发电机颜色',
+    Callback = function(Value)
+        ESP.colors.Gen = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('FuseESP', {
+    Text = '保险丝',
+    Default = false,
+    Tooltip = '显示保险丝 ESP',
+    Callback = function(Value)
+        ESP.enabled.Fuse = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('FuseColor', {
+    Default = ESP.colors.Fuse,
+    Title = '保险丝颜色',
+    Callback = function(Value)
+        ESP.colors.Fuse = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('ChestESP', {
+    Text = '宝箱',
+    Default = false,
+    Tooltip = '显示宝箱 ESP',
+    Callback = function(Value)
+        ESP.enabled.Chest = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('ChestColor', {
+    Default = ESP.colors.Chest,
+    Title = '宝箱颜色',
+    Callback = function(Value)
+        ESP.colors.Chest = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('GoldESP', {
+    Text = '金币',
+    Default = false,
+    Tooltip = '显示金币 ESP',
+    Callback = function(Value)
+        ESP.enabled.Gold = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('GoldColor', {
+    Default = ESP.colors.Gold,
+    Title = '金币颜色',
+    Callback = function(Value)
+        ESP.colors.Gold = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+LeftGroupBoxESP:AddToggle('ItemESP', {
+    Text = '物品',
+    Default = false,
+    Tooltip = '显示物品 ESP',
+    Callback = function(Value)
+        ESP.enabled.Item = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('ItemColor', {
+    Default = ESP.colors.Item,
+    Title = '物品颜色',
+    Callback = function(Value)
+        ESP.colors.Item = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+local RightGroupBoxESP = Tabs.ESP:AddRightGroupbox('实体 ESP')
+RightGroupBoxESP:AddToggle('AnchorESP', {
+    Text = '锚',
+    Default = false,
+    Tooltip = '显示锚 ESP',
+    Callback = function(Value)
+        ESP.enabled.Anchor = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('AnchorColor', {
+    Default = ESP.colors.Anchor,
+    Title = '锚颜色',
+    Callback = function(Value)
+        ESP.colors.Anchor = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+RightGroupBoxESP:AddToggle('EKeyESP', {
+    Text = '电钥匙',
+    Default = false,
+    Tooltip = '显示电钥匙 ESP',
+    Callback = function(Value)
+        ESP.enabled.EKey = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('EKeyColor', {
+    Default = ESP.colors.EKey,
+    Title = '电钥匙颜色',
+    Callback = function(Value)
+        ESP.colors.EKey = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+RightGroupBoxESP:AddToggle('PumpESP', {
+    Text = '水泵',
+    Default = false,
+    Tooltip = '显示水泵 ESP',
+    Callback = function(Value)
+        ESP.enabled.Pump = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('PumpColor', {
+    Default = ESP.colors.Pump,
+    Title = '水泵颜色',
+    Callback = function(Value)
+        ESP.colors.Pump = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+RightGroupBoxESP:AddToggle('ElectricalKeyESP', {
+    Text = '电气钥匙',
+    Default = false,
+    Tooltip = '显示电气钥匙 ESP',
+    Callback = function(Value)
+        ESP.enabled.ElectricalKey = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('ElectricalKeyColor', {
+    Default = ESP.colors.ElectricalKey,
+    Title = '电气钥匙颜色',
+    Callback = function(Value)
+        ESP.colors.ElectricalKey = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+RightGroupBoxESP:AddToggle('EntityESP', {
+    Text = '实体',
+    Default = false,
+    Tooltip = '显示实体 ESP',
+    Callback = function(Value)
+        ESP.enabled.Entity = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('EntityColor', {
+    Default = ESP.colors.Entity,
+    Title = '实体颜色',
+    Callback = function(Value)
+        ESP.colors.Entity = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+-- 添加门ESP开关和颜色选择器
+RightGroupBoxESP:AddToggle('DoorESP', {
+    Text = '门',
+    Default = false,
+    Tooltip = '显示门 ESP',
+    Callback = function(Value)
+        ESP.enabled.Door = Value
+        if Value then
+            scanForDoors()
+        else
+            clearDoorESP()
+        end
+    end
+}):AddColorPicker('DoorColor', {
+    Default = ESP.colors.Door,
+    Title = '门颜色',
+    Callback = function(Value)
+        ESP.colors.Door = Value
+        -- 更新所有门ESP的颜色
+        for roomId, data in pairs(doorESPs) do
+            if data.highlight then
+                data.highlight.FillColor = Value
+                data.highlight.OutlineColor = Value
+            end
+            if data.label then
+                data.label.TextColor3 = Value
+            end
+        end
+    end
+})
+
+RightGroupBoxESP:AddToggle('ChestBoxESP', {
+    Text = '箱子',
+    Default = false,
+    Tooltip = '显示箱子 ESP',
+    Callback = function(Value)
+        ESP.enabled.ChestBox = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('ChestBoxColor', {
+    Default = ESP.colors.ChestBox,
+    Title = '箱子颜色',
+    Callback = function(Value)
+        ESP.colors.ChestBox = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+RightGroupBoxESP:AddToggle('PlayerESP', {
+    Text = '玩家',
+    Default = false,
+    Tooltip = '显示玩家 ESP',
+    Callback = function(Value)
+        ESP.enabled.Player = Value
+        ESP.updateAllESPColors()
+    end
+}):AddColorPicker('PlayerColor', {
+    Default = ESP.colors.Player,
+    Title = '玩家颜色',
+    Callback = function(Value)
+        ESP.colors.Player = Value
+        ESP.updateAllESPColors()
+    end
+})
+
+-- 添加控制按钮
+local ControlGroupBox = Tabs.ESP:AddLeftGroupbox('控制')
+ControlGroupBox:AddButton('刷新所有ESP', function()
+    ESP.updateAllESPColors()
+    scanForDoors()
+    Library:Notify("ESP已刷新")
+end)
+
+ControlGroupBox:AddButton('清除所有ESP', function()
+    ESP.clearAllESP()
+    clearDoorESP()
+    Library:Notify("ESP已清除")
+end)
+
+-- 自动扫描和更新 ESP
+task.spawn(function()
+    while true do
+        if next(ESP.enabled) then
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                ESP.checkAndAddESP(obj)
+                
+                if ESP.ENTITY_NAMES[obj.Name] then
+                    if not ESP.entityESPs[obj] then
+                        ESP.createEntityESP(obj)
+                    end
+                end
+            end
+            
+            for _, player in pairs(Players:GetPlayers()) do
+                if player.Character then
+                    if not ESP.playerESPs[player] then
+                        ESP.createPlayerESP(player)
+                    end
+                end
+            end
+        end
+        task.wait(1)
+    end
+end)
+
+-- 门ESP的定期扫描和更新
+task.spawn(function()
+    while true do
+        scanForDoors()
+        updateDoorESP()
+        task.wait(0.1)
+    end
+end)
+
+-- 监听新房间添加
+if workspace:FindFirstChild("CurrentRooms") then
+    workspace.CurrentRooms.ChildAdded:Connect(function(child)
+        if tonumber(child.Name) then
+            task.wait(0.5) -- 等待门加载
+            scanForDoors()
+        end
+    end)
+end
+
+-- 界面设置
+local MenuGroup = Tabs['界面设置']:AddLeftGroupbox('菜单管理')
+local ThemeGroup = Tabs['界面设置']:AddRightGroupbox('主题设置')
+
+MenuGroup:AddToggle("KeybindMenuOpen", {
+    Default = Library.KeybindFrame.Visible,
+    Text = "显示按键绑定菜单",
+    Callback = function(value)
+        Library.KeybindFrame.Visible = value
+    end
+})
+
+MenuGroup:AddToggle("ShowCustomCursor", {
+    Text = "自定义光标",
+    Default = true,
+    Callback = function(Value)
+        Library.ShowCustomCursor = Value
+    end
+})
+
+MenuGroup:AddDivider()
+MenuGroup:AddLabel("菜单快捷键"):AddKeyPicker("MenuKeybind", {
+    Default = "RightShift",
+    NoUI = true,
+    Text = "菜单切换键"
+})
+
+MenuGroup:AddButton("卸载界面", function()
+    Library:Unload()
+end)
+
+MenuGroup:AddButton("重置设置", function()
+    Library:Notify("设置已重置")
+end)
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('StarLight')
+SaveManager:SetFolder('StarLight/配置')
+SaveManager:BuildConfigSection(Tabs['界面设置'])
+ThemeManager:ApplyToTab(Tabs['界面设置'])
+
+Library:SetWatermarkVisibility(true)
+local FrameTimer = tick()
+local FrameCounter = 0
+local FPS = 60
+local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
+    FrameCounter = FrameCounter + 1
+    if (tick() - FrameTimer) >= 1 then
+        FPS = FrameCounter
+        FrameTimer = tick()
+        FrameCounter = 0
+    end
+    Library:SetWatermark(('FPS: %s | 延迟: %s 毫秒 | StarLight'):format(
+        math.floor(FPS),
+        math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
+    ))
+end)
+
+Library:OnUnload(function()
+    WatermarkConnection:Disconnect()
+    Library.Unloaded = true
+end)
+
+Library.ToggleKeybind = Options.MenuKeybind
+SaveManager:LoadAutoloadConfig()
+Library:Notify("StarLight 加载成功!", 5)
