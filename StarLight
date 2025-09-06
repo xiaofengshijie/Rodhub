@@ -1,0 +1,131 @@
+-- 导入UI库
+local MCTechGUILib = loadstring(game:HttpGet("https://raw.githubusercontent.com/your-username/MCTechGUILib/main/MCTechGUILib.lua"))()
+
+-- 初始化库
+MCTechGUILib.init()
+
+-- 创建主菜单
+local mainMenu = MCTechGUILib.createFloatingMenu("主菜单", {
+    {
+        Name = "速度提升",
+        Type = "toggle",
+        Active = false,
+        HasDetails = true,
+        Callback = function(state)
+            if state then
+                -- 开启速度提升
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 24
+            else
+                -- 关闭速度提升
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+        end,
+        DetailCallback = function(value)
+            -- 细节调整回调
+            if type(value) == "number" then
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16 + value
+            end
+        end
+    },
+    {
+        Name = "跳跃提升",
+        Type = "toggle",
+        Active = false,
+        HasDetails = true,
+        Callback = function(state)
+            if state then
+                -- 开启跳跃提升
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = 55
+            else
+                -- 关闭跳跃提升
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+            end
+        end,
+        DetailCallback = function(key, value)
+            -- 细节调整回调
+            if key == "autoJump" then
+                if value then
+                    -- 开启自动跳跃
+                    print("自动跳跃已开启")
+                else
+                    -- 关闭自动跳跃
+                    print("自动跳跃已关闭")
+                end
+            elseif type(value) == "number" then
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50 + value * 2
+            end
+        end
+    },
+    {
+        Name = "无敌模式",
+        Type = "toggle",
+        Active = false,
+        Callback = function(state)
+            if state then
+                -- 开启无敌模式
+                print("无敌模式已开启")
+            else
+                -- 关闭无敌模式
+                print("无敌模式已关闭")
+            end
+        end
+    },
+    {
+        Name = "工具菜单",
+        Type = "submenu",
+        SubMenu = {
+            {
+                Name = "激光剑",
+                Type = "toggle",
+                Active = false,
+                Callback = function(state)
+                    if state then
+                        -- 生成激光剑
+                        print("激光剑已生成")
+                    else
+                        -- 移除激光剑
+                        print("激光剑已移除")
+                    end
+                end
+            },
+            {
+                Name = "火箭筒",
+                Type = "toggle",
+                Active = false,
+                Callback = function(state)
+                    if state then
+                        -- 生成火箭筒
+                        print("火箭筒已生成")
+                    else
+                        -- 移除火箭筒
+                        print("火箭筒已移除")
+                    end
+                end
+            }
+        }
+    },
+    {
+        Name = "显示功能状态",
+        Type = "toggle",
+        Active = true,
+        Callback = function(state)
+            MCTechGUILib.toggleFeatureStatusDisplay(state)
+        end
+    },
+    {
+        Name = "显示玩家信息",
+        Type = "toggle",
+        Active = false,
+        Callback = function(state)
+            MCTechGUILib.togglePlayerInfoDisplay(state)
+        end
+    }
+})
+
+-- 示例：显示通知
+MCTechGUILib.showNotification("系统", "UI库加载成功", true)
+
+-- 示例：添加功能状态显示
+MCTechGUILib.updateFeatureStatus("速度提升", false)
+MCTechGUILib.updateFeatureStatus("跳跃提升", false)
+MCTechGUILib.updateFeatureStatus("无敌模式", false)
