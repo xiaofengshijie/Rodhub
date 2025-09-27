@@ -504,7 +504,7 @@ Misc:Slider({
     Step = 1,
     Value = {
         Min = 16,
-        Max = 21,
+        Max = 35,
         Default = 16,
     },
     Callback = function(Value)
@@ -524,6 +524,46 @@ game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = _G.WalkSpeedTp
 end
 task.wait()
 end
+    end
+})
+
+Misc:Toggle({
+    Title = "Speed Bypass",
+    Type = "Toggle",
+    Default = false,
+    Callback = function(Value)
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+
+local OldAccel = LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties
+local ClonedCollision = LocalPlayer.Character.Collision:Clone()
+
+ClonedCollision.Name = "_CollisionClone"
+ClonedCollision.Massless = true
+ClonedCollision.Parent = LocalPlayer.Character
+ClonedCollision.CanCollide = false
+ClonedCollision.CanQuery = false
+ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 1, 1)
+
+local function SpeedBypass()
+    if not ClonedCollision then return end
+
+    ClonedCollision.Massless = false
+    task.wait(0.23)
+
+    if LocalPlayer.Character.HumanoidRootPart.Anchored then
+        ClonedCollision.Massless = true
+        task.wait(1)
+    end
+
+    ClonedCollision.Massless = true
+end
+
+RunService.Heartbeat:Connect(function()
+    if Toggles.EB_SpeedBypass.Value then
+        SpeedBypass()
+    end
+end)
     end
 })
 
