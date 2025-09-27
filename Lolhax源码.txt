@@ -813,9 +813,8 @@ ThemeManager:ApplyToTab(Tabs.Config)
 -- UI加载完成后的测试通知
 task.wait(1)
 Library:Notify("UI加载完成！", 3)
-
+end
 -- Variables vvv
-
 local A90Hook
 local ScreechHook
 local TimothyHook
