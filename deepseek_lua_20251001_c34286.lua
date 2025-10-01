@@ -1,0 +1,2139 @@
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+-- 定义全局变量
+local LocalPlayer = game.Players.LocalPlayer
+local friends = {}
+local epiklistofpeople = {}
+local LXUser = {}
+local Loadtime = tick()
+
+-- 检测系统
+local SendChat = game:GetService("TextChatService"):WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+SendChat:SendAsync("", "Ineedtheepikrespond")
+local Detection = game:GetService("TextChatService").MessageReceived:Connect(function(yeah)
+    if yeah.Metadata == "usinglolhax" then
+        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+        end
+    elseif yeah.Metadata == "Ineedtheepikrespond" then
+        if game:GetService("Players")[yeah.TextSource.Name] ~= LocalPlayer.Name then
+            SendChat:SendAsync("", "usinglolhax")
+            game:GetService("Players")[yeah.TextSource.Name]:SetAttribute("USINGLOLHAX", true)
+        end
+    end
+end)
+
+-- 创建窗口和标签页
+local Window = Library:CreateWindow({
+    Title = "LOLHAX ┃ " .. LocalPlayer.Name,
+    Footer = "version: v3",
+    Icon = 95816097006870,
+    NotifySide = "Right",
+    ShowCustomCursor = true,
+    Center = true,
+    AutoShow = true,
+})
+
+local Tabs = {
+    General = Window:AddTab("通用", "user"),
+    Exploit = Window:AddTab("漏洞利用", "shield"),
+    ESP = Window:AddTab("ESP", "eye"),
+    Visuals = Window:AddTab("视觉效果", "monitor"),
+    Misc = Window:AddTab("杂项", "settings"),
+    Config = Window:AddTab("配置", "settings"),
+}
+
+-- 通用标签页
+local GeneralAutomation = Tabs.General:AddLeftGroupbox("自动化")
+GeneralAutomation:AddToggle("GA_AutoInteract", {
+    Text = "自动交互",
+    Default = false,
+    Tooltip = "当按键激活时，将激活附近的任何可交互对象"
+}):AddKeyPicker("GA_AutoInteract_K", {
+    Default = "R",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "自动交互",
+    NoUI = false,
+})
+
+GeneralAutomation:AddDropdown("GA_AutoInteract_Options", {
+    Values = { "使用开锁器 (门)", "使用开锁器 (其他)", "忽略光源", "忽略致命糖果" },
+    Default = 1,
+    Multi = true,
+    Text = "自动交互选项"
+})
+
+GeneralAutomation:AddSlider("GA_AutoInteract_Range", {
+    Text = "范围倍数",
+    Default = 1,
+    Min = 1,
+    Max = 2,
+    Rounding = 1,
+    Compact = false
+})
+
+GeneralAutomation:AddDivider()
+
+GeneralAutomation:AddToggle("GA_EatCandies", {
+    Text = "自动使用糖果",
+    Default = false,
+}):AddKeyPicker("GA_EatCandies_K", {
+    Default = "V",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "自动使用糖果",
+    NoUI = false,
+})
+
+GeneralAutomation:AddToggle("GA_AutoHide", {
+    Text = "自动隐藏",
+    Default = false,
+    Tooltip = "启用时将预测实体并隐藏在最近的可用位置"
+})
+
+GeneralAutomation:AddToggle("GA_AutoHide_VisCheck", {
+    Text = "预测可见性检查",
+    Default = false,
+})
+
+GeneralAutomation:AddSlider("GA_AutoHide_PredictionTime", {
+    Text = "预测时间",
+    Default = 0.5,
+    Min = 0.1,
+    Max = 1.5,
+    Rounding = 2,
+    Compact = true,
+    Suffix = "秒"
+})
+
+GeneralAutomation:AddSlider("GA_AutoHide_PredictionDistanceMultiplier", {
+    Text = "距离倍数",
+    Default = 1,
+    Min = 0.8,
+    Max = 1.5,
+    Rounding = 1,
+    Compact = true,
+    Suffix = "倍"
+})
+
+GeneralAutomation:AddDivider()
+
+GeneralAutomation:AddToggle("GA_MinecartInteract", {
+    Text = "矿车交互垃圾邮件",
+    Default = false,
+    Tooltip = "当按键激活时自动垃圾邮件与附近矿车交互"
+}):AddKeyPicker("GA_MinecartInteract_K", {
+    Default = "H",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "矿车交互垃圾邮件",
+    NoUI = false,
+})
+
+GeneralAutomation:AddToggle("GA_AnchorAutoSolve", {
+    Text = "锚点自动解决",
+    Default = false,
+    Tooltip = "当足够接近时自动解决任何锚点"
+})
+
+GeneralAutomation:AddDivider()
+
+GeneralAutomation:AddToggle("GA_AutoPadlockSolve", {
+    Text = "自动图书馆挂锁",
+    Default = false,
+    Tooltip = "当接近设定距离时自动用代码解锁挂锁"
+})
+
+GeneralAutomation:AddSlider("GA_AutoPadlockSolve_Distance", {
+    Text = "自动挂锁距离",
+    Default = 25,
+    Min = 10,
+    Max = 50,
+    Rounding = 0,
+    Compact = false,
+})
+
+local GeneralNotifying = Tabs.General:AddRightGroupbox("通知")
+GeneralNotifying:AddToggle("GN_Enabled", {
+    Text = "启用",
+    Default = false,
+    Tooltip = "通知的主开关"
+})
+
+GeneralNotifying:AddToggle("GN_NotificationSound", {
+    Text = "播放声音",
+    Default = false,
+    Tooltip = "通知时播放声音以更好地吸引注意力"
+})
+
+GeneralNotifying:AddSlider("GN_NotificationSound_Volume", {
+    Text = "声音音量",
+    Default = 2,
+    Min = 1,
+    Max = 10,
+    Rounding = 1,
+    Compact = false
+})
+
+GeneralNotifying:AddDivider()
+
+GeneralNotifying:AddToggle("GN_AnchorCode", {
+    Text = "锚点代码",
+    Default = false,
+    Tooltip = "任何锚点代码确认时通知"
+})
+
+GeneralNotifying:AddToggle("GN_PadlockCode", {
+    Text = "图书馆挂锁代码",
+    Default = false,
+    Tooltip = "挂锁代码确认时通知"
+})
+
+GeneralNotifying:AddToggle("GN_Entities", {
+    Text = "实体通知",
+    Default = false,
+    Tooltip = "选择的实体生成时通知"
+})
+
+GeneralNotifying:AddDropdown("GN_Entities_Options", {
+    Values = { "Rush", "Blitz", "Ambush", "Eyes", "Lookman", "Halt", "Screech", "Gloombat Swarm", "Dread", "A-60", "A-120" },
+    Default = 1,
+    Multi = true,
+    Text = "实体列表",
+    Tooltip = "要通知的实体白名单"
+})
+
+GeneralNotifying:AddDivider()
+
+GeneralNotifying:AddDropdown("GN_NotificationAlignment", {
+    Values = { "左", "中", "右" },
+    Default = 3,
+    Multi = false,
+    Text = "水平对齐"
+})
+
+GeneralNotifying:AddSlider("GN_NotificationOffset_X", {
+    Text = "X偏移",
+    Default = 0,
+    Min = -1,
+    Max = 1,
+    Rounding = 2,
+    Compact = true
+})
+
+GeneralNotifying:AddSlider("GN_NotificationOffset_Y", {
+    Text = "Y偏移",
+    Default = 0,
+    Min = -1,
+    Max = 1,
+    Rounding = 2,
+    Compact = true
+})
+
+GeneralNotifying:AddSlider("GN_NotificationDPISize", {
+    Text = "大小倍数",
+    Default = 1,
+    Min = 0.8,
+    Max = 3,
+    Rounding = 1,
+    Compact = true
+})
+
+GeneralNotifying:AddButton("测试通知", function()
+    Notify("测试通知", "这是一个测试通知", 2.5, true)
+end)
+
+-- 漏洞利用标签页
+local ExploitSelf = Tabs.Exploit:AddLeftGroupbox("自身")
+ExploitSelf:AddToggle("ES_AlwaysJump", {
+    Text = "始终启用跳跃",
+    Default = false,
+    Tooltip = "始终启用跳跃"
+})
+
+ExploitSelf:AddDivider()
+
+ExploitSelf:AddToggle("ES_AntiGloombat", {
+    Text = "抗Gloombat蛋",
+    Default = false,
+    Tooltip = "不允许接触任何Gloombat蛋碰撞箱"
+})
+
+ExploitSelf:AddToggle("ES_AntiGiggle", {
+    Text = "抗Giggle",
+    Default = false,
+    Tooltip = "不允许接触实体'Giggle'碰撞箱"
+})
+
+ExploitSelf:AddToggle("ES_AntiSnare", {
+    Text = "抗Snare",
+    Default = false,
+    Tooltip = "不允许接触实体'Snare'"
+})
+
+ExploitSelf:AddToggle("ES_AntiDupe", {
+    Text = "抗Dupe",
+    Default = false,
+    Tooltip = "不允许接触任何实体'Dupe'假门"
+})
+
+ExploitSelf:AddToggle("ES_AntiEyes", {
+    Text = "抗Eyes",
+    Default = false,
+    Tooltip = "强制角色从实体'Eyes'向下看"
+})
+
+ExploitSelf:AddToggle("ES_AntiLookman", {
+    Text = "抗Lookman",
+    Default = false,
+    Tooltip = "强制角色从实体'Lookman'向下看"
+})
+
+ExploitSelf:AddToggle("ES_AntiChanedlier", {
+    Text = "抗吊灯",
+    Default = false,
+    Tooltip = "在追逐期间不允许接触任何掉落的吊灯"
+})
+
+ExploitSelf:AddToggle("ES_AntiSeekArms", {
+    Text = "抗Seek手臂",
+    Default = false,
+    Tooltip = "在追逐期间不允许接触任何Seek手臂"
+})
+
+local ExploitTroll = Tabs.Exploit:AddLeftGroupbox("恶搞")
+if game.ReplicatedStorage.GameData.Floor.Value == "Mines" then
+    ExploitTroll:AddButton({
+        Text = "抗Rush/抗Ambush",
+        Func = function()
+            task.spawn(function()
+                for i = 1, 11 do
+                    task.spawn(function()
+                        game.ReplicatedStorage.RemotesFolder.RequestAsset:InvokeServer("Remote")
+                    end)
+                end
+            end)
+        end,
+        DoubleClick = false,
+        Tooltip = "在第二层禁用rush/ambush",
+    })
+end
+
+ExploitTroll:AddToggle("Spamtoolz", {
+    Text = "垃圾邮件他人工具",
+    Default = false,
+    Tooltip = "基本上会通过垃圾邮件使用其他人的工具！"
+}):AddKeyPicker("Spamtoolz_X", {
+    Default = "G",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "垃圾邮件他人工具",
+    NoUI = false,
+})
+
+ExploitTroll:AddInput("WhitelistKoolpeople", {
+    Default = "",
+    Numeric = false,
+    Finished = true,
+    ClearTextOnFocus = true,
+    Text = "垃圾邮件工具白名单",
+    Tooltip = "输入玩家名称以将其加入白名单",
+    Callback = function(Value)
+        task.spawn(function()   
+            for _,Player in pairs(game.Players:GetPlayers()) do
+                if Value == Player.Name and Player ~= LocalPlayer then
+                    table.insert(friends, Player.Name)
+                    Notify("白名单", "已加入白名单!")
+                elseif Value == LocalPlayer.Name then
+                    Notify("错误", "不能将自己加入白名单")
+                else
+                    Notify("错误", "玩家不存在!")
+                end
+            end
+        end)
+    end
+})
+
+local ExploitBypass = Tabs.Exploit:AddRightGroupbox("绕过")
+ExploitBypass:AddToggle("EB_CrouchSpoof", {
+    Text = "蹲伏欺骗",
+    Default = false,
+    Tooltip = "欺骗蹲伏，换句话说游戏会认为你在蹲伏。对Figure房间有用。"
+})
+
+ExploitBypass:AddToggle("EB_SpeedBypass", {
+    Text = "速度绕过",
+    Default = false,
+    Tooltip = "尝试减轻速度反作弊"
+})
+
+ExploitBypass:AddToggle("EB_ACManipulate", {
+    Text = "反作弊操纵",
+    Default = false,
+    Tooltip = "将传送到相机面对的反方向，以操纵反作弊将你反弹到相反方向"
+}):AddKeyPicker("EB_ACManipulate_K", {
+    Default = "T",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "反作弊操纵",
+    NoUI = false,
+})
+
+local ExploitRemovals = Tabs.Exploit:AddRightGroupbox("移除")
+ExploitRemovals:AddToggle("ER_RemoveSeek", {
+    Text = "移除Seek追逐",
+    Default = false,
+    Tooltip = "完全禁用实体'Seek'"
+})
+
+ExploitRemovals:AddToggle("ER_NoScreech", {
+    Text = "无Screech",
+    Default = false,
+    Tooltip = "完全禁用实体'Screech'"
+})
+
+ExploitRemovals:AddToggle("ER_NoA90", {
+    Text = "无A-90",
+    Default = false,
+    Tooltip = "完全禁用实体'A-90'"
+})
+
+ExploitRemovals:AddToggle("ER_NoShade", {
+    Text = "无Halt",
+    Default = false,
+    Tooltip = "完全禁用实体'Halt'"
+})
+
+ExploitRemovals:AddDivider()
+
+ExploitRemovals:AddToggle("ER_NoA90Damage", {
+    Text = "无A-90伤害",
+    Default = false,
+    Tooltip = "完全禁用实体'A-90'对你造成伤害"
+})
+
+ExploitRemovals:AddToggle("ER_NoScreechDamage", {
+    Text = "无Screech伤害",
+    Default = false,
+    Tooltip = "完全禁用实体'Screech'对你造成伤害"
+})
+
+ExploitRemovals:AddToggle("ER_NoShadeDamage", {
+    Text = "无Halt伤害",
+    Default = false,
+    Tooltip = "完全禁用实体'Halt'对你造成伤害"
+})
+
+-- ESP标签页
+local ESPLXUSER = Tabs.ESP:AddLeftGroupbox("LX用户")
+ESPLXUSER:AddToggle("LXPP_Enabled", {
+    Text = "ESP LX用户",
+    Default = false
+}):AddColorPicker("LXPLAYERFILLCOLOR", {
+    Default = Color3.new(0.141176, 0.792156, 0.282352),
+    Title = "填充颜色"
+}):AddColorPicker("LXPPLAYEROUTLINECOLOR", {
+    Default = Color3.new(0.141176, 0.792156, 0.282352),
+    Title = "轮廓颜色"
+})
+
+ESPLXUSER:AddDivider()
+
+local ESPPlayers = Tabs.ESP:AddLeftGroupbox("玩家")
+ESPPlayers:AddToggle("ESPP_Enabled", {
+    Text = "启用",
+    Default = false
+}):AddColorPicker("ESPPLAYERFILLCOLOR", {
+    Default = Color3.new(1, 1, 1),
+    Title = "填充颜色"
+}):AddColorPicker("ESPPLAYEROUTLINECOLOR", {
+    Default = Color3.new(1, 1, 1),
+    Title = "轮廓颜色"
+})
+
+local ESPInteractables = Tabs.ESP:AddRightTabbox("可交互对象")
+
+local ESPInteractables_Main = ESPInteractables:AddTab("主要")
+ESPInteractables_Main:AddToggle("ESPI_M_Enabled", {
+    Text = "启用",
+    Default = false
+})
+
+ESPInteractables_Main:AddDivider()
+
+ESPInteractables_Main:AddToggle("ESPI_M_Name", {
+    Text = "名称",
+    Default = false
+})
+
+ESPInteractables_Main:AddToggle("ESPI_M_Distance", {
+    Text = "距离",
+    Default = false
+})
+
+ESPInteractables_Main:AddToggle("ESPI_M_Fill", {
+    Text = "高亮填充",
+    Default = false
+})
+
+ESPInteractables_Main:AddToggle("ESPI_M_Outline", {
+    Text = "高亮轮廓",
+    Default = false
+})
+
+local ESPInteractables_Configurate = ESPInteractables:AddTab("配置")
+
+-- 这里添加所有可交互对象的配置
+local interactableItems = {
+    {name = "ESPI_C_Doors", text = "门"},
+    {name = "ESPI_C_DoorKeys", text = "门钥匙"},
+    {name = "ESPI_C_GoldPiles", text = "金堆"},
+    {name = "ESPI_C_GeneratorFuses", text = "发电机保险丝"},
+    {name = "ESPI_C_Generators", text = "发电机"},
+    {name = "ESPI_C_GateLevers", text = "门闸杠杆"},
+    {name = "ESPI_C_LibraryBooks", text = "图书馆书籍"},
+    {name = "ESPI_C_BreakerPoles", text = "断路器杆"},
+    {name = "ESPI_C_Anchors", text = "锚点"},
+    {name = "ESPI_C_BackroomsLevers", text = "计时器杠杆"},
+    {name = "ESPI_C_MiscPickups", text = "杂项物品"},
+}
+
+for _, item in ipairs(interactableItems) do
+    ESPInteractables_Configurate:AddToggle(item.name, {
+        Text = item.text,
+        Default = false
+    }):AddColorPicker(item.name .. "_F", {
+        Default = Color3.new(1, 1, 1),
+        Title = "填充颜色"
+    }):AddColorPicker(item.name .. "_O", {
+        Default = Color3.new(1, 1, 1),
+        Title = "轮廓颜色"
+    })
+end
+
+local ESPSettings = Tabs.ESP:AddRightGroupbox("ESP设置")
+ESPSettings:AddDropdown("ESPS_Font", {
+    Values = { "Arial", "SourceSans", "Highway", "Fantasy", "Gotham", "DenkOne", "JosefinSans", "Nunito", "Oswald", "RobotoMono", "Sarpanch", "Ubuntu" },
+    Default = 9,
+    Multi = false,
+    Text = "文本字体"
+})
+
+ESPSettings:AddSlider("ESPS_FontSize", {
+    Text = "字体大小",
+    Default = 20,
+    Min = 10,
+    Max = 32,
+    Rounding = 0,
+    Compact = true
+})
+
+ESPSettings:AddDivider()
+
+ESPSettings:AddSlider("ESPS_FillTransparency", {
+    Text = "填充透明度",
+    Default = 0.7,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Compact = true
+})
+
+ESPSettings:AddSlider("ESPS_OutlineTransparency", {
+    Text = "轮廓透明度",
+    Default = 0.2,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Compact = true
+})
+
+ESPSettings:AddDivider()
+
+ESPSettings:AddSlider("ESPS_FadeTime", {
+    Text = "淡入/淡出时间",
+    Default = 1,
+    Min = 0,
+    Max = 2,
+    Rounding = 2,
+    Compact = true,
+    Suffix = "秒"
+})
+
+-- 视觉效果标签页
+local VisualsView = Tabs.Visuals:AddLeftGroupbox("视角")
+VisualsView:AddSlider("VV_FieldOfView", {
+    Text = "视野",
+    Default = 0,
+    Min = 0,
+    Max = 120,
+    Rounding = 0,
+    Compact = true,
+    Tooltip = "更改相机视野"
+})
+
+VisualsView:AddToggle("VV_NoCamShake", {
+    Text = "无相机抖动",
+    Default = false,
+    Tooltip = "移除实体或其他事物引起的任何相机抖动"
+})
+
+VisualsView:AddToggle("VV_NoLookBob", {
+    Text = "无视角晃动",
+    Default = false,
+    Tooltip = "移除行走时发生的任何视角晃动"
+})
+
+VisualsView:AddDivider()
+
+VisualsView:AddToggle("VV_Thirdperson", {
+    Text = "第三人称",
+    Default = false,
+    Tooltip = "更改相机可见性以第三人称查看本地角色"
+}):AddKeyPicker("VV_Thirdperson_K", {
+    Default = "V",
+    SyncToggleState = false,
+    Mode = "Toggle",
+    Text = "第三人称",
+    NoUI = false
+})
+
+VisualsView:AddToggle("VV_ThirdpersonCamCollision", {
+    Text = "墙壁检测",
+    Default = false,
+    Tooltip = "如果有任何墙壁，则使相机位置位于检测到的墙壁上，为了可见性"
+})
+
+VisualsView:AddSlider("VV_ThirdpersonDistance", {
+    Text = "距离",
+    Default = 10,
+    Min = 5,
+    Max = 30,
+    Rounding = 0,
+    Compact = true,
+    Tooltip = "第三人称的相机距离"
+})
+
+VisualsView:AddSlider("VV_ThirdpersonOffset", {
+    Text = "偏移",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1,
+    Compact = true,
+    Tooltip = "第三人称的相机左/右偏移"
+})
+
+VisualsView:AddSlider("VV_ThirdpersonOffsetUp", {
+    Text = "垂直偏移",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1,
+    Compact = true,
+    Tooltip = "第三人称的相机上/下偏移"
+})
+
+VisualsView:AddDivider()
+
+VisualsView:AddToggle("VV_ViewmodelOffset", {
+    Text = "视图模型偏移",
+    Default = false,
+    Tooltip = "持有工具时角色视图模型的修改器"
+})
+
+VisualsView:AddSlider("VV_ViewmodelOffset_X", {
+    Text = "X",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1,
+    Compact = true,
+})
+
+VisualsView:AddSlider("VV_ViewmodelOffset_Y", {
+    Text = "Y",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1,
+    Compact = true,
+})
+
+VisualsView:AddSlider("VV_ViewmodelOffset_Z", {
+    Text = "Z",
+    Default = 0,
+    Min = -5,
+    Max = 5,
+    Rounding = 1,
+    Compact = true,
+})
+
+local VisualsWorld = Tabs.Visuals:AddRightGroupbox("世界")
+VisualsWorld:AddToggle("VW_Ambience", {
+    Text = "环境光",
+    Default = false,
+    Tooltip = "更改地图颜色"
+}):AddColorPicker("VW_Ambience_C", {
+    Default = Color3.new(1, 1, 1),
+    Title = "环境光颜色"
+})
+
+VisualsWorld:AddToggle("VW_NoFog", {
+    Text = "移除雾效",
+    Default = false,
+    Tooltip = "如果可用则移除地图雾效"
+})
+
+VisualsWorld:AddDivider()
+
+VisualsWorld:AddToggle("VW_RushNodes", {
+    Text = "显示Rush节点",
+    Tooltip = "显示Rush和Ambush移动时将采取的路径"
+})
+
+local VisualsRemovals = Tabs.Visuals:AddRightGroupbox("移除效果")
+VisualsRemovals:AddToggle("VR_NoHasteEffect", {
+    Text = "无Haste效果",
+    Default = false,
+    Tooltip = "移除haste生成时的渐晕和红色颜色校正效果"
+})
+
+VisualsRemovals:AddToggle("VR_NoHidingVignette", {
+    Text = "无隐藏渐晕",
+    Default = false,
+    Tooltip = "隐藏时移除屏幕渐晕"
+})
+
+VisualsRemovals:AddToggle("VR_NoHaltEffect", {
+    Text = "无Halt效果",
+    Default = false,
+    Tooltip = "移除halt房间期间的闪烁效果"
+})
+
+VisualsRemovals:AddToggle("VR_NoReviveCutscene", {
+    Text = "无复活过场",
+    Default = false,
+    Tooltip = "移除复活时的心脏过场"
+})
+
+VisualsRemovals:AddDivider()
+
+VisualsRemovals:AddToggle("VR_TimothyJumpscare", {
+    Text = "移除Timothy惊吓",
+    Default = false,
+    Tooltip = "移除Timothy生成时的惊吓"
+})
+
+VisualsRemovals:AddToggle("VR_NoGlitchJumpscare", {
+    Text = "移除Glitch惊吓",
+    Default = false,
+    Tooltip = "移除客户端侧的glitch惊吓"
+})
+
+VisualsRemovals:AddToggle("VR_NoVoidEffect", {
+    Text = "移除Void效果",
+    Default = false,
+    Tooltip = "移除客户端侧的void效果"
+})
+
+VisualsRemovals:AddToggle("VR_NoSeekEffects", {
+    Text = "移除Seek房间效果",
+    Default = false,
+    Tooltip = "移除戏弄和追逐期间的客户端侧Seek眼睛和纹理效果"
+})
+
+-- 杂项标签页
+local MiscMovement = Tabs.Misc:AddLeftGroupbox("移动")
+MiscMovement:AddToggle("MM_Walkspeed", {
+    Text = "启用速度修改器",
+    Default = false,
+    Tooltip = "根据设定值设置玩家速度"
+})
+
+MiscMovement:AddSlider("MM_Walkspeed_S", {
+    Text = "行走速度量",
+    Default = 20,
+    Min = 10,
+    Max = 50,
+    Rounding = 0,
+    Compact = true,
+    Tooltip = "控制玩家行走速度量"
+})
+
+MiscMovement:AddSlider("MM_Walkspeed_Boost", {
+    Text = "梯子速度提升",
+    Default = 0,
+    Min = 0,
+    Max = 50,
+    Rounding = 0,
+    Compact = true,
+    Tooltip = "爬梯子的速度提升。高值可能变得不稳定。"
+})
+
+MiscMovement:AddDivider()
+
+MiscMovement:AddToggle("MM_NoAcceleration", {
+    Text = "无加速度",
+    Default = false,
+    Tooltip = "移动或切换方向时移除加速度"
+})
+
+local MiscAudio = Tabs.Misc:AddRightGroupbox("音频")
+MiscAudio:AddToggle("MA_SilentJammin", {
+    Text = "静音Jammin修改器",
+    Default = false,
+    Tooltip = "移除jeff商店jammin修改器音乐"
+})
+
+MiscAudio:AddDivider()
+
+MiscAudio:AddToggle("MA_NoHasteSound", {
+    Text = "无Haste声音",
+    Default = false,
+    Tooltip = "静音haste生成时极其烦人的环境音"
+})
+
+MiscAudio:AddToggle("MA_SilentInteracting", {
+    Text = "无交互声音",
+    Default = false,
+    Tooltip = "与提示交互时静音"
+})
+
+MiscAudio:AddToggle("MA_NoRandomAmbience", {
+    Text = "无随机环境音",
+    Default = false,
+    Tooltip = "移除可能发生的任何随机噪音环境音"
+})
+
+MiscAudio:AddToggle("MA_SilentGloombat", {
+    Text = "静音Gloombats",
+    Default = false,
+    Tooltip = "使任何gloombat飞行和咆哮静音，因为它可能触发或严重困扰某些人"
+})
+
+local MiscellaneousOther = Tabs.Misc:AddLeftGroupbox("其他")
+MiscellaneousOther:AddToggle("MO_antirobloxvoid", {
+    Text = "无Roblox虚空",
+    Default = false,
+    Tooltip = "移除ROBLOX掉落部件销毁高度"
+})
+
+MiscellaneousOther:AddDivider()
+
+MiscellaneousOther:AddButton("再次游玩", function()
+    game.ReplicatedStorage.RemotesFolder.PlayAgain:FireServer()
+end)
+
+MiscellaneousOther:AddButton("大厅", function()
+    game.ReplicatedStorage.RemotesFolder.Lobby:FireServer()
+end)
+
+MiscellaneousOther:AddButton("复活", function()
+    game.ReplicatedStorage.RemotesFolder.Revive:FireServer()
+end)
+
+-- 配置标签页
+local MenuProperties = Tabs.Config:AddLeftGroupbox("菜单")
+MenuProperties:AddButton("卸载", function()
+    Library:Unload()
+    Library.Unloaded = true
+
+    for _, Connection in Connections do
+        Connection:Disconnect()
+    end
+    Detection:Disconnect()
+    if ThirdpersonParts then ThirdpersonParts:Destroy() end
+    if LXNotifications then LXNotifications:Destroy() end
+    if ClonedCollision then ClonedCollision:Destroy() end
+
+    game.Lighting.GlobalShadows = true
+    game.Lighting.OutdoorAmbient = Color3.new(0,0,0)
+
+    for _, v in workspace:GetDescendants() do
+        if v.Name:sub(1, 7) == "_LOLHAX" then
+            v:Destroy()
+        end
+    end
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties = OldAccel
+    end
+
+    if Main_Game then
+        Main_Game.spring.Speed = 8
+        Main_Game.fovtarget = 70
+    end
+
+    if getsenv then
+        getsenv(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.Movement).updatespeed()
+    end
+
+    if ShadeModule then ShadeModule.stuff = ShadeFunction end
+    if GlitchModule then GlitchModule.stuff = GlitchFunction end
+    if VoidModule then VoidModule.stuff = VoidFunction end
+    if SeekModule then SeekModule.tease = SeekFunction end
+end)
+
+MenuProperties:AddLabel("菜单键绑定"):AddKeyPicker("MenuKeybind", {
+    Default = "RightShift",
+    NoUI = true,
+    Text = "菜单键绑定"
+})
+
+MenuProperties:AddDivider()
+MenuProperties:AddToggle("keybindmenu", {
+    Text = "显示键绑定",
+    Default = false
+})
+
+-- 主题管理器设置
+local ThemeManagerGroup = Tabs.Config:AddRightGroupbox("主题管理")
+ThemeManagerGroup:AddLabel("选择主题"):AddDropdown("ThemeDropdown", {
+    Values = ThemeManager.Themes,
+    Default = 1,
+    Multi = false,
+    Text = "主题",
+    Callback = function(Value)
+        ThemeManager:SetTheme(Value)
+    end
+})
+
+ThemeManagerGroup:AddButton("保存主题", function()
+    ThemeManager:SaveCustomTheme()
+end)
+
+ThemeManagerGroup:AddButton("重置主题", function()
+    ThemeManager:ResetTheme()
+end)
+
+local DebugStuff = Tabs.Config:AddRightGroupbox("其他")
+DebugStuff:AddToggle("DS_Debug", {
+    Text = "启用调试模式",
+    Default = false,
+})
+
+DebugStuff:AddToggle("DS_BSRPC", {
+    Text = "Bloxstrap RPC",
+    Default = true
+})
+
+-- ========== 实现代码开始 ==========
+
+-- 变量定义
+local A90Hook, ScreechHook, TimothyHook
+local Main_Game, ShadeModule, GlitchModule, VoidModule, SeekModule
+local ShadeFunction, GlitchFunction, VoidFunction, SeekFunction
+
+LocalPlayer.Character:SetAttribute("CanJump", LocalPlayer.Character:GetAttribute("CanJump") or false) 
+local CanJump = LocalPlayer.Character:GetAttribute("CanJump")
+
+LocalPlayer.Character:SetAttribute("SpeedBoost", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostBehind", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+LocalPlayer.Character:SetAttribute("SpeedBoostExtra", LocalPlayer.Character:GetAttribute("SpeedBoost") or 0)
+
+local OldAccel = LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties
+
+local PadlockCode
+local PadlockCode_N
+local OldFog
+local Atmosphere = game.Lighting:FindFirstChildWhichIsA("Atmosphere")
+if Atmosphere then
+    OldFog = Atmosphere.Density
+end
+
+local OldFogEnd = game.Lighting.FogEnd
+
+-- 实例变量
+local Rooms = workspace.CurrentRooms
+
+local ThirdpersonParts = Instance.new("Folder", workspace)
+ThirdpersonParts.Name = "_ThirdpersonParts"
+
+local LXNotifications = Instance.new("ScreenGui", game.CoreGui)
+LXNotifications.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+LXNotifications.ScreenInsets = Enum.ScreenInsets.None
+LXNotifications.Name = "_LXNotifications"
+
+local NotificationHolder = Instance.new("Frame", LXNotifications)
+NotificationHolder.Size = UDim2.fromScale(1, 1)
+NotificationHolder.Transparency = 1
+
+local ClonedCollision = LocalPlayer.Character.CollisionPart:Clone()
+ClonedCollision.Name = "_CollisionClone"
+ClonedCollision.Massless = true
+ClonedCollision.Parent = LocalPlayer.Character
+ClonedCollision.CanCollide = false
+ClonedCollision.CanQuery = false
+ClonedCollision.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.7, 0, 1, 1)
+
+-- 表格变量
+local AnchorIdentify = {
+    ["A"] = 1,
+    ["B"] = 2,
+    ["C"] = 3,
+    ["D"] = 4,
+    ["E"] = 5,
+    ["F"] = 6
+}
+
+local EntityDistances = {
+    ["RushMoving"] = 50,
+    ["BackdoorRush"] = 50,
+    ["AmbushMoving"] = 100,
+    ["A60"] = 100,
+    ["A120"] = 35
+}
+
+local LightSources = {
+    "Flashlight",
+    "Candle",
+    "Straplight",
+    "Lighter",
+    "LaserPointer",
+    "Bulklight",
+    "Glowsticks"
+}
+
+local MiscPickups = {
+    ["Glowsticks"] = "Glowstick",
+    ["StarJug"] = "Barrel of Starlight",
+    ["Lockpick"] = "Lock-Pick",
+    ["Bandage"] = "Bandage",
+    ["StarVial"] = "Vial of Starlight",
+    ["SkeletonKey"] = "Skeleton Key",
+    ["Crucifix"] = "Crucifix",
+    ["CrucifixWall"] = "Crucifix",
+    ["Flashlight"] = "Flashlight",
+    ["Candle"] = "Candle",
+    ["Straplight"] = "Straplight",
+    ["Vitamins"] = "Vitamins",
+    ["Lighter"] = "Lighter",
+    ["Shears"] = "Shears",
+    ["BatteryPack"] = "Battery Pack",
+    ["BandagePack"] = "Bandage Pack",
+    ["LaserPointer"] = "Laser Pointer",
+    ["Bulklight"] = "Bulk Light",
+    ["Battery"] = "Battery",
+    ["Candy"] = "Candy"
+}
+
+local EspTable = {
+    Interactables = {
+        GoldPiles = {},
+        Doors = {},
+        DoorKeys = {},
+        GeneratorFuses = {},
+        Generators = {},
+        GateLevers = {},
+        BackroomsLevers = {},
+        LibraryBooks = {},
+        BreakerPoles = {},
+        Anchors = {},
+        MiscPickups = {}
+    },
+    Entities = {},
+    Players = {}
+}
+
+-- 通知函数
+local GlobalOffset = 0
+function Notify(TitleText, SubText, Duration, Force)
+    if not Force then
+        if not Toggles.GN_Enabled.Value then return end
+    end
+
+    local DPISize = Options.GN_NotificationDPISize.Value
+
+    local Offset = GlobalOffset
+    GlobalOffset += 0.05 * DPISize
+
+    local MainColor = Options.AccentColor.Value
+    local Alignment = 0.5
+    if Options.GN_NotificationAlignment.Value == "左" then
+        Alignment = 1
+    elseif Options.GN_NotificationAlignment.Value == "右" then
+        Alignment = 0
+    end
+
+    local Main = Instance.new("Frame", NotificationHolder)
+    Main.AnchorPoint = Vector2.new(Alignment, 0.5)
+    Main.Size = UDim2.fromScale(0.19 * DPISize, 0.045 * DPISize)
+    Main.Position = UDim2.fromScale(0.5, 0.5)
+    Main.Transparency = 1
+
+    local Line = Instance.new("Frame", Main)
+    Line.AnchorPoint = Vector2.new(0, 1)
+    Line.BorderSizePixel = 0
+    Line.Position = UDim2.fromScale(0, 1)
+    Line.Size = UDim2.fromScale(0, 0.03)
+    Line.Transparency = 1
+
+    local LXLogo = Instance.new("ImageLabel", Main)
+    LXLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+    LXLogo.Position = UDim2.fromScale(0.067, 0.5)
+    LXLogo.Size = UDim2.fromScale(0.121, 0.9)
+    LXLogo.Image = "rbxassetid://90305907167101"
+    LXLogo.ScaleType = Enum.ScaleType.Fit
+    LXLogo.Transparency = 1
+
+    local Title = Instance.new("TextLabel", Main)
+    Title.AnchorPoint = Vector2.new(0, 0.5)
+    Title.Position = UDim2.fromScale(0.135, 0.35)
+    Title.Size = UDim2.fromScale(100, 0.35)
+    Title.Font = Enum.Font.SourceSans
+    Title.Text = "[LOLHAX] " .. TitleText
+    Title.TextScaled = true
+    Title.TextSize = 1
+    Title.TextStrokeTransparency = 0.5
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Transparency = 1
+
+    local Description = Instance.new("TextLabel", Main)
+    Description.AnchorPoint = Vector2.new(0, 0.5)
+    Description.Position = UDim2.fromScale(0.135, 0.667)
+    Description.Size = UDim2.fromScale(100, 0.29)
+    Description.Font = Enum.Font.SourceSans
+    Description.Text = SubText
+    Description.TextScaled = true
+    Description.TextSize = 1
+    Description.TextStrokeTransparency = 0.5
+    Description.TextXAlignment = Enum.TextXAlignment.Left
+    Description.Transparency = 1
+
+    local Number = math.max(Title.TextBounds.X, Description.TextBounds.X) * 1.125
+    local FinalOffset = math.clamp(Number - 265, 0, 9e9)
+
+    Main.Size += UDim2.fromOffset(FinalOffset, 0)
+
+    if Toggles.GN_NotificationSound.Value then
+        local Sound = Instance.new("Sound", game.CoreGui)
+        Sound.SoundId = "rbxassetid://3318713980"
+        Sound.Volume = Options.GN_NotificationSound_Volume.Value
+
+        Sound.PlayOnRemove = true
+        Sound:Destroy()
+    end
+
+    local Timer = Duration or 10 / 3
+
+    local LockColor = game:GetService("RunService").RenderStepped:Connect(function()
+        MainColor = Options.AccentColor.Value
+
+        Main.BackgroundColor3 = Options.MainColor.Value
+        Main.BorderColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.4)
+
+        Line.BackgroundColor3 = MainColor
+
+        LXLogo.ImageColor3 = MainColor
+
+        Title.TextColor3 = MainColor
+        Title.TextStrokeColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.8)
+
+        Description.TextColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.15)
+        Description.TextStrokeColor3 = MainColor:Lerp(Color3.new(0, 0, 0), 0.8)
+    end)
+
+    local Info = TweenInfo.new(4 / 3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    game:GetService("TweenService"):Create(Main, Info, {Position = UDim2.fromScale(0.5, 0.6 + Offset)}):Play()
+
+    game:GetService("TweenService"):Create(Main, Info, {Transparency = 0.35}):Play()
+    game:GetService("TweenService"):Create(Line, Info, {Transparency = 0}):Play()
+    game:GetService("TweenService"):Create(LXLogo, Info, {ImageTransparency = 0}):Play()
+    game:GetService("TweenService"):Create(Title, Info, {TextTransparency = 0}):Play()
+    game:GetService("TweenService"):Create(Description, Info, {TextTransparency = 0}):Play()
+
+    Line:TweenSize(UDim2.fromScale(1, 0.03), "Out", "Linear", Timer)
+
+    task.delay(Timer + 0.1, function()
+        local Info = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        local MainTween = game:GetService("TweenService"):Create(Main, Info, {Position = UDim2.fromScale(0.5, 0.525)})
+        MainTween:Play()
+
+        game:GetService("TweenService"):Create(Main, Info, {Transparency = 1}):Play()
+        game:GetService("TweenService"):Create(Line, Info, {Transparency = 1}):Play()
+        game:GetService("TweenService"):Create(LXLogo, Info, {ImageTransparency = 1}):Play()
+        game:GetService("TweenService"):Create(Title, Info, {TextTransparency = 1}):Play()
+        game:GetService("TweenService"):Create(Description, Info, {TextTransparency = 1}):Play()
+
+        GlobalOffset -= 0.05 * DPISize
+        MainTween.Completed:Once(function()
+            LockColor:Disconnect()
+            Main:Destroy()
+        end)
+    end)
+end
+
+-- ESP功能
+function Esp(Parent, TextAdornee, Text, Color, OutlineColor)
+    local BillboardGui = Instance.new("BillboardGui", Parent)
+    local TextLabel = Instance.new("TextLabel", BillboardGui)
+    local Highlight = Instance.new("Highlight", Parent)
+
+    BillboardGui.Adornee = TextAdornee
+    BillboardGui.AlwaysOnTop = true
+    BillboardGui.Name = "_LOLHAXBG"
+    BillboardGui.Size = UDim2.fromScale(1, 1)
+    BillboardGui.Enabled = true
+
+    Highlight.Name = "_LOLHAXHL"
+
+    TextLabel.Size = UDim2.fromScale(1, 1)
+    TextLabel.TextStrokeTransparency = 0
+    TextLabel.Font = Enum.Font[Options.ESPS_Font.Value]
+    TextLabel.TextSize = Options.ESPS_FontSize.Value
+    TextLabel.TextColor3 = Color
+    TextLabel.BackgroundTransparency = 1
+
+    Highlight.Adornee = Parent
+
+    Highlight.FillColor = Color
+    Highlight.OutlineColor = OutlineColor or Color
+
+    TextLabel.TextTransparency = 1
+    Highlight.FillTransparency = 1
+    Highlight.OutlineTransparency = 1
+
+    TextLabel:SetAttribute("Text", Text)
+
+    task.spawn(function()
+        while Parent and not Library.Unloaded and task.wait() do
+            local Distance = (workspace.CurrentCamera.CFrame.Position - Parent:GetPivot().Position).Magnitude
+
+            TextLabel.Text = Text.."\n[ "..string.format(Distance <= 9.9 and "%.1f" or "%.0f", Distance).." ]"
+        end
+    end)
+
+    game:GetService("TweenService"):Create( Highlight, TweenInfo.new( Options.ESPS_FadeTime.Value ), { FillTransparency = Options.ESPS_FillTransparency.Value } ):Play()
+    game:GetService("TweenService"):Create( Highlight, TweenInfo.new( Options.ESPS_FadeTime.Value ), { OutlineTransparency = Options.ESPS_OutlineTransparency.Value } ):Play()
+    game:GetService("TweenService"):Create( TextLabel, TweenInfo.new( Options.ESPS_FadeTime.Value ), { TextTransparency = 0 } ):Play()
+
+    return Highlight, TextLabel
+end
+
+function RemoveEspSmooth(Parent)
+    for _, x in Parent:GetChildren() do
+        if x.Name == "_LOLHAXBG" then
+            game:GetService("TweenService"):Create( x.TextLabel, TweenInfo.new(1), { TextTransparency = 1 } ):Play()
+
+            task.delay(Options.ESPS_FadeTime.Value, function()
+                x:Destroy()
+            end)
+        elseif x.Name == "_LOLHAXHL" then
+            game:GetService("TweenService"):Create( x, TweenInfo.new( Options.ESPS_FadeTime.Value ), { FillTransparency = 1 } ):Play()
+            game:GetService("TweenService"):Create( x, TweenInfo.new( Options.ESPS_FadeTime.Value ), { OutlineTransparency = 1 } ):Play()
+
+            task.delay(Options.ESPS_FadeTime.Value, function()
+                x:Destroy()
+            end)
+        end
+    end
+end
+
+function RemoveEspSmoothNoanim(Parent)
+    for _, x in Parent:GetChildren() do
+        if x.Name == "_LOLHAXBG" then
+            x:Destroy()
+        elseif x.Name == "_LOLHAXHL" then
+            x:Destroy()
+        end
+    end
+end
+
+-- 玩家ESP功能
+function lawl(Parent, Text)
+    if Toggles.ESPP_Enabled.Value then
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.ESPPLAYERFILLCOLOR.Value, Options.ESPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.ESPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(epiklistofpeople) do          
+                RemoveEspSmoothNoanim(Player.Character)  
+            end
+            task.wait(0.1)
+            epiklistofpeople = {}
+        end)
+    end
+end
+
+function LXSmth(Parent, Text)
+    if Toggles.LXPP_Enabled.Value then
+        RemoveEspSmoothNoanim(Parent)  
+        local Highlight, TextLabel = Esp(Parent, Parent, Parent.Name, Options.LXPLAYERFILLCOLOR.Value, Options.LXPPLAYEROUTLINECOLOR.Value)
+        table.insert(EspTable.Players, {Highlight, TextLabel})
+        task.spawn(function()
+            repeat task.wait() until not Toggles.LXPP_Enabled.Value or Library.Unloaded 
+            for _,Player in pairs(LXUser) do         
+                RemoveEspSmoothNoanim(Player.Character)  
+                task.wait()   
+                table.insert(epiklistofpeople, Player.Character)
+                lawl(Player.Character, Player.Name)
+            end
+            task.wait(0.1)
+            LXUser = {}  
+        end)
+    end
+end
+
+-- 自动隐藏功能
+function GetHiding()
+    local Closest
+    local Prompt
+
+    for _, v in Rooms[LocalPlayer:GetAttribute("CurrentRoom")].Assets:GetChildren() do
+        if v:IsA("Model") then
+
+            if v.Name == "Locker_Large" or v.Name == "Wardrobe" or v.Name == "Toolshed" or v.Name == "Bed" or v.Name == "Rooms_Locker" or v.Name == "Rooms_Locker_Fridge" or v.Name == "Backdoor_Wardrobe" and v:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                if not v.HiddenPlayer.Value and not v:FindFirstChild("HideEntityOnSpot", true) then
+                    if Closest then
+                        if (LocalPlayer.Character.Collision.Position - v.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                            Closest = v
+                            Prompt = v.HidePrompt
+                        end
+                    else
+                        Closest = v
+                        Prompt = v.HidePrompt
+                    end
+
+                end
+            elseif v.Name == "Double_Bed" then
+                for _, x in v:GetChildren() do
+                    if x.Name == "DoubleBed" and x:FindFirstChild("HidePrompt") and x:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not x:FindFirstChild("HideEntityOnSpot", true) then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            elseif v.Name == "Dumpster" then
+                for _, x in v:GetChildren() do
+                    if x:FindFirstChild("HidePrompt") and x:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not v.DumpsterBase:FindFirstChild("HideEntityOnSpot") then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            end
+
+        elseif v:IsA("Folder") then
+
+            if v.Name == "Blockage" then
+                for _, x in v:GetChildren() do
+                    if x:IsA("Model") and x.Name == "Wardrobe" then
+
+                        if not x.HiddenPlayer.Value then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = x
+                                    Prompt = x.HidePrompt
+                                end
+                            else
+                                Closest = x
+                                Prompt = x.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            elseif v.Name == "Vents" then
+                for _, x in v:GetChildren() do
+                    if x.Name == "CircularVent" and v:FindFirstChild("Grate") and x.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                        if not x.HiddenPlayer.Value and not v:FindFirstChild("HideEntityOnSpot", true) then
+                            if Closest then
+                                if (LocalPlayer.Character.Collision.Position - x.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                                    Closest = v
+                                    Prompt = x.Grate.HidePrompt
+                                end
+                            else
+                                Closest = v
+                                Prompt = x.Grate.HidePrompt
+                            end
+                        end
+
+                    end
+                end
+            end
+
+        end
+    end
+
+    for _, v in Rooms[LocalPlayer:GetAttribute("CurrentRoom")]:GetChildren() do
+        if v:IsA("Model") then
+            if v.Name == "CircularVent" and v.Grate:FindFirstChild("HidePrompt") and v:FindFirstChild("HiddenPlayer") then
+
+                if v.HiddenPlayer.Value ~= nil or v.HiddenPlayer.Value ~= "" and not v:FindFirstChild("HideEntityOnSpot", true) then
+                    if Closest then
+                        if (LocalPlayer.Character.Collision.Position - v.PrimaryPart.Position).Magnitude < (Closest.PrimaryPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude then
+                            Closest = v
+                            Prompt = v.Grate.HidePrompt
+                        end
+                    else
+                        Closest = v
+                        Prompt = v.Grate.HidePrompt
+                    end
+                end
+
+            end
+        end
+    end
+
+    return Prompt
+end
+
+-- 物品检测功能
+function HasItem(Item)
+    return (LocalPlayer.Character:FindFirstChild(Item) or LocalPlayer.Backpack:FindFirstChild(Item))
+end
+
+function FindLoot(Origin)
+    local Glowsticks = HasItem("Glowsticks")
+    local BandagePack = HasItem("BandagePack")
+    local BatteryPack = HasItem("BatteryPack")
+
+    for _, Loot in Origin:GetChildren() do
+        if Loot.Name == "Glowsticks" and not Options.GA_AutoInteract_Options.Value["忽略光源"] then
+
+            if not (Glowsticks and Glowsticks:GetAttribute("Durability") >= Glowsticks:GetAttribute("DurabilityMax")) then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "GoldPile" then
+
+            if (Loot.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.LootPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.LootPrompt)
+            end
+
+        elseif Loot.Name == "Bandage" then
+
+            if (LocalPlayer.Character.Humanoid.Health < 100 or (BandagePack and BandagePack:GetAttribute("Durability") < BandagePack:GetAttribute("DurabilityMax"))) then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "FuseHolder" then
+
+            if Loot:FindFirstChild("FuseObtain") and Loot.FuseObtain.Hitbox.FuseModel.LocalTransparencyModifier <= 0 then
+                if (Loot.FuseObtain.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.FuseObtain.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.FuseObtain.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "StarJug" or Loot.Name == "Lockpick" or Loot.Name == "StarVial" or Loot.Name == "SkeletonKey" or Loot.Name == "Crucifix" or Loot.Name == "CrucifixWall" or Loot.Name == "Flashlight" or Loot.Name == "Candle" or Loot.Name == "Straplight" or Loot.Name == "Vitamins" or Loot.Name == "Lighter" or Loot.Name == "Shears" or Loot.Name == "BatteryPack" or Loot.Name == "BandagePack" or Loot.Name == "LaserPointer" or Loot.Name == "Bulklight" then
+            local SameTool = HasItem(Loot:GetAttribute("Pickup"))
+
+            if table.find(LightSources, Loot.Name) and Options.GA_AutoInteract_Options.Value["忽略光源"] then
+                continue
+            end
+
+           if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.ModulePrompt)
+            end
+
+        elseif Loot.Name == "Candy" then
+
+            if Options.GA_AutoInteract_Options.Value["忽略致命糖果"] then
+				if Loot:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then continue end
+			end
+
+            if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(Loot.ModulePrompt)
+            end
+
+        elseif Loot.Name == "KeyObtain" then
+
+            if not (HasItem("Key") or HasItem("KeyBackdoor")) then
+                if (Loot.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        elseif Loot.Name == "Battery" then
+            local ToolHasNeedsBattery
+
+            for _, Tool in LocalPlayer.Backpack:GetChildren() do
+                if Tool:GetAttribute("RechargeProp") == "Battery" and Tool:GetAttribute("Durability") < Tool:GetAttribute("DurabilityMax") then
+                    ToolHasNeedsBattery = Tool
+
+                    break
+                end
+            end
+
+            if not ToolHasNeedsBattery then
+                local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+
+                if Tool and Tool:GetAttribute("RechargeProp") == "Battery" and Tool:GetAttribute("Durability") < Tool:GetAttribute("DurabilityMax") then
+                    ToolHasNeedsBattery = Tool
+                end
+            end
+
+            if (BatteryPack and BatteryPack:GetAttribute("Durability") < BatteryPack:GetAttribute("DurabilityMax")) or ToolHasNeedsBattery then
+                if (Loot.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Loot.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+
+                    if ToolHasNeedsBattery and ToolHasNeedsBattery.Parent ~= LocalPlayer.Character then
+                        ToolHasNeedsBattery.Parent = LocalPlayer.Character
+                    end
+
+                    fireproximityprompt(Loot.ModulePrompt)
+                end
+            end
+
+        end
+    end
+end
+
+-- 锚点解决功能
+function SolveAnchor(Code, Offset)
+    local Result = ""
+
+    local NumberTable = {}
+    table.insert(NumberTable, 1, string.sub(tostring(Code), 1, 1))
+    table.insert(NumberTable, 2, string.sub(tostring(Code), 2, 2))
+    table.insert(NumberTable, 3, string.sub(tostring(Code), 3, 3))
+
+    for i ,Number in NumberTable do
+        Number += Offset
+
+        if Number > 9 then
+            Number -= 10
+        elseif Number < 0 then
+            Number += 10
+        end
+
+        NumberTable[i] = Number
+    end
+
+    for _, Number in NumberTable do
+        Result = Result..Number
+    end
+
+    return Result
+end
+
+-- 主要连接和循环
+local Connections = {}
+
+-- 加载必要的模块
+task.spawn(function()
+    repeat task.wait() until LocalPlayer.PlayerGui:FindFirstChild("MainUI")
+    Main_Game = require(LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+    
+    if game.ReplicatedStorage:FindFirstChild("ModulesClient") then
+        ShadeModule = require(game.ReplicatedStorage.ModulesClient.EntityModules.Shade)
+        GlitchModule = require(game.ReplicatedStorage.ModulesClient.EntityModules.Glitch)
+        VoidModule = require(game.ReplicatedStorage.ModulesClient.EntityModules.Void)
+        SeekModule = require(game.ReplicatedStorage.ModulesClient.EntityModules.Seek)
+
+        ShadeFunction = ShadeModule.stuff
+        GlitchFunction = GlitchModule.stuff
+        VoidFunction = VoidModule.stuff
+        SeekFunction = SeekModule.tease
+    end
+end)
+
+-- 主要渲染循环
+table.insert(Connections, game:GetService("RunService").RenderStepped:Connect(function()
+    if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Collision")) then return end
+    
+    -- 垃圾邮件工具功能
+    if Toggles.Spamtoolz.Value and Options.Spamtoolz_X:GetState() then
+        task.wait()
+        for _,Player in pairs(game.Players:GetPlayers()) do
+            if Player ~= LocalPlayer and Player and not table.find(friends, Player.Name) then
+                for _,v in pairs(Player.Backpack:GetChildren()) do
+                    if v.Name ~= "Candle" and v:FindFirstChildWhichIsA("RemoteEvent") then
+                        v:FindFirstChildWhichIsA("RemoteEvent"):FireServer()
+                    end
+                end
+                local Tool = Player.Character:FindFirstChildWhichIsA("Tool")
+                if Tool and Tool.Name ~= "Candle" and Tool:FindFirstChild("Remote") then
+                    Tool.Remote:FireServer()
+                end
+            end
+        end
+    end
+    
+    -- 反作弊操纵
+    if Toggles.EB_ACManipulate.Value and Options.EB_ACManipulate_K:GetState() then
+        LocalPlayer.Character:PivotTo(LocalPlayer.Character:GetPivot() + workspace.CurrentCamera.CFrame.LookVector * Vector3.new(1, 0, 1) * -100)
+    end
+    
+    -- 视野设置
+    if Main_Game then
+        if Options.VV_FieldOfView.Value ~= 0 then
+            Main_Game.fovtarget = Options.VV_FieldOfView.Value
+        end
+
+        if Toggles.VV_NoCamShake.Value then
+            Main_Game.csgo = CFrame.new()
+        end
+
+        if Toggles.VV_Thirdperson.Value and Options.VV_Thirdperson_K:GetState() then
+            Main_Game.tooloffset = Vector3.new(0,-(1 / 3),0)
+        elseif Toggles.VV_ViewmodelOffset.Value then
+            Main_Game.tooloffset = Vector3.new(Options.VV_ViewmodelOffset_X.Value, Options.VV_ViewmodelOffset_Y.Value, Options.VV_ViewmodelOffset_Z.Value)
+        else
+            local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+
+            if Tool then
+                if Tool:GetAttribute("ToolOffset") then
+                    if Main_Game.tooloffset ~= Tool:GetAttribute("ToolOffset") then
+                        Main_Game.tooloffset = Tool:GetAttribute("ToolOffset")
+                    end
+                else
+                    Main_Game.tooloffset = Vector3.zero
+                end
+            end
+        end
+    end
+
+    -- 自动吃糖果
+    if Toggles.GA_EatCandies.Value and Options.GA_EatCandies_K:GetState() then
+        local Candy = LocalPlayer.Backpack:FindFirstChild("Candy")
+
+        if Candy and Candy:FindFirstChild("Remote") and not Candy:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then
+            Candy.Parent = LocalPlayer.Character
+		end
+
+        if LocalPlayer.Character:FindFirstChild("Candy") and LocalPlayer.Character.Candy:FindFirstChild("Remote") and not LocalPlayer.Character.Candy:FindFirstChild("Meshes/DOORS_EvilCandy_Cube", true) then
+			LocalPlayer.Character.Candy.Remote:FireServer()
+		end
+	end
+
+    -- 抗Eyes和抗Lookman
+    if not LocalPlayer.Character:GetAttribute("Hiding") then
+        if workspace:FindFirstChild("Eyes") and Toggles.ES_AntiEyes.Value then
+            for _, v in workspace:GetChildren() do
+                if v.Name == "Eyes" and v:FindFirstChild("Core") and v.Core:FindFirstChild("Ambience") and v.Core.Ambience.Playing then
+                    game.ReplicatedStorage.RemotesFolder.MotorReplication:FireServer(-650)
+                    break
+                end
+            end
+        end
+        if workspace:FindFirstChild("BackdoorLookman") and Toggles.ES_AntiLookman.Value then
+            for _, v in workspace:GetChildren() do
+                if v.Name == "BackdoorLookman" and v:FindFirstChild("Core") and v.Core:FindFirstChild("Ambience") and v.Core.Ambience.Playing then
+                    game.ReplicatedStorage.RemotesFolder.MotorReplication:FireServer(-650)
+                    break
+                end
+            end
+        end
+    end
+
+    -- 矿车交互
+    if Toggles.GA_MinecartInteract.Value and Options.GA_MinecartInteract_K:GetState() then
+        local CurrentRoom = Rooms[ LocalPlayer:GetAttribute("CurrentRoom") ]
+
+        if CurrentRoom.Assets:FindFirstChild("MinecartSet") then
+            for _, Minecart in CurrentRoom.Assets.MinecartSet:GetChildren() do
+                if Minecart:FindFirstChild("Cart") then
+                    if (LocalPlayer.Character.Collision.Position - Minecart.Main.Position).Magnitude < Minecart.Cart.PushPrompt.MaxActivationDistance * 2 then
+                        fireproximityprompt(Minecart.Cart.PushPrompt)
+                    end
+                end
+            end
+        end
+        if CurrentRoom.Assets:FindFirstChild("MinecartTracks") then
+            for _, Track in CurrentRoom.Assets.MinecartTracks:GetChildren() do
+                for _, MinecartMoving in Track.MinecartSet:GetChildren() do
+                    if MinecartMoving.Name == "MinecartMoving" then
+                        if (LocalPlayer.Character.Collision.Position - MinecartMoving.Main.Position).Magnitude < MinecartMoving.Cart.PushPrompt.MaxActivationDistance * 2 then
+                            fireproximityprompt(MinecartMoving.Cart.PushPrompt)
+                        end
+                    end
+                end
+            end
+        end
+        for _, Sideroom in CurrentRoom:GetChildren() do
+            if Sideroom.Name == "Sideroom" and Sideroom.Assets:FindFirstChild("MinecartSet") then
+                for _, Minecart in Sideroom.Assets.MinecartSet:GetChildren() do
+                    if Minecart:FindFirstChild("Cart") then
+                        if (LocalPlayer.Character.Collision.Position - Minecart.Main.Position).Magnitude < Minecart.Cart.PushPrompt.MaxActivationDistance * 2 then
+                            fireproximityprompt(Minecart.Cart.PushPrompt)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- 自动交互
+    if Toggles.GA_AutoInteract.Value and Options.GA_AutoInteract_K:GetState() then
+        local CurrentRoom = Rooms[ LocalPlayer:GetAttribute("CurrentRoom") ]
+
+        local Targets = {}
+
+        for _, v in CurrentRoom:GetChildren() do
+
+            if v:IsA("Folder") then
+            	if v.Name == "Assets" then
+
+                    table.insert(Targets, v)
+
+                    if v:FindFirstChild("Blockage") then
+                        table.insert(Targets, v.Blockage)
+                    end
+                    if v:FindFirstChild("Decor") and v.Decor:FindFirstChild("Folder") then
+                        table.insert(Targets, v.Decor.Folder)
+                    end
+
+                    for _, Assets in v:GetChildren() do
+                        if Assets.Name == "Alternate" and Assets:FindFirstChild("Keys") then
+
+                            for _, Root in Assets.Keys:GetChildren() do
+                                if Root:FindFirstChild("KeyObtain") then
+
+                                    if not (HasItem("Key") or HasItem("KeyBackdoor")) then
+                                        if (Root.KeyObtain.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.KeyObtain.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                            fireproximityprompt(Root.KeyObtain.ModulePrompt)
+                                        end
+                                    end
+
+                                end
+                            end
+
+                        elseif Assets.Name == "StandardDecor" and v:IsA("Folder") then
+
+                            table.insert(Targets, Assets)
+
+                        end
+                    end
+
+                end
+
+            elseif v:IsA("Model") then
+
+                if v.Name == "Sideroom" and v:FindFirstChild("Assets") then 
+
+                    table.insert(Targets, v.Assets)
+                
+                elseif v.Name == "Door" and v:FindFirstChild("Lock") then
+                    local Item = (Options.GA_AutoInteract_Options.Value["使用开锁器 (门)"] and HasItem("Lockpick")) or HasItem("Key") or LocalPlayer.Character:FindFirstChild("KeyBackdoor")
+
+                    if Item then
+                        if (v.Lock.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Lock.UnlockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(v.Lock.UnlockPrompt)
+                        end
+                    end
+                elseif v.Name == "AlarmClock" then
+
+                    if (v.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(v.ModulePrompt)
+                    end
+                elseif v.Name == "PickupItem" and not HasItem("LibraryHintPaper") then
+
+                    if (v.Handle.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(v.ModulePrompt)
+                    end
+
+                elseif v.Name == "LiveBreakerPolePickup" then
+
+                    local Prompt
+                    for _, ActivateEventPrompt in v:GetChildren() do
+
+                        if ActivateEventPrompt:IsA("ProximityPrompt") and ActivateEventPrompt.RequiresLineOfSight then
+                            Prompt = ActivateEventPrompt
+                        end
+
+                    end
+
+                    if (v.Base.Position - LocalPlayer.Character.Collision.Position).Magnitude < Prompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(Prompt)
+                    end
+
+                elseif v.Name == "Wax_Door" and LocalPlayer.Character:FindFirstChild("SkeletonKey") then
+              
+                	if v.SkullLock.SkullPrompt.Enabled and (v.SkullLock.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.SkullLock.SkullPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(v.SkullLock.SkullPrompt)
+                    end
+
+                elseif v.Name == "Green_Herb" and not LocalPlayer.Character:GetAttribute("HerbGreenEffect") then
+              
+                	if (v.Plant.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Plant.HerbPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(v.Plant.HerbPrompt)
+                    end
+
+                end
+
+            end
+        end
+
+        for _, Assets in Targets do
+            for _, Root in Assets:GetChildren() do
+                if Root.Name == "Locker_Small" then
+
+                    if Root.Door.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                        FindLoot(Root)
+
+                    else
+                        if (Root.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Door.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.Door.ActivateEventPrompt)
+                        end
+                    end
+
+                elseif Root.Name == "Toolbox" or Root.Name == "ChestBox" or Root.Name == "Toolshed_Small" then
+
+                    if Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                        FindLoot(Root)
+
+                    else
+                        if (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.ActivateEventPrompt)
+                        end
+                    end
+
+                elseif Root.Name == "Chest_Vine" then
+
+                    if Root:FindFirstChild("LootHolder") then
+
+                        FindLoot(Root)
+
+                    end
+
+                elseif Root.Name == "ChestBoxLocked" then
+
+                    if Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                        FindLoot(Root)
+
+                    else
+                        if Options.GA_AutoInteract_Options.Value["使用开锁器 (其他)"] and LocalPlayer.Character:FindFirstChild("Lockpick") and (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.ActivateEventPrompt)
+                        end
+                    end
+
+                elseif Root.Name == "OldWoodenTable" then
+
+                    FindLoot(Root)
+
+                    for _, v in Root:GetChildren() do
+                        if v.Name == "DrawerContainer" then
+                            if v.Metal.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                FindLoot(v)
+
+                            else
+                                if (Root.Metal.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Metal.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(v.Metal.ActivateEventPrompt)
+                                end
+                            end
+                        end
+                    end
+
+                elseif Root.Name == "Dresser_Single" or Root.Name == "Dresser" or Root.Name == "Table" or Root.Name == "Library_Desk" then
+
+                    FindLoot(Root)
+
+                    for _, v in Root:GetChildren() do
+                        if v.Name == "DrawerContainer" then
+                            if v.Knobs.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                FindLoot(v)
+
+                            else
+                                if (v.Knobs.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knobs.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(v.Knobs.ActivateEventPrompt)
+                                end
+                            end
+                        end
+                    end
+
+                elseif Root.Name == "Backdoor_Table" then
+
+                    FindLoot(Root)
+
+                    for _, v in Root:GetChildren() do
+                        if v.Name == "DrawerContainer" then
+                            if v.Knob.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                FindLoot(v)
+
+                            else
+                                if (v.Knob.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knob.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(v.Knob.ActivateEventPrompt)
+                                end
+                            end
+                        end
+                    end
+
+                elseif Root.Name == "Rolltop_Desk" then
+
+                    FindLoot(Root)
+
+                    for _, v in Root:GetChildren() do
+                        if v.Name == "DrawerContainer" then
+
+                            if v.Knobs.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                FindLoot(v)
+
+                            else
+                                if (v.Knobs.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.Knobs.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(v.Knobs.ActivateEventPrompt)
+                                end
+                            end
+
+                        elseif v.Name == "RolltopContainer" then
+
+                            if v.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                                FindLoot(v)
+
+                            else
+                                if (v.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < v.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                    fireproximityprompt(v.ActivateEventPrompt)
+                                end
+                            end
+
+                        end
+                    end
+
+                elseif Root.Name == "KeyObtain" or Root.Name == "ElectricalKeyObtain" then
+
+                    if not (HasItem("Key") or HasItem("KeyBackdoor") or HasItem("KeyElectrical")) then
+                        if (Root.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ModulePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.ModulePrompt)
+                        end
+                    end
+
+                elseif Root.Name == "MinesGenerator" then
+                    local Fuse = HasItem("GeneratorFuse")
+
+                    for _, FuseInput in Root.Fuses:GetChildren() do
+                        if FuseInput:FindFirstChild("FusesPrompt") then
+                            if Fuse and (FuseInput.Fuse.Position - LocalPlayer.Character.Collision.Position).Magnitude < FuseInput.FusesPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                                fireproximityprompt(FuseInput.FusesPrompt)
+                            end
+
+                            break
+                        end
+                    end
+
+                    if Root.Lever.LeverPrompt.Enabled and (Root.Lever.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Lever.LeverPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(Root.Lever.LeverPrompt)
+                    end
+                
+                elseif Root.Name == "MinesGateButton" then
+
+                    if Root.Light.Transparency < 1 then
+                        if (Root.Button.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.Button.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.Button.ActivateEventPrompt)
+                        end
+                    end
+
+                elseif Root.Name == "LeverForGate" then
+
+                    if not Root.ActivateEventPrompt:GetAttribute("Interactions") then
+                        if (Root.Main.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.ActivateEventPrompt)
+                        end
+                    end
+
+                elseif Root.Name == "VentGrate" then
+
+                    if Root.AwesomePrompt.Enabled then
+                        if (Root.SquareGrate.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.AwesomePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(Root.AwesomePrompt)
+                        end
+                    end
+
+                elseif Root.Name == "Modular_Bookshelf" and Root:FindFirstChild("LiveHintBook") then
+
+                    if (Root.LiveHintBook.Base.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.LiveHintBook.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(Root.LiveHintBook.ActivateEventPrompt)
+                    end
+
+                elseif Root.Name == "TimerLever" and not Root.ActivateEventPrompt:GetAttribute("Interactions") then
+
+                    if (Root.Hitbox.Position - LocalPlayer.Character.Collision.Position).Magnitude < Root.ActivateEventPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                        fireproximityprompt(Root.ActivateEventPrompt)
+                    end
+
+                elseif Root.Name == "RoomsLootItem" or Root.Name == "CrucifixOnTheWall" then
+
+                    FindLoot(Root)
+
+                end
+            end
+        end
+
+        if CurrentRoom:FindFirstChild("_DamHandler") then
+
+            for _, Flood in CurrentRoom._DamHandler:GetChildren() do
+                if Flood.Name:sub(1, 5) == "Flood" then
+
+                    for _, WaterPump in Flood.Pumps:GetChildren() do
+                        if WaterPump.Wheel.ValvePrompt.Enabled and (WaterPump.Wheel.Position - LocalPlayer.Character.Collision.Position).Magnitude < WaterPump.Wheel.ValvePrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                            fireproximityprompt(WaterPump.Wheel.ValvePrompt)
+                        end
+                    end
+
+                end
+            end
+
+        end
+
+        if CurrentRoom:FindFirstChild("ElectricalDoor") then
+            local ElectricalKey = HasItem("KeyElectrical")
+
+            if CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt.Enabled and ElectricalKey then
+                ElectricalKey.Parent = LocalPlayer.Character
+
+                if (CurrentRoom.ElectricalDoor.Door.Lock.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(CurrentRoom.ElectricalDoor.Door.Lock.UnlockPrompt)
+                end
+
+            end
+        end
+
+        if CurrentRoom:FindFirstChild("RoomsDoor_Entrance") then
+            local Lockpick = Options.GA_AutoInteract_Options.Value["使用开锁器 (其他)"] and HasItem("Lockpick")
+            local SkeletonKey = HasItem("SkeletonKey")
+
+            if CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable.Enabled and Lockpick then
+
+                if (CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    Lockpick.Parent = LocalPlayer.Character
+                    fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Chain1.Lock1.ThingToEnable)
+                end
+
+            elseif CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt.Enabled and Lockpick then
+
+                if (CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    Lockpick.Parent = LocalPlayer.Character
+                    fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Chain2.Lock2.LockPrompt)
+                end
+
+            elseif CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt.Enabled and SkeletonKey then
+
+                if (CurrentRoom.RoomsDoor_Entrance.SkullLock.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    SkeletonKey.Parent = LocalPlayer.Character
+                    fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.SkullLock.SkullPrompt)
+                end
+
+            elseif CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt.Enabled then
+
+                if (CurrentRoom.RoomsDoor_Entrance.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                    fireproximityprompt(CurrentRoom.RoomsDoor_Entrance.Door.EnterPrompt)
+                end
+
+            end
+        end
+
+        local DoorExit = CurrentRoom:FindFirstChild("Backdoors_Exit") or CurrentRoom:FindFirstChild("RoomsDoor_Exit")
+        if DoorExit then
+
+            if (DoorExit.Door.Position - LocalPlayer.Character.Collision.Position).Magnitude < DoorExit.Door.EnterPrompt.MaxActivationDistance * Options.GA_AutoInteract_Range.Value then
+                fireproximityprompt(DoorExit.Door.EnterPrompt)
+            end
+
+        end
+
+        FindLoot(workspace.Drops)
+    end
+
+    -- 自动挂锁解决
+    if PadlockCode and Toggles.GA_AutoPadlockSolve.Value and LocalPlayer:GetAttribute("CurrentRoom") <= 51 then
+        local Padlock = workspace.CurrentRooms["50"].Door:FindFirstChild("Padlock")
+
+        if Padlock then
+            if (LocalPlayer.Character.Collision.Position - Padlock.Main.Position).Magnitude < Options.GA_AutoPadlockSolve_Distance.Value then
+                game.ReplicatedStorage.RemotesFolder.PL:FireServer(PadlockCode)
+            end
+        end
+    end
+
+    -- 速度修改
+    if Toggles.MM_Walkspeed.Value then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Options.MM_Walkspeed_S.Value + (LocalPlayer.Character:GetAttribute("Climbing") and Options.MM_Walkspeed_Boost.Value or 0) + LocalPlayer.Character:GetAttribute("SpeedBoost") + LocalPlayer.Character:GetAttribute("SpeedBoostBehind") + LocalPlayer.Character:GetAttribute("SpeedBoostExtra")
+    end
+
+    -- 视觉效果移除
+    local Shade = not workspace.CurrentCamera:FindFirstChild("Shade")
+    local Haste = not workspace.CurrentCamera:FindFirstChild("EntityModel")
+
+    if LocalPlayer.PlayerGui:FindFirstChild("MainUI") then
+        LocalPlayer.PlayerGui.MainUI.Jumpscare.Jumpscare_Shade.Visible = not (Toggles.VR_NoHaltEffect.Value or Shade)
+        LocalPlayer.PlayerGui.MainUI.MainFrame.DreadVignette.Visible = not (Toggles.VR_NoHasteEffect.Value or Haste)
+    end
+    
+    LocalPlayer.Character.HumanoidRootPart.CustomPhysicalProperties = (Toggles.MM_NoAcceleration.Value and PhysicalProperties.new(100, 0.7, 0, 1, 1) or OldAccel)
+end))
+
+-- 玩家ESP系统
+task.spawn(function()
+    repeat task.wait() 
+        if not Toggles.ESPP_Enabled.Value and not Library.Unloaded then
+            epiklistofpeople = {}
+        end
+        if not Toggles.LXPP_Enabled.Value and not Library.Unloaded then
+            LXUser = {}
+        end
+        for _,Player in pairs(game.Players:GetPlayers()) do            
+            if Player ~= LocalPlayer and not table.find(epiklistofpeople, Player) and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Toggles.ESPP_Enabled.Value and not table.find(LXUser, Player) then
+                lawl(Player.Character, Player.Name)
+                table.insert(epiklistofpeople, Player)
+            end
+            if Player ~= LocalPlayer and not table.find(LXUser, Player) and Player.Character:FindFirstChild("HumanoidRootPart") and Toggles.LXPP_Enabled.Value and not Library.Unloaded then
+                if Player:GetAttribute("USINGLOLHAX") == true then
+                    RemoveEspSmoothNoanim(Player.Character)
+                    task.wait()
+                    table.insert(LXUser, Player)
+                    LXSmth(Player.Character, Player.Name)
+                    epiklistofpeople = {}
+                end
+            end
+        end
+    until Library.Unloaded
+end)
+
+-- 设置库和回调函数
+Library.ToggleKeybind = Options.MenuKeybind
+
+-- 显示键绑定框架的切换
+Toggles.keybindmenu:OnChanged(function()
+    Library.KeybindFrame.Visible = Toggles.keybindmenu.Value
+end)
+
+-- 初始化主题管理器和保存管理器
+ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("lolhax/Themes")
+ThemeManager:ApplyToTab(Tabs.Config)
+
+SaveManager:SetLibrary(Library)
+SaveManager:SetFolder("lolhax/Doors3")
+SaveManager:BuildConfigSection(Tabs.Config)
+SaveManager:IgnoreThemeSettings()
+SaveManager:LoadAutoloadConfig()
+
+-- 加载完成通知
+Notify("加载成功", "加载完成，耗时 ".. string.format("%.2f", tick() - Loadtime) .." 秒", 10 / 3, true)
