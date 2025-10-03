@@ -1,0 +1,4 @@
+local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/xiaofengshijie/Rodhub/refs/heads/main/StarLight%20ESP.txt"))()
+
+-- After the ESP Library is loaded, you can access it using the following code:
+getgenv().StarLight_ESP
