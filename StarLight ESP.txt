@@ -17,7 +17,7 @@
 --]]
 
 --[[
-	https://docs.mstudio45.com/
+	https://raw.githubusercontent.com/xiaofengshijie/Rodhub/refs/heads/main/SL-ESP%20usage%20example.txt
 
 	ESPLib:Add({
 		Name : string [optional]
