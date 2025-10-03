@@ -13,7 +13,7 @@
 									v1
 
 						 Created by xiaofeng (Discord)
-				Contributors: Dottik, Master Oogway, deividcomsono
+				Contributors: Dottik, xiufy
 --]]
 
 --[[
