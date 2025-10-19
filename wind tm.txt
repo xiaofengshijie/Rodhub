@@ -8,6 +8,7 @@ Config = {
     provider = "StarLight"
 }
 local function main()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Articles-Hub/ROBLOXScript/refs/heads/main/File-Script/Door.lua"))()
 print("script loaded StarLight was here")
 end
 
